@@ -309,7 +309,8 @@
     if (!P.complete) return '<div class="card accent stack"><h2>' + t('ledger_h', per) + '</h2><div>' + t('ledger_pending') + '</div></div>';
     var table = '<table class="t">' + ledgerRows(P, par) + '</table>';
     var cmp;
-    if (P.counterfactualKind === 'exact') {
+    if (P.counterfactual == null) cmp = t('comparison_unknown');
+    else if (P.counterfactualKind === 'exact') {
       var diff = P.profit - P.counterfactual;
       cmp = per === 1 ? t('cmp1_exact', sg(P.profit), sg(P.counterfactual), '<b>' + sg(diff) + '</b>') : t('cmp2_exact', sg(P.profit), sg(P.counterfactual));
     } else {

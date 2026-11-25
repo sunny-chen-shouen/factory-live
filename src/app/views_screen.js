@@ -103,7 +103,7 @@
   function meanTable(mean, n) {
     var rows = '';
     for (var L = 1; L <= 4; L++) if (mean[L] != null) rows += '<tr><td>' + L + '</td><td>' + FL.n2(mean[L]) + '</td><td>' + n + '</td></tr>';
-    return rows ? '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('mean_q') + '</th><th>' + t('sample_n') + '</th></tr>' + rows + '</table><div class="tiny muted">' + t('cohort_note', n) + '</div>' : '';
+    return rows ? '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('cohort_mean') + '</th><th>' + t('sample_n') + '</th></tr>' + rows + '</table><div class="tiny muted">' + t('cohort_note', n) + '</div>' : '';
   }
 
   /* ------------------------------------------------ phases */
@@ -218,7 +218,7 @@
     var N = a.n, actualReady = N > 0 && a.decided2 === N, pairedReady = N > 0 && a.paired === N, bins = {}, maxc = 1;
     a.predicts.forEach(function (p) { bins[p] = (bins[p] || 0) + 1; maxc = Math.max(maxc, bins[p]); });
     var bars = '';
-    for (var k = 0; k <= N; k++) bars += '<div class="hist-bin"><div class="hist-track"><div class="hist-bar" style="height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (actualReady && k === a.exit2 ? 'var(--accent)' : '#9e9586') + '">' + (bins[k] ? '<b>' + bins[k] + '</b>' : '') + '</div></div><div class="' + (actualReady && k === a.exit2 ? 'sign' : 'muted') + '">' + k + (actualReady && k === a.exit2 ? ' ▲' : '') + '</div></div>';
+    for (var k = 0; k <= N; k++) bars += '<div class="hist-bin"><div class="hist-track"><div class="hist-bar" style="height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (actualReady && k === a.exit2 ? 'var(--accent)' : '#9e9586') + '">' + (bins[k] ? '<b>' + bins[k] + '</b>' : '') + '</div></div><div class="' + (actualReady && k === a.exit2 ? 'sign' : 'muted') + '">' + '<span class="hist-number">' + k + '</span>' + (actualReady && k === a.exit2 ? '<span class="actual-marker">▲</span>' : '') + '</div></div>';
     var hero = par.show_lesson ? '<div class="lesson-hero"><div class="lesson-formula">0 &lt; G &lt; F</div><div><h2>' + t('s_open_then_exit') + '</h2><p>' + t('lesson_rule') + '</p></div></div>' : '<div class="card accent big">' + t('slip_q', par.F) + '</div>';
     return '<div class="q-cards summary-compact"><div class="card"><div class="v">' + (pairedReady ? a.exitsAmongOpened : '—') + '</div><div class="k">' + t('s_open_then_exit') + '</div></div>' +
       '<div class="card"><div class="v">' + (a.decided1 ? a.opened1 : '—') + '</div><div class="k">' + t('s_open') + '</div></div>' +

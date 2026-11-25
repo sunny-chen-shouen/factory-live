@@ -361,6 +361,7 @@ window.FL.dict = (function () {
   a('market_today', '租金 {0} 已付。開工與停工都要承擔這筆租金。', 'Rent of {0} is already paid, whether you open or close.');
   a('market_next', '續租再付 {0}；退出不付租金，利潤 0。', 'Renewing costs {0} again. Exit means no rent and profit of 0.');
   a('market_plan_hint', '請在手機上比較自己工廠各種人數的「營收 − 工資」。', 'Compare revenue minus wages for your own factory on your phone.');
+  a('cohort_mean', '同批平均', 'Cohort mean');
   a('sample_n', '工廠數', 'Factories');
   a('paired_n', '配對家數', 'Paired n');
   a('teacher_trial_stats', '試產統計（教師分析）', 'Trial statistics (teacher analysis)');
@@ -368,6 +369,7 @@ window.FL.dict = (function () {
   a('late_hint', '沒有自己的試產資料時，先參考投影上的同批工廠平均，再和組員討論估計；各家生產力不同，這不是你們的保證產量。', 'Without your own trials, refer to the projector mean and discuss an estimate. Factories differ; it does not guarantee your output.');
   a('late_reference', '參考平均（{0} 家，非本桌試產）', 'Reference mean ({0} factories; not your trial)');
   a('profit_delta', '相較{1}：{0}', 'Difference vs {1}: {0}');
+  a('comparison_unknown', '缺少自己的試產資料，無法估計另一個選項的利潤。上方利潤仍依本期實際決策與產量結算。', 'Without your own trial data, the alternative cannot be estimated. Your actual profit above still uses this period’s decision and output.');
   a('class_vs_stop', '全班：實際利潤 vs 今天停工', 'Class: actual profit vs closing today');
   a('class_vs_exit', '全班：實際利潤 vs 下期退出', 'Class: actual profit vs exit');
   a('class_better', '{1} 家已結帳，其中 {0} 家比另一選項好', '{0} of {1} settled factories did better than the alternative');

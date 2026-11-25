@@ -282,7 +282,13 @@ a.btn{text-decoration:none}
  .screenbody .market-guide,.screenbody .market-guide .banner{font-size:20px}.screenbody .market-guide h2{font-size:24px}
  .screenbody.phase-run1 .q-cards .v,.screenbody.phase-run2 .q-cards .v,.screenbody .summary-compact .v{font-size:36px}.screenbody .summary-compact .k{font-size:17px}
  .class-comparison h3{font-size:21px}.class-aha{font-size:20px}.class-profit-grid{gap:3px 12px}.class-profit-head,.class-profit-row{grid-template-columns:minmax(0,1fr) repeat(3,41px);gap:3px}.class-profit-row{font-size:18px;padding:3px 0}.class-profit-row span:first-child{font-size:15px}.class-profit-head{font-size:13px}.class-comparison>p.small{font-size:16px}
+ .screenbody.phase-run1 .tiles.many .tile .in>.fac,.screenbody.phase-run2 .tiles.many .tile .in>.fac{max-height:56px}
+ .class-profit-head{font-size:12px}
  .lesson-hero{gap:24px;padding:12px 18px}.lesson-formula{font-size:52px}.lesson-hero h2{font-size:29px}.lesson-hero p{font-size:18px;max-width:620px}
  .screenbody .debrief-lesson .lesson h3{font-size:23px}.screenbody .debrief-lesson .lesson .small{font-size:20px;line-height:1.45}.screenbody .debrief-lesson .lesson .tiny{font-size:18px;line-height:1.4}.forecast-card h3{font-size:21px}.hist-bin{font-size:16px}.hist-caption,.forecast-card>.small{font-size:16px}.histogram{margin-top:6px;margin-bottom:6px}
 }
 @media(prefers-reduced-motion:reduce){.screenbody .shift-stage.is-final .cd .n{transform:none}}
+@keyframes market-reveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.phase-market .q-cards .card{animation:market-reveal .45s ease both}.phase-market .q-cards .card:nth-child(2){animation-delay:.08s}.phase-market .q-cards .card:nth-child(3){animation-delay:.16s}
+.screenbody .summary-compact .v,.screenbody.phase-run1 .q-cards .v,.screenbody.phase-run2 .q-cards .v{line-height:1.2}
+.hist-bin>div:last-child{position:relative;min-height:40px;line-height:24px;white-space:nowrap}.hist-number,.actual-marker{display:block}.actual-marker{font-size:13px;line-height:13px}

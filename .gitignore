@@ -3,3 +3,4 @@ src/test/node_modules/
 src/test/.live*.json
 src/test/output/
 __pycache__/
+src/test/.classroom*
