@@ -12,7 +12,7 @@
     return 0;
   }
 
-  // Trial points {L: q} for one team (all statuses except nothing yet)
+  // Trial points {L: q} for one team, verified or entered by the teacher.
   function trialPoints(runs, teamId) {
     var pts = {};
     runs.forEach(function (r) {

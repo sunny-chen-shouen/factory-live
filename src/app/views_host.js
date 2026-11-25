@@ -22,16 +22,16 @@
   }
   FL.acts.hcreate = function () {
     var key = FL.$('#h_key').value;
-    FL.api.create(key).then(function (code) { setHost(code, key); }).catch(function (e) { FL.toast(FL.errText(e)); });
+    return FL.api.create(key).then(function (code) { setHost(code, key); }).catch(function (e) { FL.showError(e); });
   };
   FL.acts.hresume = function () {
     var code = FL.$('#h_code').value.toUpperCase().trim(), key = FL.$('#h_key2').value;
-    FL.api.snapshot(code).then(function (s) {
+    return FL.api.snapshot(code).then(function (s) {
       if (!s) return FL.toast(t('err_no_session'));
       return FL.api.hostSet(code, key, {}).then(function () { setHost(code, key); });
-    }).catch(function (e) { FL.toast(FL.errText(e)); });
+    }).catch(function (e) { FL.showError(e); });
   };
-  function setHost(code, key) { FL.host = { code: code, key: key }; FL.ls.set('fl_host', JSON.stringify(FL.host)); FL.go('#/host/' + code); FL.boot(); }
+  function setHost(code, key) { H.csv = ''; H.tab = 'control'; H.armed = null; FL.host = { code: code, key: key }; FL.ls.set('fl_host', JSON.stringify(FL.host)); FL.go('#/host/' + code); FL.boot(); }
   FL.acts.hlogout = function () { FL.ls.del('fl_host'); FL.host = null; FL.store.stop(); FL.go('#/host'); FL.render(true); };
 
   /* ------------------------------------------------ helpers */

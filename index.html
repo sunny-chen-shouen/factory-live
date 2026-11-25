@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="application-version" content="2026-11-26-qa4">
+<meta name="application-version" content="2026-11-26-qa5">
 <title>工廠 LIVE · Factory LIVE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -232,6 +232,7 @@ input.inl,select.inl{width:76px;min-height:38px;padding:4px 8px;font-size:16px}
 .screenbody .chartbox{display:flex;flex-direction:column;flex:1;min-height:0}.screenbody .chartbox svg{display:block;flex:1;width:100%;height:100%;min-height:0}.screenbody .chartbox.mkt svg{max-height:none;min-height:0}
 .screenbody .tile-panel{display:flex;flex-direction:column;gap:8px;flex:1;min-height:0}
 .screenbody .tiles{flex:1;min-height:0;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:8px}
+.screenbody .tiles.few{flex:0 0 auto;grid-auto-rows:180px}
 .screenbody .tile{padding:6px;min-width:0;min-height:0}.screenbody .tile .fac{max-height:66px}.screenbody .tile .nm{font-size:17px}.screenbody .tile .sub{font-size:14px}.screenbody .tile .tag{font-size:14px;padding:1px 8px}.screenbody .tile .badge{width:22px;height:22px;top:4px;right:4px;font-size:13px}
 .screenbody .tile .in{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%}
 .screenbody .tile .in>*{flex-shrink:0}.screenbody .tile .nm{line-height:1.4;min-height:1.4em;max-width:100%}.screenbody .tile .fac{flex-basis:66px;height:66px}
@@ -274,7 +275,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     return 0;
   }
 
-  // Trial points {L: q} for one team (all statuses except nothing yet)
+  // Trial points {L: q} for one team, verified or entered by the teacher.
   function trialPoints(runs, teamId) {
     var pts = {};
     runs.forEach(function (r) {
@@ -1667,7 +1668,7 @@ window.FL.dict = (function () {
       '<tr><td>' + t('l_decision') + '</td><td>' + (p1.decided ? (p1.L === 0 ? t('stop') : t('hire_n', p1.L)) : '—') + '</td><td>' + (p2.decided ? (p2.renew ? t('renew') + ' · ' + t('hire_n', p2.L) : t('exit')) : '—') + '</td></tr>' +
       '<tr><td>' + t('l_profit') + '</td><td class="sign">' + (p1.complete ? sg(p1.profit) : '—') + '</td><td class="sign">' + (p2.complete ? sg(p2.profit) : '—') + '</td></tr>' +
       '<tr><td>' + t('l_alt') + '</td><td>' + alternative(p1) + '</td><td>' + alternative(p2) + '</td></tr></table>' +
-      '<div class="tiny muted" style="margin-top:6px">' + t('est_note') + '</div></div>' + (par.show_lesson ? FL.lessonHTML() : '');
+      '<div class="tiny muted" style="margin-top:6px">' + t('est_note') + '</div></div>' + (par.show_lesson ? '<div class="card">' + FL.lessonHTML() + '</div>' : '');
   }
   FL.afterTeam = function () {
     var a = FL.$('#slip1'), b = FL.$('#slip2');
@@ -1758,7 +1759,7 @@ window.FL.dict = (function () {
     var visible = list.slice(tilePage * PAGE_SIZE, (tilePage + 1) * PAGE_SIZE);
     var tilesz = list.length > 12 ? 140 : list.length > 6 ? 165 : 220;
     var cols = visible.length > 6 ? (/^run/.test(snap.session.phase) ? 6 : 4) : visible.length > 3 ? 3 : Math.max(visible.length, 1);
-    return '<div class="tile-panel"><div class="tiles' + (list.length > 6 ? ' many' : '') + '" style="--tile:' + tilesz + 'px;--cols:' + cols + '">' + visible.map(function (tm) {
+    return '<div class="tile-panel"><div class="tiles' + (list.length > 6 ? ' many' : '') + (visible.length <= 3 ? ' few' : '') + '" style="--tile:' + tilesz + 'px;--cols:' + cols + '">' + visible.map(function (tm) {
       var o = tileInfo(snap, tm), pre = flip.armed && /^run/.test(snap.session.phase);
       return '<div class="tile ' + o.state + ' flip ' + (pre ? 'pre' : '') + '"><div class="in">' +
         (o.badge ? '<div class="badge ' + (o.off ? 'off' : '') + '">' + o.badge + '</div>' : '') +
@@ -1964,16 +1965,16 @@ window.FL.dict = (function () {
   }
   FL.acts.hcreate = function () {
     var key = FL.$('#h_key').value;
-    FL.api.create(key).then(function (code) { setHost(code, key); }).catch(function (e) { FL.toast(FL.errText(e)); });
+    return FL.api.create(key).then(function (code) { setHost(code, key); }).catch(function (e) { FL.showError(e); });
   };
   FL.acts.hresume = function () {
     var code = FL.$('#h_code').value.toUpperCase().trim(), key = FL.$('#h_key2').value;
-    FL.api.snapshot(code).then(function (s) {
+    return FL.api.snapshot(code).then(function (s) {
       if (!s) return FL.toast(t('err_no_session'));
       return FL.api.hostSet(code, key, {}).then(function () { setHost(code, key); });
-    }).catch(function (e) { FL.toast(FL.errText(e)); });
+    }).catch(function (e) { FL.showError(e); });
   };
-  function setHost(code, key) { FL.host = { code: code, key: key }; FL.ls.set('fl_host', JSON.stringify(FL.host)); FL.go('#/host/' + code); FL.boot(); }
+  function setHost(code, key) { H.csv = ''; H.tab = 'control'; H.armed = null; FL.host = { code: code, key: key }; FL.ls.set('fl_host', JSON.stringify(FL.host)); FL.go('#/host/' + code); FL.boot(); }
   FL.acts.hlogout = function () { FL.ls.del('fl_host'); FL.host = null; FL.store.stop(); FL.go('#/host'); FL.render(true); };
 
   /* ------------------------------------------------ helpers */

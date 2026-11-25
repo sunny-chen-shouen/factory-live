@@ -55,5 +55,10 @@ text = render('screen'); assert.match(text, /估計利潤 \+5/); assert.doesNotM
 snap.session.params.F = 12; snap.session.phase = 'debrief';
 FL.lang = 'en'; text = render('screen'); assert.match(text, /Short run vs long run/); assert.doesNotMatch(text, /⟦/);
 assert.equal(C.classAggregates(snap).decided2, 1);
+// Switching rooms clears the previous room's CSV preview and selected tab.
+FL.host = null; FL.H.csv = 'old room export'; FL.H.tab = 'tools'; render('host');
+w.document.getElementById('h_code').value = 'NEXT'; w.document.getElementById('h_key2').value = 'test-key';
+FL.api.snapshot = async () => snap; FL.api.hostSet = async () => {}; FL.boot = () => {};
+await FL.acts.hresume(); assert.equal(FL.H.csv, ''); assert.equal(FL.H.tab, 'control'); assert.equal(FL.host.code, 'NEXT');
 dom.window.close();
 console.log('PASS: no-data ledgers, missing-decision recovery, chart labels, pagination, persistent drafts, honest action feedback and bilingual lesson');

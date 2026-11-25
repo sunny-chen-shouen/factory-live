@@ -64,7 +64,7 @@
     var visible = list.slice(tilePage * PAGE_SIZE, (tilePage + 1) * PAGE_SIZE);
     var tilesz = list.length > 12 ? 140 : list.length > 6 ? 165 : 220;
     var cols = visible.length > 6 ? (/^run/.test(snap.session.phase) ? 6 : 4) : visible.length > 3 ? 3 : Math.max(visible.length, 1);
-    return '<div class="tile-panel"><div class="tiles' + (list.length > 6 ? ' many' : '') + '" style="--tile:' + tilesz + 'px;--cols:' + cols + '">' + visible.map(function (tm) {
+    return '<div class="tile-panel"><div class="tiles' + (list.length > 6 ? ' many' : '') + (visible.length <= 3 ? ' few' : '') + '" style="--tile:' + tilesz + 'px;--cols:' + cols + '">' + visible.map(function (tm) {
       var o = tileInfo(snap, tm), pre = flip.armed && /^run/.test(snap.session.phase);
       return '<div class="tile ' + o.state + ' flip ' + (pre ? 'pre' : '') + '"><div class="in">' +
         (o.badge ? '<div class="badge ' + (o.off ? 'off' : '') + '">' + o.badge + '</div>' : '') +

@@ -334,7 +334,7 @@
       '<tr><td>' + t('l_decision') + '</td><td>' + (p1.decided ? (p1.L === 0 ? t('stop') : t('hire_n', p1.L)) : '—') + '</td><td>' + (p2.decided ? (p2.renew ? t('renew') + ' · ' + t('hire_n', p2.L) : t('exit')) : '—') + '</td></tr>' +
       '<tr><td>' + t('l_profit') + '</td><td class="sign">' + (p1.complete ? sg(p1.profit) : '—') + '</td><td class="sign">' + (p2.complete ? sg(p2.profit) : '—') + '</td></tr>' +
       '<tr><td>' + t('l_alt') + '</td><td>' + alternative(p1) + '</td><td>' + alternative(p2) + '</td></tr></table>' +
-      '<div class="tiny muted" style="margin-top:6px">' + t('est_note') + '</div></div>' + (par.show_lesson ? FL.lessonHTML() : '');
+      '<div class="tiny muted" style="margin-top:6px">' + t('est_note') + '</div></div>' + (par.show_lesson ? '<div class="card">' + FL.lessonHTML() + '</div>' : '');
   }
   FL.afterTeam = function () {
     var a = FL.$('#slip1'), b = FL.$('#slip2');
