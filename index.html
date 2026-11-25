@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="application-version" content="2026-11-26-clarity1">
+<meta name="application-version" content="2026-11-26-clarity2">
 <title>工廠 LIVE · Factory LIVE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -329,6 +329,7 @@ a.btn{text-decoration:none}
 .profit-axes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px;flex:none}
 .profit-axis-row{display:grid;grid-template-columns:minmax(80px,150px) minmax(0,1fr) 105px;gap:12px;align-items:start;font-size:16px;color:var(--muted)}
 .delta-axis{height:46px;position:relative}.delta-axis b{position:absolute;white-space:nowrap;font-size:16px;font-weight:700}.center-axis-label{left:50%;top:0;transform:translateX(-50%)}.income-axis-label{top:23px;transform:translateX(-100%);color:var(--ink)}
+.phase-ledger2 .delta-axis{height:28px}
 .delta-groups{display:flex;flex-direction:column;flex:1;min-height:0;gap:9px}.delta-group{display:flex;flex-direction:column;min-height:0;gap:5px}.delta-group>h3{font-size:20px;line-height:1.2;margin:0;color:var(--muted)}
 .delta-zero-guide{position:absolute;left:50%;height:100%;border-left:2px solid #7d7467;z-index:2}.income-zero-guide{position:absolute;top:-3px;bottom:-3px;border-left:1.5px dashed #70675a;z-index:2}
 .delta-plot .plot-name{display:flex;gap:5px;align-items:center}.plot-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.plot-decision{display:inline-flex;justify-content:center;align-items:center;flex:none;border:1px solid #b9b0a2;background:white;color:var(--muted);font-size:14px;line-height:20px;width:22px;height:22px;border-radius:5px}
@@ -338,6 +339,7 @@ a.btn{text-decoration:none}
 @media(min-width:1000px) and (max-height:800px){
  .profit-axes{gap:22px}.profit-axis-row{grid-template-columns:minmax(75px,115px) minmax(0,1fr) 88px;gap:9px;font-size:14px}.delta-axis b{font-size:14px}.delta-axis{height:42px}.income-axis-label{top:21px}.delta-group>h3{font-size:17px}.delta-groups{gap:7px}.delta-group{gap:4px}.delta-plot .plot-name{font-size:17px}.delta-plot .plot-values{font-size:20px}.plot-decision{font-size:12px;line-height:17px;width:19px;height:19px}.delta-plot .profit-track{height:16px}
  .lesson-reveal-hint{font-size:19px;margin-top:20px;padding:15px}.lesson-reveal-hint p{font-size:18px}.market-preview{gap:10px}.market-preview-note h2{font-size:26px}.market-preview-note p{font-size:19px}.market-preview .card>p{font-size:21px}.market-preview .chartbox>h3{font-size:19px}.market-preview table.t td{font-size:19px}
+ .delta-axis{height:48px}.delta-axis b{font-size:16px}.phase-ledger2 .delta-axis{height:26px}.phase-ledger2 .delta-plot .plot-values{font-size:18px;line-height:1.2}.delta-plot .profit-plot-row{line-height:1.2}
 }
 
 </style>
@@ -2104,7 +2106,7 @@ window.FL.dict = (function () {
     }).join('')+'</div>';}
     var axis = '<div class="profit-axis-row"><span>'+t('factory_short')+'</span><div class="delta-axis"><b class="center-axis-label">'+(per===1?t('shutdown_axis',sg(-snap.session.params.F)):t('same_outcome_axis'))+'</b>'+(per===1?'<b class="income-axis-label" style="left:'+x(snap.session.params.F)+'%">'+t('income_zero_axis')+'</b>':'')+'</div><span class="right">'+t('difference')+'</span></div>';
     var groups = per===1 ? [{choice:'all',list:rows}] : ['renew','exit','missing'].map(function(choice){return{choice:choice,list:rows.filter(function(r){return r.choice===choice;})};}).filter(function(g){return g.list.length;});
-    var body = groups.map(function(g){return '<section class="delta-group" data-group="'+g.choice+'" style="flex:'+Math.max(1,Math.ceil(g.list.length/2))+'">'+(per===2?'<h3>'+t(g.choice==='renew'?'group_renew':g.choice==='exit'?'group_exit':'group_missing',g.list.length)+'</h3>':'')+plot(g.list)+'</section>';}).join('');
+    var body = groups.map(function(g){return '<section class="delta-group" data-group="'+g.choice+'" style="flex:'+Math.max(1,Math.ceil(g.list.length/2))+' 1 '+(per===2?'26px':'0px')+'">'+(per===2?'<h3>'+t(g.choice==='renew'?'group_renew':g.choice==='exit'?'group_exit':'group_missing',g.list.length)+'</h3>':'')+plot(g.list)+'</section>';}).join('');
     var working = comparable.filter(function(r){return r.choice==='work';}), workBetter = working.filter(function(r){return r.delta>0;}).length;
     var headline = per===1 ? t(working.length && workBetter===working.length?'all_open_better':'open_better',workBetter) : t('choices_helped',better);
     if(!comparable.length)headline=t('waiting_comparison');

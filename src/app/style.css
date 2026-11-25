@@ -319,6 +319,7 @@ a.btn{text-decoration:none}
 .profit-axes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px;flex:none}
 .profit-axis-row{display:grid;grid-template-columns:minmax(80px,150px) minmax(0,1fr) 105px;gap:12px;align-items:start;font-size:16px;color:var(--muted)}
 .delta-axis{height:46px;position:relative}.delta-axis b{position:absolute;white-space:nowrap;font-size:16px;font-weight:700}.center-axis-label{left:50%;top:0;transform:translateX(-50%)}.income-axis-label{top:23px;transform:translateX(-100%);color:var(--ink)}
+.phase-ledger2 .delta-axis{height:28px}
 .delta-groups{display:flex;flex-direction:column;flex:1;min-height:0;gap:9px}.delta-group{display:flex;flex-direction:column;min-height:0;gap:5px}.delta-group>h3{font-size:20px;line-height:1.2;margin:0;color:var(--muted)}
 .delta-zero-guide{position:absolute;left:50%;height:100%;border-left:2px solid #7d7467;z-index:2}.income-zero-guide{position:absolute;top:-3px;bottom:-3px;border-left:1.5px dashed #70675a;z-index:2}
 .delta-plot .plot-name{display:flex;gap:5px;align-items:center}.plot-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.plot-decision{display:inline-flex;justify-content:center;align-items:center;flex:none;border:1px solid #b9b0a2;background:white;color:var(--muted);font-size:14px;line-height:20px;width:22px;height:22px;border-radius:5px}
@@ -328,4 +329,5 @@ a.btn{text-decoration:none}
 @media(min-width:1000px) and (max-height:800px){
  .profit-axes{gap:22px}.profit-axis-row{grid-template-columns:minmax(75px,115px) minmax(0,1fr) 88px;gap:9px;font-size:14px}.delta-axis b{font-size:14px}.delta-axis{height:42px}.income-axis-label{top:21px}.delta-group>h3{font-size:17px}.delta-groups{gap:7px}.delta-group{gap:4px}.delta-plot .plot-name{font-size:17px}.delta-plot .plot-values{font-size:20px}.plot-decision{font-size:12px;line-height:17px;width:19px;height:19px}.delta-plot .profit-track{height:16px}
  .lesson-reveal-hint{font-size:19px;margin-top:20px;padding:15px}.lesson-reveal-hint p{font-size:18px}.market-preview{gap:10px}.market-preview-note h2{font-size:26px}.market-preview-note p{font-size:19px}.market-preview .card>p{font-size:21px}.market-preview .chartbox>h3{font-size:19px}.market-preview table.t td{font-size:19px}
+ .delta-axis{height:48px}.delta-axis b{font-size:16px}.phase-ledger2 .delta-axis{height:26px}.phase-ledger2 .delta-plot .plot-values{font-size:18px;line-height:1.2}.delta-plot .profit-plot-row{line-height:1.2}
 }

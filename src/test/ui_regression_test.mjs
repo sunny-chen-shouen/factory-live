@@ -49,6 +49,15 @@ snap.session.phase = 'ledger2'; text = render('screen'); assert.match(text, /−
 assert.equal(w.document.querySelector('.profit-plot-row').dataset.alternative,'-6'); assert.equal(w.document.querySelector('.profit-plot-row').dataset.delta,'6');
 assert.equal(w.document.querySelector('.profit-plot-row').dataset.choice,'exit'); assert.ok(w.document.querySelector('[data-group=exit]'));
 assert.equal(w.document.querySelector('.profit-segment').style.left,'50%'); assert.ok(w.document.querySelector('.delta-zero-guide'));
+const kept={teams:snap.teams,runs:snap.runs,decisions:snap.decisions};
+snap.teams=[{...team,id:'b',table_no:1},{...team,id:'d',table_no:2},team,{...team,id:'c',table_no:3},{...team,id:'e',table_no:4}];
+snap.runs=[...kept.runs,{team_id:'b',kind:'trial',L:1,q:20,status:'host'},{team_id:'c',kind:'p2',L:1,q:10,status:'host'},{team_id:'d',kind:'p2',L:1,q:5,status:'host'}];
+snap.decisions=[...kept.decisions,{team_id:'b',period:2,renew:false,L:0},{team_id:'c',period:2,renew:true,L:1},{team_id:'d',period:2,renew:true,L:1},{team_id:'e',period:2,renew:false,L:0}];
+render('screen');
+assert.deepEqual([...w.document.querySelectorAll('[data-group=renew] .profit-plot-row')].map(e=>e.dataset.delta),['2','-8']);
+assert.deepEqual([...w.document.querySelectorAll('[data-group=exit] .profit-plot-row')].map(e=>e.dataset.delta),['6','-22','']);
+assert.ok([...w.document.querySelectorAll('[data-group=exit] .plot-decision')].every(e=>e.textContent==='退'));
+snap.teams=kept.teams;snap.runs=kept.runs;snap.decisions=kept.decisions;
 snap.session.phase='ledger1'; text=render('screen'); assert.match(text,/利潤0/); assert.match(text,/停工 −12/); assert.ok(w.document.querySelector('.income-zero-guide'));
 snap.session.phase = 'debrief'; snap.session.params.show_lesson = true; text = render('screen'); assert.match(text, /短期與長期/); assert.match(text, /0 < G < F/);
 text = render('team'); assert.match(text, /−6\*/); assert.doesNotMatch(text, /−12\*/);
