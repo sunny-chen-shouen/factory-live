@@ -53,6 +53,12 @@ by Git. Also test the deployed UI in separate teacher/student/projector tabs at
   renewal, renewers use zero. Unknown alternatives are excluded from comparisons.
 - Automatic Ledger 2 examples favour opening today and correctly exiting next;
   manual featured choices are scoped to their ledger period.
+- Both class ledgers plot actual minus the reference option around a common
+  difference-zero centre. In Ledger 1, profit zero is at difference F and is
+  labelled separately from shutdown at the centre. Ledger 2 groups renewal
+  and exit choices and sorts by gain within each group.
+- Before market publication, the projector keeps trial curves and cohort means
+  visible while prices, wages and rent remain hidden.
 
 ## RPC regression
 

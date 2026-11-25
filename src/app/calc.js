@@ -158,7 +158,8 @@
       var p = ledger(tm, snap).periods[period], base = period === 1 ? -snap.session.params.F : p.counterfactual;
       var actual = p.complete ? p.profit : null, comparable = p.complete && base != null;
       return { team: tm, actual: actual, alternative: base == null ? null : base, delta: comparable ? actual - base : null,
-        estimated: period === 2 && p.counterfactualKind === 'estimate', comparable: comparable };
+        estimated: period === 2 && p.counterfactualKind === 'estimate', comparable: comparable,
+        choice: !p.decided ? 'missing' : period === 1 ? (p.L > 0 ? 'work' : 'stop') : (p.renew ? 'renew' : 'exit') };
     });
   }
 

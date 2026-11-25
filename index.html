@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="application-version" content="2026-11-26-visual2">
+<meta name="application-version" content="2026-11-26-clarity1">
 <title>工廠 LIVE · Factory LIVE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -325,6 +325,21 @@ a.btn{text-decoration:none}
  .outcome-banner{font-size:26px}.histogram{padding-top:46px}.actual-exit-label{font-size:16px;top:-42px}.screenbody .debrief-lesson .lesson .small{font-size:19px}.screenbody .debrief-lesson .lesson .tiny{font-size:17px}
 }
 
+/* One reference for each profit comparison: centred differences, grouped choices. */
+.profit-axes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px;flex:none}
+.profit-axis-row{display:grid;grid-template-columns:minmax(80px,150px) minmax(0,1fr) 105px;gap:12px;align-items:start;font-size:16px;color:var(--muted)}
+.delta-axis{height:46px;position:relative}.delta-axis b{position:absolute;white-space:nowrap;font-size:16px;font-weight:700}.center-axis-label{left:50%;top:0;transform:translateX(-50%)}.income-axis-label{top:23px;transform:translateX(-100%);color:var(--ink)}
+.delta-groups{display:flex;flex-direction:column;flex:1;min-height:0;gap:9px}.delta-group{display:flex;flex-direction:column;min-height:0;gap:5px}.delta-group>h3{font-size:20px;line-height:1.2;margin:0;color:var(--muted)}
+.delta-zero-guide{position:absolute;left:50%;height:100%;border-left:2px solid #7d7467;z-index:2}.income-zero-guide{position:absolute;top:-3px;bottom:-3px;border-left:1.5px dashed #70675a;z-index:2}
+.delta-plot .plot-name{display:flex;gap:5px;align-items:center}.plot-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.plot-decision{display:inline-flex;justify-content:center;align-items:center;flex:none;border:1px solid #b9b0a2;background:white;color:var(--muted);font-size:14px;line-height:20px;width:22px;height:22px;border-radius:5px}
+.delta-plot .actual-dot{z-index:3}.delta-plot .profit-track{height:18px}.delta-plot .plot-values{font-size:25px}.profit-plot-row{line-height:1.25}
+.lesson-reveal-hint{border:1.5px dashed #c8b69f;background:#faf5ed;padding:18px;border-radius:14px;margin-top:24px;font-size:21px}.lesson-reveal-hint p{margin:8px 0 0;font-size:20px}.hist-track>.hist-bar{width:88%}
+.market-preview{display:flex;flex-direction:column;gap:14px;flex:1;min-height:0}.market-preview-note{flex:none;text-align:center}.market-preview-note h2{font-size:30px}.market-preview-note p{font-size:22px;margin:6px 0 0}.market-preview>.row.gap{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);flex:1;min-height:0;align-items:stretch}.market-preview>.row.gap>*{min-width:0;min-height:0}.market-preview .card>p{font-size:24px}.market-preview .chartbox>h3{font-size:22px}.market-preview table.t td{font-size:22px}
+@media(min-width:1000px) and (max-height:800px){
+ .profit-axes{gap:22px}.profit-axis-row{grid-template-columns:minmax(75px,115px) minmax(0,1fr) 88px;gap:9px;font-size:14px}.delta-axis b{font-size:14px}.delta-axis{height:42px}.income-axis-label{top:21px}.delta-group>h3{font-size:17px}.delta-groups{gap:7px}.delta-group{gap:4px}.delta-plot .plot-name{font-size:17px}.delta-plot .plot-values{font-size:20px}.plot-decision{font-size:12px;line-height:17px;width:19px;height:19px}.delta-plot .profit-track{height:16px}
+ .lesson-reveal-hint{font-size:19px;margin-top:20px;padding:15px}.lesson-reveal-hint p{font-size:18px}.market-preview{gap:10px}.market-preview-note h2{font-size:26px}.market-preview-note p{font-size:19px}.market-preview .card>p{font-size:21px}.market-preview .chartbox>h3{font-size:19px}.market-preview table.t td{font-size:19px}
+}
+
 </style>
 </head>
 <body>
@@ -495,7 +510,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       var p = ledger(tm, snap).periods[period], base = period === 1 ? -snap.session.params.F : p.counterfactual;
       var actual = p.complete ? p.profit : null, comparable = p.complete && base != null;
       return { team: tm, actual: actual, alternative: base == null ? null : base, delta: comparable ? actual - base : null,
-        estimated: period === 2 && p.counterfactualKind === 'estimate', comparable: comparable };
+        estimated: period === 2 && p.counterfactualKind === 'estimate', comparable: comparable,
+        choice: !p.decided ? 'missing' : period === 1 ? (p.L > 0 ? 'work' : 'stop') : (p.renew ? 'renew' : 'exit') };
     });
   }
 
@@ -1277,6 +1293,28 @@ window.FL.dict = (function () {
   a('actual_exits_n', '實際 {0} 家', 'Actual: {0} exits');
   a('observed_open_exit', '{0} 家今天開工，下期退出', '{0} factories opened today and exit next');
   a('waiting_teacher', '等老師開始', 'Waiting to start');
+  a('market_preview_hint', '價格公布前，先觀察同一批工廠的試產曲線。', 'While prices are being set, examine the same-factory trial curve.');
+  a('preview_observe', '先看產量怎麼變化', 'Watch how output changes');
+  a('preview_question', '從1人增加到2、3、4人，產量每次都增加一樣多嗎？先和組員討論，再等老師公布市場條件。', 'Does each extra worker add the same number of rings? Discuss the trial results while the teacher prepares the market.');
+  a('renew_short', '續', 'R');
+  a('exit_short', '退', 'E');
+  a('group_renew', '續租的工廠 · {0} 家', 'Renewing factories · {0}');
+  a('group_exit', '退出的工廠 · {0} 家', 'Exiting factories · {0}');
+  a('group_missing', '尚未決策 · {0} 家', 'Missing decisions · {0}');
+  a('row_profit_details', '實際 {0}；另一方案 {1}；差額 {2}', 'Actual {0}; alternative {1}; difference {2}');
+  a('factory_short', '工廠', 'Factory');
+  a('shutdown_axis', '停工 {0}｜差額0', 'Close {0} | difference 0');
+  a('same_outcome_axis', '差額0：兩方案一樣好', '0: equal outcomes');
+  a('income_zero_axis', '利潤0', 'Profit 0');
+  a('all_open_better', '{0} 家開工都比停工好', 'All {0} open factories beat closing');
+  a('open_better', '{0} 家開工比停工好', '{0} open factories beat closing');
+  a('choices_helped', '{0} 家選擇較有利', '{0} factories chose the better option');
+  a('waiting_comparison', '等結帳資料到齊', 'Waiting for comparable results');
+  a('profit_loss_counts', '{0} 家仍賺錢；{1} 家虧了，但比停工少虧', '{0} made a profit; {1} lost money but reduced their loss');
+  a('delta_estimate_context', '續租、退出各自按差額排序', 'Renewals and exits sorted by gain');
+  a('delta_plot_note', '右側更好，左側較差；數字是「實際 − 另一方案」（* 試產估計）。', 'Right is better; left is worse. Values = actual minus alternative (* trial estimate).');
+  a('reveal_hint_title', '老師稍後揭示教學重點', 'The teacher will reveal the lesson');
+  a('reveal_hint_body', '先比較今天與下期的理由，再請老師在控制頁按「顯示教學重點」。', 'Discuss your reasons for today and next period, then ask the teacher to select “Reveal the lesson”.');
   return D;
 })();
 
@@ -2007,7 +2045,7 @@ window.FL.dict = (function () {
 
   function marketScreen(snap) {
     var par = snap.session.params, ch = trialChart(snap);
-    if (!FL.marketPublished(snap)) return FL.marketWaiting();
+    if (!FL.marketPublished(snap)) return '<div class="market-preview"><div class="card accent market-preview-note"><h2>' + t('market_wait') + '</h2><p>' + t('market_preview_hint') + '</p></div><div class="row gap"><div class="chartbox"><h3>' + t('chart_h') + '</h3>' + ch.svg + '</div><div class="card stack"><h3>' + t('preview_observe') + '</h3><p>' + t('preview_question') + '</p>' + meanTable(ch.mean,ch.n) + '</div></div></div>';
     return '<div class="q-cards"><div class="card"><div class="k">' + t('p_name') + '</div><div class="v">' + par.p + '</div></div>' +
       '<div class="card"><div class="k">' + t('w_name') + '</div><div class="v">' + par.w + '</div></div>' +
       '<div class="card"><div class="k">' + t('f_name') + '</div><div class="v">' + par.F + '</div></div></div>' +
@@ -2054,17 +2092,25 @@ window.FL.dict = (function () {
 
   function classComparison(snap, per) {
     var rows = C.comparisonRows(snap,per), comparable = rows.filter(function(r){return r.comparable;}), better = comparable.filter(function(r){return r.delta>0;}).length;
-    var vals = [0]; rows.forEach(function(r){if(r.actual!=null)vals.push(r.actual);if(r.alternative!=null)vals.push(r.alternative);});
-    var lo = Math.min.apply(null,vals), hi = Math.max.apply(null,vals), span = hi-lo || 1;
-    lo -= span*.08; hi += span*.08;
-    function x(v){return 100*(v-lo)/(hi-lo);}
-    var bars = rows.map(function(r){
-      var track = '<div class="profit-track"><i class="zero-guide" style="left:'+x(0)+'%"></i>';
-      if(r.comparable)track += '<i class="profit-segment '+(r.delta<0?'worse':'better')+'" style="left:'+Math.min(x(r.actual),x(r.alternative))+'%;width:'+Math.abs(x(r.actual)-x(r.alternative))+'%"></i><i class="alternative-marker '+(r.estimated?'estimated':'')+'" style="left:'+x(r.alternative)+'%"></i><i class="actual-dot" style="left:'+x(r.actual)+'%"></i>';
-      track += '</div>';
-      return '<div class="profit-plot-row" data-team="'+esc(r.team.id)+'" data-actual="'+(r.actual==null?'':r.actual)+'" data-alternative="'+(r.alternative==null?'':r.alternative)+'" data-delta="'+(r.delta==null?'':r.delta)+'"><span class="plot-name" title="'+esc(r.team.name)+'">'+r.team.table_no+' · '+esc(r.team.name)+'</span>'+track+'<span class="plot-values">'+(r.actual==null?'—':sg(r.actual))+' <small>/ '+(r.alternative==null?'—':sg(r.alternative)+(r.estimated?'*':''))+'</small></span></div>';
-    }).join('');
-    return '<div class="card class-comparison chart-comparison"><div class="comparison-heading"><h2 class="class-aha">'+t('class_comparable_better',better,comparable.length)+'</h2><span>'+t(per===1?'class_vs_stop':'class_vs_alternative')+'</span></div><div class="plot-legend">'+t('profit_plot_legend')+'</div><div class="profit-plot" style="--plot-rows:'+Math.max(1,Math.ceil(rows.length/2))+'">'+bars+'</div><div class="plot-footer">'+t(per===1?'plot_stop_note':'plot_alternative_note')+(comparable.length<rows.length?' '+t('comparison_missing',rows.length-comparable.length):'')+'</div></div>';
+    var magnitude = Math.max.apply(null,[1,per===1?snap.session.params.F:0].concat(comparable.map(function(r){return Math.abs(r.delta);}))) * 1.08;
+    function x(v){return 50 + 46*v/magnitude;}
+    function ordered(list){return list.slice().sort(function(a,b){return (a.comparable===b.comparable?0:a.comparable?-1:1) || (b.delta||0)-(a.delta||0) || a.team.table_no-b.team.table_no;});}
+    function plot(list){return '<div class="profit-plot delta-plot" style="--plot-rows:'+Math.max(1,Math.ceil(list.length/2))+'">'+ordered(list).map(function(r){
+      var tag = per===2 ? '<b class="plot-decision" title="'+t(r.choice==='renew'?'renew':r.choice==='exit'?'exit':'no_dec_short')+'">'+t(r.choice==='renew'?'renew_short':r.choice==='exit'?'exit_short':'no_dec_short')+'</b>' : '';
+      var description = t('row_profit_details',sg(r.actual),sg(r.alternative),sg(r.delta))+(r.estimated?'*':'');
+      var track = '<div class="profit-track"><i class="delta-zero-guide"></i>'+(per===1?'<i class="income-zero-guide" style="left:'+x(snap.session.params.F)+'%"></i>':'');
+      if(r.comparable)track += '<i class="profit-segment '+(r.delta<0?'worse':'better')+'" style="left:'+Math.min(50,x(r.delta))+'%;width:'+Math.abs(x(r.delta)-50)+'%"></i><i class="actual-dot" style="left:'+x(r.delta)+'%"></i>';
+      return '<div class="profit-plot-row" data-choice="'+r.choice+'" data-team="'+esc(r.team.id)+'" data-actual="'+(r.actual==null?'':r.actual)+'" data-alternative="'+(r.alternative==null?'':r.alternative)+'" data-delta="'+(r.delta==null?'':r.delta)+'" title="'+esc(description)+'" aria-label="'+esc(r.team.name+' '+description)+'"><span class="plot-name">'+tag+'<span class="plot-label" title="'+esc(r.team.name)+'">'+r.team.table_no+' · '+esc(r.team.name)+'</span></span>'+track+'</div><span class="plot-values">'+(r.delta==null?'—':sg(r.delta)+(r.estimated?'*':''))+'</span></div>';
+    }).join('')+'</div>';}
+    var axis = '<div class="profit-axis-row"><span>'+t('factory_short')+'</span><div class="delta-axis"><b class="center-axis-label">'+(per===1?t('shutdown_axis',sg(-snap.session.params.F)):t('same_outcome_axis'))+'</b>'+(per===1?'<b class="income-axis-label" style="left:'+x(snap.session.params.F)+'%">'+t('income_zero_axis')+'</b>':'')+'</div><span class="right">'+t('difference')+'</span></div>';
+    var groups = per===1 ? [{choice:'all',list:rows}] : ['renew','exit','missing'].map(function(choice){return{choice:choice,list:rows.filter(function(r){return r.choice===choice;})};}).filter(function(g){return g.list.length;});
+    var body = groups.map(function(g){return '<section class="delta-group" data-group="'+g.choice+'" style="flex:'+Math.max(1,Math.ceil(g.list.length/2))+'">'+(per===2?'<h3>'+t(g.choice==='renew'?'group_renew':g.choice==='exit'?'group_exit':'group_missing',g.list.length)+'</h3>':'')+plot(g.list)+'</section>';}).join('');
+    var working = comparable.filter(function(r){return r.choice==='work';}), workBetter = working.filter(function(r){return r.delta>0;}).length;
+    var headline = per===1 ? t(working.length && workBetter===working.length?'all_open_better':'open_better',workBetter) : t('choices_helped',better);
+    if(!comparable.length)headline=t('waiting_comparison');
+    var profitable = comparable.filter(function(r){return r.choice==='work'&&r.actual>0;}).length, lessLoss = comparable.filter(function(r){return r.choice==='work'&&r.actual<0&&r.delta>0;}).length;
+    var context = per===1?t('profit_loss_counts',profitable,lessLoss):t('delta_estimate_context');
+    return '<div class="card class-comparison chart-comparison"><div class="comparison-heading"><h2 class="class-aha">'+headline+'</h2><span>'+context+'</span></div><div class="profit-axes">'+axis+axis+'</div><div class="delta-groups">'+body+'</div><div class="plot-footer">'+t('delta_plot_note')+(comparable.length<rows.length?' '+t('comparison_missing',rows.length-comparable.length):'')+'</div></div>';
   }
 
   function debriefScreen(snap) {
@@ -2072,13 +2118,13 @@ window.FL.dict = (function () {
     var N = a.n, actualReady = N > 0 && a.decided2 === N, pairedReady = N > 0 && a.paired === N, bins = {}, maxc = 1;
     a.predicts.forEach(function (p) { bins[p] = (bins[p] || 0) + 1; maxc = Math.max(maxc, bins[p]); });
     var bars = '';
-    for (var k = 0; k <= N; k++) bars += '<div class="hist-bin' + (actualReady && k === a.exit2 ? ' actual-bin' : '') + '"><div class="hist-track">' + (actualReady && k === a.exit2 ? '<i class="actual-exit-line"></i><span class="actual-exit-label">' + t('actual_exits_n',a.exit2) + '</span>' : '') + '<div class="hist-bar" style="height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (actualReady && k === a.exit2 ? 'var(--accent)' : '#ded8ce') + '">' + (bins[k] ? '<b>' + bins[k] + '</b>' : '') + '</div></div><div class="' + (actualReady && k === a.exit2 ? 'sign' : 'muted') + '">' + '<span class="hist-number">' + k + '</span>' + (actualReady && k === a.exit2 ? '<span class="actual-marker">▲</span>' : '') + '</div></div>';
-    var hero = par.show_lesson ? '<div class="lesson-hero"><div class="lesson-formula">0 &lt; G &lt; F</div><div><h2>' + t('s_open_then_exit') + '</h2><p>' + t('lesson_rule') + '</p></div></div>' : '<div class="card accent outcome-banner">' + (pairedReady ? t('observed_open_exit',a.exitsAmongOpened) : t('forecast_pending',a.decided2,N)) + '</div>';
+    for (var k = 0; k <= N; k++) bars += '<div class="hist-bin' + (actualReady && k === a.exit2 ? ' actual-bin' : '') + '"><div class="hist-track">' + (actualReady && k === a.exit2 ? '<i class="actual-exit-line"></i><span class="actual-exit-label">' + t('actual_exits_n',a.exit2) + '</span>' : '') + '<div class="hist-bar" style="height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (actualReady && k === a.exit2 ? 'var(--accent)' : '#b9b0a2') + '">' + (bins[k] ? '<b>' + bins[k] + '</b>' : '') + '</div></div><div class="' + (actualReady && k === a.exit2 ? 'sign' : 'muted') + '">' + '<span class="hist-number">' + k + '</span>' + '</div></div>';
+    var hero = par.show_lesson ? '<div class="lesson-hero"><div class="lesson-formula">0 &lt; G &lt; F</div><div><h2>' + t('s_open_then_exit') + '</h2><p>' + t('lesson_rule') + '</p></div></div>' : '';
     return '<div class="q-cards summary-compact"><div class="card"><div class="v">' + (pairedReady ? a.exitsAmongOpened : '—') + '</div><div class="k">' + t('s_open_then_exit') + '</div></div>' +
       '<div class="card"><div class="v">' + (a.decided1 ? a.opened1 : '—') + '</div><div class="k">' + t('s_open') + '</div></div>' +
       '<div class="card"><div class="v">' + (actualReady ? a.exit2 : '—') + '</div><div class="k">' + t('s_exit') + '</div></div></div>' + (!actualReady ? '<div class="banner warn small">' + t('forecast_pending', a.decided2, N) + '</div>' : '') + hero +
-      '<div class="row gap"><div class="card forecast-card"><h3>' + t('pred_vs_actual') + '</h3>' + (a.predicts.length ? '<div class="histogram">' + bars + '</div><div class="hist-caption">' + t('forecast_axis') + '</div><div class="small muted">' + (actualReady ? t('pred_note') : t('forecast_pending', a.decided2, N)) + '</div>' : '<div class="muted">' + t('no_forecasts') + '</div>') + '</div>' +
-      '<div class="card debrief-lesson">' + (par.show_lesson ? FL.lessonHTML() : '<h2>' + t('slip_h') + '</h2><p>' + t('slip_q', par.F) + '</p>') + '</div></div>';
+      '<div class="row gap"><div class="card forecast-card"><h3>' + t('pred_vs_actual') + '</h3>' + (a.predicts.length ? '<div class="histogram">' + bars + '</div><div class="hist-caption">' + t('forecast_axis') + '</div>' + (!actualReady ? '<div class="small muted">' + t('forecast_pending', a.decided2, N) + '</div>' : '') : '<div class="muted">' + t('no_forecasts') + '</div>') + '</div>' +
+      '<div class="card debrief-lesson">' + (par.show_lesson ? FL.lessonHTML() : '<h2>' + t('slip_h') + '</h2><p>' + t('slip_q', par.F) + '</p><div class="lesson-reveal-hint"><b>' + t('reveal_hint_title') + '</b><p>' + t('reveal_hint_body') + '</p></div>') + '</div></div>';
   }
 
   /* ------------------------------------------------ main */

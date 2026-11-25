@@ -137,7 +137,7 @@
 
   function marketScreen(snap) {
     var par = snap.session.params, ch = trialChart(snap);
-    if (!FL.marketPublished(snap)) return FL.marketWaiting();
+    if (!FL.marketPublished(snap)) return '<div class="market-preview"><div class="card accent market-preview-note"><h2>' + t('market_wait') + '</h2><p>' + t('market_preview_hint') + '</p></div><div class="row gap"><div class="chartbox"><h3>' + t('chart_h') + '</h3>' + ch.svg + '</div><div class="card stack"><h3>' + t('preview_observe') + '</h3><p>' + t('preview_question') + '</p>' + meanTable(ch.mean,ch.n) + '</div></div></div>';
     return '<div class="q-cards"><div class="card"><div class="k">' + t('p_name') + '</div><div class="v">' + par.p + '</div></div>' +
       '<div class="card"><div class="k">' + t('w_name') + '</div><div class="v">' + par.w + '</div></div>' +
       '<div class="card"><div class="k">' + t('f_name') + '</div><div class="v">' + par.F + '</div></div></div>' +
@@ -184,17 +184,25 @@
 
   function classComparison(snap, per) {
     var rows = C.comparisonRows(snap,per), comparable = rows.filter(function(r){return r.comparable;}), better = comparable.filter(function(r){return r.delta>0;}).length;
-    var vals = [0]; rows.forEach(function(r){if(r.actual!=null)vals.push(r.actual);if(r.alternative!=null)vals.push(r.alternative);});
-    var lo = Math.min.apply(null,vals), hi = Math.max.apply(null,vals), span = hi-lo || 1;
-    lo -= span*.08; hi += span*.08;
-    function x(v){return 100*(v-lo)/(hi-lo);}
-    var bars = rows.map(function(r){
-      var track = '<div class="profit-track"><i class="zero-guide" style="left:'+x(0)+'%"></i>';
-      if(r.comparable)track += '<i class="profit-segment '+(r.delta<0?'worse':'better')+'" style="left:'+Math.min(x(r.actual),x(r.alternative))+'%;width:'+Math.abs(x(r.actual)-x(r.alternative))+'%"></i><i class="alternative-marker '+(r.estimated?'estimated':'')+'" style="left:'+x(r.alternative)+'%"></i><i class="actual-dot" style="left:'+x(r.actual)+'%"></i>';
-      track += '</div>';
-      return '<div class="profit-plot-row" data-team="'+esc(r.team.id)+'" data-actual="'+(r.actual==null?'':r.actual)+'" data-alternative="'+(r.alternative==null?'':r.alternative)+'" data-delta="'+(r.delta==null?'':r.delta)+'"><span class="plot-name" title="'+esc(r.team.name)+'">'+r.team.table_no+' · '+esc(r.team.name)+'</span>'+track+'<span class="plot-values">'+(r.actual==null?'—':sg(r.actual))+' <small>/ '+(r.alternative==null?'—':sg(r.alternative)+(r.estimated?'*':''))+'</small></span></div>';
-    }).join('');
-    return '<div class="card class-comparison chart-comparison"><div class="comparison-heading"><h2 class="class-aha">'+t('class_comparable_better',better,comparable.length)+'</h2><span>'+t(per===1?'class_vs_stop':'class_vs_alternative')+'</span></div><div class="plot-legend">'+t('profit_plot_legend')+'</div><div class="profit-plot" style="--plot-rows:'+Math.max(1,Math.ceil(rows.length/2))+'">'+bars+'</div><div class="plot-footer">'+t(per===1?'plot_stop_note':'plot_alternative_note')+(comparable.length<rows.length?' '+t('comparison_missing',rows.length-comparable.length):'')+'</div></div>';
+    var magnitude = Math.max.apply(null,[1,per===1?snap.session.params.F:0].concat(comparable.map(function(r){return Math.abs(r.delta);}))) * 1.08;
+    function x(v){return 50 + 46*v/magnitude;}
+    function ordered(list){return list.slice().sort(function(a,b){return (a.comparable===b.comparable?0:a.comparable?-1:1) || (b.delta||0)-(a.delta||0) || a.team.table_no-b.team.table_no;});}
+    function plot(list){return '<div class="profit-plot delta-plot" style="--plot-rows:'+Math.max(1,Math.ceil(list.length/2))+'">'+ordered(list).map(function(r){
+      var tag = per===2 ? '<b class="plot-decision" title="'+t(r.choice==='renew'?'renew':r.choice==='exit'?'exit':'no_dec_short')+'">'+t(r.choice==='renew'?'renew_short':r.choice==='exit'?'exit_short':'no_dec_short')+'</b>' : '';
+      var description = t('row_profit_details',sg(r.actual),sg(r.alternative),sg(r.delta))+(r.estimated?'*':'');
+      var track = '<div class="profit-track"><i class="delta-zero-guide"></i>'+(per===1?'<i class="income-zero-guide" style="left:'+x(snap.session.params.F)+'%"></i>':'');
+      if(r.comparable)track += '<i class="profit-segment '+(r.delta<0?'worse':'better')+'" style="left:'+Math.min(50,x(r.delta))+'%;width:'+Math.abs(x(r.delta)-50)+'%"></i><i class="actual-dot" style="left:'+x(r.delta)+'%"></i>';
+      return '<div class="profit-plot-row" data-choice="'+r.choice+'" data-team="'+esc(r.team.id)+'" data-actual="'+(r.actual==null?'':r.actual)+'" data-alternative="'+(r.alternative==null?'':r.alternative)+'" data-delta="'+(r.delta==null?'':r.delta)+'" title="'+esc(description)+'" aria-label="'+esc(r.team.name+' '+description)+'"><span class="plot-name">'+tag+'<span class="plot-label" title="'+esc(r.team.name)+'">'+r.team.table_no+' · '+esc(r.team.name)+'</span></span>'+track+'</div><span class="plot-values">'+(r.delta==null?'—':sg(r.delta)+(r.estimated?'*':''))+'</span></div>';
+    }).join('')+'</div>';}
+    var axis = '<div class="profit-axis-row"><span>'+t('factory_short')+'</span><div class="delta-axis"><b class="center-axis-label">'+(per===1?t('shutdown_axis',sg(-snap.session.params.F)):t('same_outcome_axis'))+'</b>'+(per===1?'<b class="income-axis-label" style="left:'+x(snap.session.params.F)+'%">'+t('income_zero_axis')+'</b>':'')+'</div><span class="right">'+t('difference')+'</span></div>';
+    var groups = per===1 ? [{choice:'all',list:rows}] : ['renew','exit','missing'].map(function(choice){return{choice:choice,list:rows.filter(function(r){return r.choice===choice;})};}).filter(function(g){return g.list.length;});
+    var body = groups.map(function(g){return '<section class="delta-group" data-group="'+g.choice+'" style="flex:'+Math.max(1,Math.ceil(g.list.length/2))+'">'+(per===2?'<h3>'+t(g.choice==='renew'?'group_renew':g.choice==='exit'?'group_exit':'group_missing',g.list.length)+'</h3>':'')+plot(g.list)+'</section>';}).join('');
+    var working = comparable.filter(function(r){return r.choice==='work';}), workBetter = working.filter(function(r){return r.delta>0;}).length;
+    var headline = per===1 ? t(working.length && workBetter===working.length?'all_open_better':'open_better',workBetter) : t('choices_helped',better);
+    if(!comparable.length)headline=t('waiting_comparison');
+    var profitable = comparable.filter(function(r){return r.choice==='work'&&r.actual>0;}).length, lessLoss = comparable.filter(function(r){return r.choice==='work'&&r.actual<0&&r.delta>0;}).length;
+    var context = per===1?t('profit_loss_counts',profitable,lessLoss):t('delta_estimate_context');
+    return '<div class="card class-comparison chart-comparison"><div class="comparison-heading"><h2 class="class-aha">'+headline+'</h2><span>'+context+'</span></div><div class="profit-axes">'+axis+axis+'</div><div class="delta-groups">'+body+'</div><div class="plot-footer">'+t('delta_plot_note')+(comparable.length<rows.length?' '+t('comparison_missing',rows.length-comparable.length):'')+'</div></div>';
   }
 
   function debriefScreen(snap) {
@@ -202,13 +210,13 @@
     var N = a.n, actualReady = N > 0 && a.decided2 === N, pairedReady = N > 0 && a.paired === N, bins = {}, maxc = 1;
     a.predicts.forEach(function (p) { bins[p] = (bins[p] || 0) + 1; maxc = Math.max(maxc, bins[p]); });
     var bars = '';
-    for (var k = 0; k <= N; k++) bars += '<div class="hist-bin' + (actualReady && k === a.exit2 ? ' actual-bin' : '') + '"><div class="hist-track">' + (actualReady && k === a.exit2 ? '<i class="actual-exit-line"></i><span class="actual-exit-label">' + t('actual_exits_n',a.exit2) + '</span>' : '') + '<div class="hist-bar" style="height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (actualReady && k === a.exit2 ? 'var(--accent)' : '#ded8ce') + '">' + (bins[k] ? '<b>' + bins[k] + '</b>' : '') + '</div></div><div class="' + (actualReady && k === a.exit2 ? 'sign' : 'muted') + '">' + '<span class="hist-number">' + k + '</span>' + (actualReady && k === a.exit2 ? '<span class="actual-marker">▲</span>' : '') + '</div></div>';
-    var hero = par.show_lesson ? '<div class="lesson-hero"><div class="lesson-formula">0 &lt; G &lt; F</div><div><h2>' + t('s_open_then_exit') + '</h2><p>' + t('lesson_rule') + '</p></div></div>' : '<div class="card accent outcome-banner">' + (pairedReady ? t('observed_open_exit',a.exitsAmongOpened) : t('forecast_pending',a.decided2,N)) + '</div>';
+    for (var k = 0; k <= N; k++) bars += '<div class="hist-bin' + (actualReady && k === a.exit2 ? ' actual-bin' : '') + '"><div class="hist-track">' + (actualReady && k === a.exit2 ? '<i class="actual-exit-line"></i><span class="actual-exit-label">' + t('actual_exits_n',a.exit2) + '</span>' : '') + '<div class="hist-bar" style="height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (actualReady && k === a.exit2 ? 'var(--accent)' : '#b9b0a2') + '">' + (bins[k] ? '<b>' + bins[k] + '</b>' : '') + '</div></div><div class="' + (actualReady && k === a.exit2 ? 'sign' : 'muted') + '">' + '<span class="hist-number">' + k + '</span>' + '</div></div>';
+    var hero = par.show_lesson ? '<div class="lesson-hero"><div class="lesson-formula">0 &lt; G &lt; F</div><div><h2>' + t('s_open_then_exit') + '</h2><p>' + t('lesson_rule') + '</p></div></div>' : '';
     return '<div class="q-cards summary-compact"><div class="card"><div class="v">' + (pairedReady ? a.exitsAmongOpened : '—') + '</div><div class="k">' + t('s_open_then_exit') + '</div></div>' +
       '<div class="card"><div class="v">' + (a.decided1 ? a.opened1 : '—') + '</div><div class="k">' + t('s_open') + '</div></div>' +
       '<div class="card"><div class="v">' + (actualReady ? a.exit2 : '—') + '</div><div class="k">' + t('s_exit') + '</div></div></div>' + (!actualReady ? '<div class="banner warn small">' + t('forecast_pending', a.decided2, N) + '</div>' : '') + hero +
-      '<div class="row gap"><div class="card forecast-card"><h3>' + t('pred_vs_actual') + '</h3>' + (a.predicts.length ? '<div class="histogram">' + bars + '</div><div class="hist-caption">' + t('forecast_axis') + '</div><div class="small muted">' + (actualReady ? t('pred_note') : t('forecast_pending', a.decided2, N)) + '</div>' : '<div class="muted">' + t('no_forecasts') + '</div>') + '</div>' +
-      '<div class="card debrief-lesson">' + (par.show_lesson ? FL.lessonHTML() : '<h2>' + t('slip_h') + '</h2><p>' + t('slip_q', par.F) + '</p>') + '</div></div>';
+      '<div class="row gap"><div class="card forecast-card"><h3>' + t('pred_vs_actual') + '</h3>' + (a.predicts.length ? '<div class="histogram">' + bars + '</div><div class="hist-caption">' + t('forecast_axis') + '</div>' + (!actualReady ? '<div class="small muted">' + t('forecast_pending', a.decided2, N) + '</div>' : '') : '<div class="muted">' + t('no_forecasts') + '</div>') + '</div>' +
+      '<div class="card debrief-lesson">' + (par.show_lesson ? FL.lessonHTML() : '<h2>' + t('slip_h') + '</h2><p>' + t('slip_q', par.F) + '</p><div class="lesson-reveal-hint"><b>' + t('reveal_hint_title') + '</b><p>' + t('reveal_hint_body') + '</p></div>') + '</div></div>';
   }
 
   /* ------------------------------------------------ main */

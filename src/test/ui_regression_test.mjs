@@ -47,6 +47,9 @@ snap.runs.push({team_id:'a',kind:'p1',L:2,q:9,status:'confirmed'});
 snap.decisions = [{team_id:'a',period:1,renew:true,L:2},{team_id:'a',period:2,renew:false,L:0,predict:1}];
 snap.session.phase = 'ledger2'; text = render('screen'); assert.match(text, /−6/); assert.doesNotMatch(text, /−0/);
 assert.equal(w.document.querySelector('.profit-plot-row').dataset.alternative,'-6'); assert.equal(w.document.querySelector('.profit-plot-row').dataset.delta,'6');
+assert.equal(w.document.querySelector('.profit-plot-row').dataset.choice,'exit'); assert.ok(w.document.querySelector('[data-group=exit]'));
+assert.equal(w.document.querySelector('.profit-segment').style.left,'50%'); assert.ok(w.document.querySelector('.delta-zero-guide'));
+snap.session.phase='ledger1'; text=render('screen'); assert.match(text,/利潤0/); assert.match(text,/停工 −12/); assert.ok(w.document.querySelector('.income-zero-guide'));
 snap.session.phase = 'debrief'; snap.session.params.show_lesson = true; text = render('screen'); assert.match(text, /短期與長期/); assert.match(text, /0 < G < F/);
 text = render('team'); assert.match(text, /−6\*/); assert.doesNotMatch(text, /−12\*/);
 // A teacher may feature any factory, including one that stayed shut or made a
@@ -62,11 +65,12 @@ assert.equal(C.classAggregates(snap).decided2, 1);
 // The actual exit line exists even when nobody predicted the actual count.
 snap.decisions[1].predict=0; render('screen'); assert.ok(w.document.querySelector('.actual-exit-line')); assert.match(w.document.querySelector('.actual-exit-label').textContent,/1/);
 // Unrevealed debrief asks the reflection question once, not in two cards.
-snap.session.params.show_lesson=false; FL.lang='zh'; text=render('screen'); assert.equal(text.split(FL.t('slip_q',snap.session.params.F)).length-1,1);
+snap.session.params.show_lesson=false; FL.lang='zh'; text=render('screen'); assert.equal(text.split(FL.t('slip_q',snap.session.params.F)).length-1,1); assert.equal(w.document.querySelectorAll('.outcome-banner').length,0); assert.ok(w.document.querySelector('.lesson-reveal-hint')); assert.doesNotMatch(text,/▲/);
 // Editing stays private until explicit announcement; navigation cannot reveal
 // draft parameters. Publish carries every field and is serialized after edits.
 FL.lang = 'zh'; snap.session.phase = 'market'; snap.session.params.market_published = false;
 text = render('screen'); assert.match(text, /正在設定市場/); assert.equal(w.document.querySelectorAll('.q-cards').length, 0);
+assert.ok(w.document.querySelector('.market-preview .chartbox svg')); assert.match(text,/先看產量怎麼變化/);
 text = render('team'); assert.match(text, /正在設定市場/); assert.equal(w.document.querySelectorAll('.seg.c3').length, 0);
 let writes = []; FL.api.hostSet = async (code,key,p) => { writes.push(p); Object.assign(snap.session.params,p.params||{}); if(p.phase) snap.session.phase=p.phase; };
 render('host'); await FL.acts.hnext({dataset:{}}); assert.equal(writes.length,0);
