@@ -238,5 +238,5 @@ input.inl,select.inl{width:76px;min-height:38px;padding:4px 8px;font-size:16px}
  .screenbody table.t td,.screenbody table.t th{font-size:15px;padding:5px}.screenbody table.t th{font-size:12px}.screenbody .tiny{font-size:12px}.screenbody .bar{height:18px!important}
  .screenbody .chartbox>div{font-size:17px!important}.screenbody .lobby-h{font-size:25px}.screenbody .lobby-card{padding:14px;gap:9px;width:340px}.screenbody .qrframe{width:240px}.screenbody .lc-kick{font-size:18px}.screenbody .lc-url{font-size:12px}.screenbody .codeboxes b{height:60px;font-size:38px;width:48px}
  .hist-track{height:90px}.lesson .small{font-size:16px}.lesson .banner{font-size:17px}.lesson .tiny{font-size:12px}
- .screenbody .tiles.many .tile .nm{font-size:15px}.screenbody .tile .fac{flex-basis:30px;height:30px;max-height:30px}
+ .screenbody .tiles.many .tile .nm{font-size:15px}.screenbody .tile .fac{flex-basis:30px;height:30px;max-height:30px}.screenbody .tile .in{gap:1px}
 }
