@@ -193,7 +193,11 @@
       var L = C.ledger(tm, snap), P = L.periods[per];
       var line;
       if (per === 1) line = P.complete ? (P.L > 0 ? t('feat1_open', esc(tm.name), P.L, sg(P.profit), sg(P.counterfactual)) : t('feat1_stop', esc(tm.name), sg(P.profit))) : '';
-      else line = P.complete ? (P.renew ? t('feat2_renew', esc(tm.name), sg(P.profit)) : t('feat2_exit', esc(tm.name), sg(L.periods[1].profit), L.plan.G, par.F)) : '';
+      else if (P.complete) {
+        if (P.renew) line = t('feat2_renew', esc(tm.name), sg(P.profit));
+        else if (L.openThenExit && L.plan.G > 0 && L.plan.G < par.F) line = t('feat2_exit', esc(tm.name), sg(L.periods[1].profit), L.plan.G, par.F);
+        else line = t('feat2_exit_plain', esc(tm.name)) + (P.counterfactual != null ? ' ' + t('feat2_exit_est', sg(P.counterfactual)) : '');
+      } else line = '';
       var rows = '';
       [1, 2].forEach(function (k) {
         var Q = L.periods[k]; if (!Q.complete && k === 2 && per === 1) return;

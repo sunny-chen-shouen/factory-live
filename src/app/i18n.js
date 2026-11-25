@@ -111,7 +111,7 @@ window.FL.dict = (function () {
   a('secs_name', '每班秒數', 'Seconds per shift');
   a('market_p', '條件兩期不變。今天的租金 {0} 已經付了。', 'Conditions stay fixed for both periods. Today\'s rent of {0} is already paid.');
   a('plan_h', '你們的生產計畫表', 'Your production plan');
-  a('plan_note', '「多請一人」欄：多請一人增加的營收 / 要多付的工資。增收 = 價格 × 多出來的環數；增收比工資大才值得請。', '"Extra worker" = added value / wage. Added value = price × extra rings.');
+  a('plan_note', '「多請一人」欄比較增收與新增工資；兩者相等時，增聘前後一樣好。最後請比較所有可行人數的「營收−工資」。', 'The extra-worker column compares added revenue with added wages; equality means a tie. Compare revenue minus wages across all feasible headcounts before deciding.');
 
   // decisions
   a('d1_h', '決策一：今天要請幾個人？', 'Decision 1: how many workers today?');
@@ -209,7 +209,9 @@ window.FL.dict = (function () {
   a('feat1_open', '{0} 今天雇 {1} 人，利潤 {2}；如果停工會是 {3}。', '{0} hired {1} today for a profit of {2}; closing would have been {3}.');
   a('feat1_stop', '{0} 今天停工，利潤 {1}。', '{0} closed today with a profit of {1}.');
   a('feat2_renew', '{0} 續租，利潤 {1}。', '{0} renewed with a profit of {1}.');
-  a('feat2_exit', '{0}：今天開工（利潤 {1}），下期退出。最好的方案只能賺回 {2} 的營收扣工資，付不起 {3} 的租金。', '{0}: opened today (profit {1}) but exits next. Its best plan earns only {2} after wages, which cannot cover rent of {3}.');
+  a('feat2_exit', '{0}：今天開工（利潤 {1}），下期退出。依試產，最佳方案的營收扣工資為 {2}，低於租金 {3}。', '{0}: opened today (profit {1}) but exits next. From trials, its best plan earns {2} after wages, below rent of {3}.');
+  a('feat2_exit_plain', '{0} 下期退出，利潤 0。', '{0} exits next period with a profit of 0.');
+  a('feat2_exit_est', '若續租並雇最佳人數，估計利潤 {0}。', 'Renewing at the best headcount gives an estimated profit of {0}.');
   a('debrief_screen', '今天開工、下期退出的工廠：{0}。租金 {1} 已付時要不要開工，和租金能否避免時要不要續租，是兩個不同的問題。', 'Opened today, exiting next: {0}. Whether to open once rent of {1} is paid and whether to renew when rent is avoidable are different questions.');
   a('pred_vs_actual', '全班預測 vs 實際退出家數', 'Class forecast vs actual exits');
   a('pred_note', '▲ 為實際家數', '▲ marks the actual number');

@@ -45,6 +45,14 @@ snap.runs.push({team_id:'a',kind:'p1',L:2,q:9,status:'confirmed'});
 snap.decisions = [{team_id:'a',period:1,renew:true,L:2},{team_id:'a',period:2,renew:false,L:0,predict:1}];
 snap.session.phase = 'ledger2'; text = render('screen'); assert.match(text, /−6/); assert.match(text, /−12/); assert.doesNotMatch(text, /−0/);
 snap.session.phase = 'debrief'; snap.session.params.show_lesson = true; text = render('screen'); assert.match(text, /短期與長期/); assert.match(text, /0 < G < F/);
+text = render('team'); assert.match(text, /−6\*/); assert.doesNotMatch(text, /−12\*/);
+// A teacher may feature any factory, including one that stayed shut or made a
+// profitable exit choice. The explanation must describe that actual choice.
+snap.session.phase = 'ledger2'; snap.decisions[0].L = 0;
+text = render('screen'); assert.match(text, /下期退出，利潤 0/); assert.doesNotMatch(text, /今天開工/);
+snap.decisions[0].L = 2; snap.session.params.F = 1;
+text = render('screen'); assert.match(text, /估計利潤 \+5/); assert.doesNotMatch(text, /低於租金/);
+snap.session.params.F = 12; snap.session.phase = 'debrief';
 FL.lang = 'en'; text = render('screen'); assert.match(text, /Short run vs long run/); assert.doesNotMatch(text, /⟦/);
 assert.equal(C.classAggregates(snap).decided2, 1);
 dom.window.close();

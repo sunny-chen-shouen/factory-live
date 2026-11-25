@@ -321,6 +321,7 @@
 
   function debrief(snap, me) {
     var L = C.ledger(me, snap), par = snap.session.params, p1 = L.periods[1], p2 = L.periods[2];
+    function alternative(P) { return P.complete && P.counterfactual != null ? sg(P.counterfactual) + (P.counterfactualKind === 'estimate' ? '*' : '') : '—'; }
     var key = 'fl_slip_' + snap.session.code + '_' + me.id;
     if (U.slipKey !== key) {
       U.slipKey = key; var saved = {}; try { saved = JSON.parse(FL.ls.get(key) || '{}'); } catch (e) { /* empty draft */ }
@@ -332,7 +333,7 @@
       '<div class="card"><table class="t"><tr><th></th><th>' + t('period1') + '</th><th>' + t('period2') + '</th></tr>' +
       '<tr><td>' + t('l_decision') + '</td><td>' + (p1.decided ? (p1.L === 0 ? t('stop') : t('hire_n', p1.L)) : '—') + '</td><td>' + (p2.decided ? (p2.renew ? t('renew') + ' · ' + t('hire_n', p2.L) : t('exit')) : '—') + '</td></tr>' +
       '<tr><td>' + t('l_profit') + '</td><td class="sign">' + (p1.complete ? sg(p1.profit) : '—') + '</td><td class="sign">' + (p2.complete ? sg(p2.profit) : '—') + '</td></tr>' +
-      '<tr><td>' + t('l_alt') + '</td><td>' + (p1.complete ? sg(p1.counterfactual) : '—') + '</td><td>' + (p2.complete ? sg(p2.counterfactual) : '—') + '</td></tr></table>' +
+      '<tr><td>' + t('l_alt') + '</td><td>' + alternative(p1) + '</td><td>' + alternative(p2) + '</td></tr></table>' +
       '<div class="tiny muted" style="margin-top:6px">' + t('est_note') + '</div></div>' + (par.show_lesson ? FL.lessonHTML() : '');
   }
   FL.afterTeam = function () {
