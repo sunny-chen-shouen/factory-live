@@ -195,6 +195,18 @@ body{background:var(--paper) radial-gradient(circle at 1px 1px,rgba(120,53,15,.0
 @keyframes bob{to{transform:translateY(-8px)}}
 .bigcode{font-size:clamp(48px,9vw,150px);letter-spacing:.06em;max-width:100%;overflow:hidden}
 
+/* ---------- QA pass 2 */
+.cd .n{white-space:nowrap}
+.cd.done .n,.cd.idle .n{font-size:64px}
+.cd.done .l{white-space:nowrap}
+.chartbox.mkt svg{max-height:calc(100vh - 600px);min-height:300px}
+.tile .tag.neg{background:#fff!important;color:var(--accent)!important;border-color:var(--accent)!important}
+.t.plan{font-size:15px}.t.plan th{white-space:nowrap;font-size:12px;vertical-align:bottom}.t.plan th small{font-size:11px;font-weight:600}
+.t.plan td,.t.plan th{padding-left:4px;padding-right:4px}
+.seg.c5 .btn{white-space:nowrap;padding-left:2px;padding-right:2px}
+.card.center .muted.small{white-space:nowrap}
+.seg.c5 .btn{font-size:24px}
+
 </style>
 </head>
 <body>
@@ -764,7 +776,6 @@ window.FL.dict = (function () {
   a('c_rev', '營收', 'Revenue');
   a('c_wage', '工資', 'Wages');
   a('c_net', '營收−工資', 'Rev − wages');
-  a('c_dv', '多請一人：新增營收 / 工資', 'Extra worker: added revenue / wage');
   a('c_dv_short', '新增產值', 'Added value');
   a('c_mp', '邊際產量', 'Marginal');
   a('mean_q', '全班平均', 'Class mean');
@@ -801,7 +812,7 @@ window.FL.dict = (function () {
   a('secs_name', '每班秒數', 'Seconds per shift');
   a('market_p', '條件兩期不變。今天的租金 {0} 已經付了。', 'Conditions stay fixed for both periods. Today\'s rent of {0} is already paid.');
   a('plan_h', '你們的生產計畫表', 'Your production plan');
-  a('plan_note', '「再請一人」= 新增產值 / 工資。新增產值 = 價格 × 多出來的環數。', '"Extra worker" = added value / wage. Added value = price × extra rings.');
+  a('plan_note', '「多請一人」欄：多請一人增加的營收 / 要多付的工資。增收 = 價格 × 多出來的環數；增收比工資大才值得請。', '"Extra worker" = added value / wage. Added value = price × extra rings.');
 
   // decisions
   a('d1_h', '決策一：今天要請幾個人？', 'Decision 1: how many workers today?');
@@ -998,6 +1009,11 @@ window.FL.dict = (function () {
   a('err_wrong_session', '不是同一個場次', 'Different session');
   a('err_bad_present', '人數要在 0 到 4 之間', 'Headcount must be 0–4');
   a('err_bad_predict', '預測數字不合理', 'Forecast is not valid');
+  a('p_s', '收購價 p', 'Price p');
+  a('w_s', '工資 w', 'Wage w');
+  a('f_s', '租金 F', 'Rent F');
+  a('c_dv1', '多請一人', '+1 worker');
+  a('c_dv2', '增收 / 工資', 'added rev / wage');
   a('or_type_code', '或輸入房號', 'or enter the room code');
   a('lobby_wait', '等第一組工廠報到…', 'Waiting for the first factory…');
   a('peek_prev', '看上一階段：{0}', 'Look back: {0}');
@@ -1045,7 +1061,7 @@ window.FL.dict = (function () {
     var r = Math.round(n * 100) / 100;
     return r > 0 ? '+' + r : r < 0 ? '−' + Math.abs(r) : '0';
   };
-  FL.n2 = function (n) { return n == null || isNaN(n) ? '—' : String(Math.round(n * 100) / 100); };
+  FL.n2 = function (n) { return n == null || isNaN(n) ? '—' : String(Math.round(n * 100) / 100).replace('-', '−'); };
   FL.$ = function (sel, root) { return (root || document).querySelector(sel); };
   FL.$$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
   FL.snap = function () { return FL.store.snap; };
@@ -1075,7 +1091,7 @@ window.FL.dict = (function () {
       wins += '<rect x="' + x + '" y="62" width="16" height="18" rx="3" fill="' + (on ? 'var(--accent)' : '#fff') + '" stroke="var(--ink)" stroke-width="3"/>';
     }
     var cross = state === 'exit' ? '<path d="M14 54 L106 98 M106 54 L14 98" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' : '';
-    var q = state === 'unk' ? '<text x="60" y="94" text-anchor="middle" font-size="40" font-weight="900" fill="var(--muted)">?</text>' : '';
+    var q = state === 'unk' ? '<text x="60" y="93" text-anchor="middle" font-size="38" font-weight="900" fill="var(--muted)">?</text>' : '';
     var door = state === 'stop' ? '<rect x="48" y="84" width="24" height="16" fill="var(--ink)"/>' : '';
     var fill = state === 'exit' ? 'var(--soft)' : '#fff';
     var dash = state === 'exit' ? ' stroke-dasharray="7 5"' : '';
@@ -1083,7 +1099,7 @@ window.FL.dict = (function () {
       '<g class="smoke"><circle cx="30" cy="22" r="6"/><circle cx="30" cy="22" r="6"/><circle cx="30" cy="22" r="6"/></g>' +
       '<rect x="24" y="24" width="12" height="30" fill="' + fill + '" stroke="var(--ink)" stroke-width="3"' + dash + '/>' +
       '<path d="M10 54 L10 100 L110 100 L110 54 L82 40 L82 54 L60 40 L60 54 L38 40 L38 54 Z" fill="' + fill + '" stroke="var(--ink)" stroke-width="3.5" stroke-linejoin="round"' + dash + '/>' +
-      (state === 'exit' ? '' : wins) + door + cross + q + '</svg>';
+      (state === 'exit' || state === 'unk' ? '' : wins) + door + cross + q + '</svg>';
   };
 
   /* ------------------------------------------------ shift / countdown */
@@ -1307,7 +1323,7 @@ window.FL.dict = (function () {
   function trialTable(snap, me) {
     var runs = snap.runs.filter(function (r) { return r.team_id === me.id && r.kind === 'trial'; }).sort(function (a, b) { return a.L - b.L; });
     if (!runs.length) return '<div class="muted small">' + t('no_trial_yet') + '</div>';
-    return '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('c_rings') + '</th><th>' + t('c_status') + '</th></tr>' +
+    return '<table class="t plan"><tr><th>' + t('c_workers') + '</th><th>' + t('c_rings') + '</th><th>' + t('c_status') + '</th></tr>' +
       runs.map(function (r) { return '<tr><td>' + r.L + '</td><td class="sign">' + r.q + '</td><td>' + statusChip(r.status) + '</td></tr>'; }).join('') + '</table>';
   }
 
@@ -1377,14 +1393,14 @@ window.FL.dict = (function () {
   /* ------------------------------------------------ market */
   function paramCards(par) {
     return '<div class="seg c3" style="gap:8px">' +
-      '<div class="card center"><div class="muted small">' + t('p_name') + '</div><div class="huge num">' + par.p + '</div></div>' +
-      '<div class="card center"><div class="muted small">' + t('w_name') + '</div><div class="huge num">' + par.w + '</div></div>' +
-      '<div class="card center"><div class="muted small">' + t('f_name') + '</div><div class="huge num">' + par.F + '</div></div></div>';
+      '<div class="card center"><div class="muted small">' + t('p_s') + '</div><div class="huge num">' + par.p + '</div></div>' +
+      '<div class="card center"><div class="muted small">' + t('w_s') + '</div><div class="huge num">' + par.w + '</div></div>' +
+      '<div class="card center"><div class="muted small">' + t('f_s') + '</div><div class="huge num">' + par.F + '</div></div></div>';
   }
   function planTable(snap, me, highlightL) {
     var par = snap.session.params, pts = C.trialPoints(snap.runs, me.id), rows = C.planRows(pts, par.p, par.w);
     if (rows.length < 2) return '<div class="muted small">' + t('no_trial_yet') + '</div>';
-    return '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('c_rings') + '</th><th>' + t('c_rev') + '</th><th>' + t('c_wage') + '</th><th>' + t('c_net') + '</th><th>' + t('c_dv') + '</th></tr>' +
+    return '<table class="t plan"><tr><th>' + t('c_workers') + '</th><th>' + t('c_rings') + '</th><th>' + t('c_rev') + '</th><th>' + t('c_wage') + '</th><th>' + t('c_net') + '</th><th>' + t('c_dv1') + '<br><small>' + t('c_dv2') + '</small></th></tr>' +
       rows.map(function (r) {
         return '<tr class="' + (r.L === highlightL ? 'hl' : '') + '"><td>' + r.L + '</td><td>' + r.q + '</td><td>' + r.rev + '</td><td>' + r.wage + '</td><td class="sign">' + sg(r.net) + '</td>' +
           '<td class="small">' + (r.dV == null ? '—' : sg(r.dV) + ' / ' + r.dW) + '</td></tr>';
@@ -1604,7 +1620,7 @@ window.FL.dict = (function () {
       return '<div class="tile ' + o.state + ' flip ' + (pre ? 'pre' : '') + '"><div class="in">' +
         (o.badge ? '<div class="badge ' + (o.off ? 'off' : '') + '">' + o.badge + '</div>' : '') +
         FL.factory(o.state, o.L, { label: tm.name }) +
-        '<div class="nm">' + esc(tm.name) + '</div><div class="sub">' + o.sub + '</div><div class="tag">' + esc(o.tag) + '</div></div></div>';
+        '<div class="nm">' + esc(tm.name) + '</div><div class="sub">' + o.sub + '</div><div class="tag' + (/^−/.test(o.tag) ? ' neg' : '') + '">' + esc(o.tag) + '</div></div></div>';
     }).join('') + '</div>';
   }
 
@@ -1659,7 +1675,7 @@ window.FL.dict = (function () {
     var producing = L ? act.filter(function (x) { return x.present >= L; }) : [];
     var done = L ? producing.filter(function (x) { return snap.runs.some(function (r) { return r.team_id === x.id && r.kind === 'trial' && r.L === L && (r.status === 'confirmed' || r.status === 'host'); }); }).length : 0;
     return '<div class="row gap" style="align-items:flex-start"><div class="grow stack" style="min-width:0">' +
-      '<div class="card dark row"><div class="grow"><div style="font-size:20px;opacity:.8">' + t('ph_trial') + '</div><div class="huge">' + (L ? t('trial_shift', L) : t('trial_wait_s')) + '</div></div>' +
+      '<div class="card dark row"><div class="grow"><div class="huge">' + (L ? t('trial_shift', L) : t('trial_wait_s')) + '</div></div>' +
       '<div style="width:300px">' + FL.cdHTML(snap) + '</div></div>' +
       (L ? '<div class="card stack"><div class="big" style="font-weight:800">' + t('verified_progress') + '</div>' + progress(done, producing.length) + '</div>' : '') +
       tiles(snap) + '</div>' +
@@ -1672,7 +1688,7 @@ window.FL.dict = (function () {
       '<div class="card"><div class="k">' + t('w_name') + '</div><div class="v">' + par.w + '</div></div>' +
       '<div class="card"><div class="k">' + t('f_name') + '</div><div class="v">' + par.F + '</div></div></div>' +
       '<div class="card accent big" style="font-weight:700">' + t('market_screen_p', par.F) + '</div>' +
-      '<div class="row gap" style="align-items:flex-start"><div class="chartbox grow">' + ch.svg + '</div><div class="card" style="width:430px;flex:none">' + marketTable(snap, ch.mean) + '</div></div>';
+      '<div class="row gap" style="align-items:flex-start"><div class="chartbox grow mkt"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div><div class="card" style="width:430px;flex:none">' + marketTable(snap, ch.mean) + '</div></div>';
   }
   function marketTable(snap, mean) {
     var par = snap.session.params, rows = '', prev = 0;
@@ -1699,7 +1715,7 @@ window.FL.dict = (function () {
     var act = FL.active(snap), kind = per === 1 ? 'p1' : 'p2';
     var prod = act.filter(function (x) { var d = C.decisionOf(snap.decisions, x.id, per); return d && d.renew && d.L > 0; });
     var done = prod.filter(function (x) { return snap.runs.some(function (r) { return r.team_id === x.id && r.kind === kind && (r.status === 'confirmed' || r.status === 'host'); }); }).length;
-    return '<div class="card dark row"><div class="grow"><div style="font-size:20px;opacity:.8">' + t('ph_run' + per) + '</div><div class="huge">' + t('run_screen', per) + '</div></div><div style="width:300px">' + FL.cdHTML(snap) + '</div></div>' +
+    return '<div class="card dark row"><div class="grow"><div class="huge">' + t('run_screen', per) + '</div></div><div style="width:300px">' + FL.cdHTML(snap) + '</div></div>' +
       summaryCards(snap, per) + '<div class="card stack"><div class="big" style="font-weight:800">' + t('verified_progress') + '</div>' + progress(done, prod.length) + '</div>' + tiles(snap);
   }
 
@@ -1727,7 +1743,7 @@ window.FL.dict = (function () {
       var rows = '';
       [1, 2].forEach(function (k) {
         var Q = L.periods[k]; if (!Q.complete && k === 2 && per === 1) return;
-        rows += '<tr class="' + (k === per ? 'hl' : '') + '"><td>' + t('period' + k) + '</td><td>' + (!Q.decided ? '—' : k === 2 && !Q.renew ? t('exit') : Q.L === 0 ? t('stop') : t('hire_n', Q.L)) + '</td><td>' + (Q.complete ? FL.n2(Q.rev) : '—') + '</td><td>' + (Q.complete ? '−' + FL.n2(Q.wage) : '—') + '</td><td>−' + (Q.decided && !(k === 2 && !Q.renew) ? par.F : 0) + '</td><td class="sign">' + (Q.complete ? sg(Q.profit) : '—') + '</td><td>' + (Q.complete ? sg(Q.counterfactual) + (Q.counterfactualKind === 'estimate' ? '*' : '') : '—') + '</td></tr>';
+        rows += '<tr class="' + (k === per ? 'hl' : '') + '"><td>' + t('period' + k) + '</td><td>' + (!Q.decided ? '—' : k === 2 && !Q.renew ? t('exit') : Q.L === 0 ? t('stop') : t('hire_n', Q.L)) + '</td><td>' + (Q.complete ? FL.n2(Q.rev) : '—') + '</td><td>' + (Q.complete ? (Q.wage ? '−' + FL.n2(Q.wage) : '0') : '—') + '</td><td>' + (Q.decided && !(k === 2 && !Q.renew) ? '−' + par.F : '0') + '</td><td class="sign">' + (Q.complete ? sg(Q.profit) : '—') + '</td><td>' + (Q.complete ? sg(Q.counterfactual) + (Q.counterfactualKind === 'estimate' ? '*' : '') : '—') + '</td></tr>';
       });
       body = '<div class="card stack"><div class="row"><div style="width:120px">' + FL.factory(P.renew === false ? 'exit' : (P.L > 0 ? 'open' : 'stop'), P.L || 0, { label: tm.name }) + '</div><div class="grow"><div class="huge">' + esc(tm.name) + '</div><div class="muted big">' + t('table_n', tm.table_no) + '</div></div></div>' +
         '<div class="big" style="font-weight:700">' + line + '</div>' +
@@ -1743,7 +1759,7 @@ window.FL.dict = (function () {
     var N = a.opened1, bins = {}, maxc = 1;
     a.predicts.forEach(function (p) { bins[p] = (bins[p] || 0) + 1; if (bins[p] > maxc) maxc = bins[p]; });
     var bars = '';
-    for (var k = 0; k <= Math.max(N, 1); k++) bars += '<div style="flex:1;text-align:center"><div style="height:120px;display:flex;align-items:flex-end;justify-content:center"><div style="width:70%;height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (k === a.exitsAmongOpened ? 'var(--accent)' : '#9a9488') + ';border:2px solid var(--ink);min-height:' + (bins[k] ? 6 : 0) + 'px"></div></div><div class="' + (k === a.exitsAmongOpened ? 'sign' : 'muted') + '" style="font-size:20px">' + k + (k === a.exitsAmongOpened ? ' ▲' : '') + '</div></div>';
+    for (var k = 0; k <= Math.max(N, 1); k++) bars += '<div style="flex:1;text-align:center"><div style="height:120px;display:flex;align-items:flex-end;justify-content:center"><div style="width:70%;height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (k === a.exitsAmongOpened ? 'var(--accent)' : '#d6cfc2') + ';border:2px solid var(--ink);min-height:' + (bins[k] ? 6 : 0) + 'px"></div></div><div class="' + (k === a.exitsAmongOpened ? 'sign' : 'muted') + '" style="font-size:20px">' + k + (k === a.exitsAmongOpened ? ' ▲' : '') + '</div></div>';
     return '<div class="q-cards"><div class="card"><div class="v">' + a.exitsAmongOpened + '</div><div class="k">' + t('s_open_then_exit') + '</div></div>' +
       '<div class="card"><div class="v">' + a.opened1 + '</div><div class="k">' + t('s_open') + '</div></div>' +
       '<div class="card"><div class="v">' + a.exit2 + '</div><div class="k">' + t('s_exit') + '</div></div></div>' +
