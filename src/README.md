@@ -47,6 +47,12 @@ by Git. Also test the deployed UI in separate teacher/student/projector tabs at
   the cohort size labelled. Paired marginal analysis stays in teacher data.
 - Projection ledgers compare all factories with shutdown/exit; the debrief
   foregrounds the lesson formula and labels forecast frequencies.
+- Teacher URLs containing a different room code require fresh sign-in before
+  loading that room. Boot, rendering and stale click/change dispatch are fenced.
+- Ledger 2 compares each factory with its own alternative: exits use estimated
+  renewal, renewers use zero. Unknown alternatives are excluded from comparisons.
+- Automatic Ledger 2 examples favour opening today and correctly exiting next;
+  manual featured choices are scoped to their ledger period.
 
 ## RPC regression
 

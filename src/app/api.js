@@ -230,7 +230,7 @@
 
   /* ---------------------------------------------------------------- Store: polling + clock offset */
   function Store(api) {
-    var self = { api: api, snap: null, code: null, offset: 0, online: true, listeners: [], timer: null, busy: false, interval: 2000, lastRev: -1, errors: 0 };
+    var self = { api: api, snap: null, code: null, offset: 0, online: true, listeners: [], timer: null, busy: false, interval: 2000, lastRev: -1, errors: 0, generation: 0, request: null };
 
     self.serverNow = function () { return Date.now() + self.offset; };
     self.on = function (fn) { self.listeners.push(fn); };
@@ -239,10 +239,13 @@
     self.refresh = function () {
       if (!self.code || self.busy) return Promise.resolve();
       self.busy = true;
-      var t0 = Date.now();
-      return api.snapshot(self.code).then(function (s) {
+      var t0 = Date.now(), request = { code: self.code, generation: self.generation };
+      self.request = request;
+      return api.snapshot(request.code).then(function (s) {
+        if (self.request !== request || self.generation !== request.generation || self.code !== request.code) return;
         var t1 = Date.now();
         self.busy = false; self.errors = 0;
+        if (s && s.session.code !== request.code) return;
         var was = self.online; self.online = true;
         if (s && typeof s.now === 'number') self.offset = s.now - (t0 + t1) / 2;
         if (!s) { self.snap = null; emit(); return; }
@@ -252,6 +255,7 @@
           self.snap = s; self.sig = sig; emit();
         } else { self.snap = s; self.sig = sig; }
       }).catch(function () {
+        if (self.request !== request || self.generation !== request.generation || self.code !== request.code) return;
         self.busy = false; self.errors++;
         if (self.errors >= 2 && self.online) { self.online = false; emit(); }
       });
@@ -264,7 +268,7 @@
       self.timer = setInterval(self.refresh, self.interval);
       if (api.onExternalChange) api.onExternalChange(function () { self.refresh(); });
     };
-    self.stop = function () { if (self.timer) clearInterval(self.timer); self.timer = null; };
+    self.stop = function () { if (self.timer) clearInterval(self.timer); self.timer = null; self.generation++; self.request = null; self.busy = false; self.code = null; self.snap = null; self.sig = null; };
 
     // Optional realtime ping (Supabase only); polling keeps working if this fails.
     self.enableRealtime = function (cfg) {

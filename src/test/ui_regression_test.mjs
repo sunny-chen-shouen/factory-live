@@ -87,5 +87,10 @@ w.eval(fs.readFileSync('app/main.js','utf8'));
 assert.equal(starts,0); assert.equal(botLoads,0); assert.equal(FL.host,null); assert.equal(FL.store.code,null);
 assert.equal(w.document.getElementById('h_code').value,'ZN8C'); assert.equal(w.document.getElementById('h_key2').value,'');
 assert.match(w.document.querySelector('[role=alert]').textContent,/ZN8C.*F2BY/); assert.equal(w.document.querySelectorAll('[data-act=hnext]').length,0);
+// Even a click on stale controls during a hash transition cannot dispatch a
+// host mutation against the previous saved room.
+let staleActions=0; FL.acts.hnext=()=>staleActions++; FL.host={code:'F2BY',key:'saved-password'};
+w.document.getElementById('app').innerHTML='<button data-act="hnext">stale next</button>';
+w.document.querySelector('[data-act=hnext]').click(); assert.equal(staleActions,0); assert.equal(FL.host,null);
 dom.window.close();
 console.log('PASS: no-data ledgers, missing-decision recovery, chart labels, pagination, persistent drafts, honest action feedback and bilingual lesson');

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="application-version" content="2026-11-26-visual1">
+<meta name="application-version" content="2026-11-26-visual2">
 <title>工廠 LIVE · Factory LIVE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -813,7 +813,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   /* ---------------------------------------------------------------- Store: polling + clock offset */
   function Store(api) {
-    var self = { api: api, snap: null, code: null, offset: 0, online: true, listeners: [], timer: null, busy: false, interval: 2000, lastRev: -1, errors: 0 };
+    var self = { api: api, snap: null, code: null, offset: 0, online: true, listeners: [], timer: null, busy: false, interval: 2000, lastRev: -1, errors: 0, generation: 0, request: null };
 
     self.serverNow = function () { return Date.now() + self.offset; };
     self.on = function (fn) { self.listeners.push(fn); };
@@ -822,10 +822,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     self.refresh = function () {
       if (!self.code || self.busy) return Promise.resolve();
       self.busy = true;
-      var t0 = Date.now();
-      return api.snapshot(self.code).then(function (s) {
+      var t0 = Date.now(), request = { code: self.code, generation: self.generation };
+      self.request = request;
+      return api.snapshot(request.code).then(function (s) {
+        if (self.request !== request || self.generation !== request.generation || self.code !== request.code) return;
         var t1 = Date.now();
         self.busy = false; self.errors = 0;
+        if (s && s.session.code !== request.code) return;
         var was = self.online; self.online = true;
         if (s && typeof s.now === 'number') self.offset = s.now - (t0 + t1) / 2;
         if (!s) { self.snap = null; emit(); return; }
@@ -835,6 +838,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
           self.snap = s; self.sig = sig; emit();
         } else { self.snap = s; self.sig = sig; }
       }).catch(function () {
+        if (self.request !== request || self.generation !== request.generation || self.code !== request.code) return;
         self.busy = false; self.errors++;
         if (self.errors >= 2 && self.online) { self.online = false; emit(); }
       });
@@ -847,7 +851,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       self.timer = setInterval(self.refresh, self.interval);
       if (api.onExternalChange) api.onExternalChange(function () { self.refresh(); });
     };
-    self.stop = function () { if (self.timer) clearInterval(self.timer); self.timer = null; };
+    self.stop = function () { if (self.timer) clearInterval(self.timer); self.timer = null; self.generation++; self.request = null; self.busy = false; self.code = null; self.snap = null; self.sig = null; };
 
     // Optional realtime ping (Supabase only); polling keeps working if this fails.
     self.enableRealtime = function (cfg) {
@@ -2112,6 +2116,7 @@ window.FL.dict = (function () {
       FL.host = null; H.csv = ''; H.tab = 'control';
       FL.store.stop(); FL.store.snap = null; FL.store.code = null;
     }
+    if (H.roomMismatch) { if (r.code) H.roomMismatch.requested = r.code; else H.roomMismatch = null; }
     return !!FL.host;
   };
 
@@ -2628,6 +2633,8 @@ window.FL.dict = (function () {
   document.addEventListener('click', function (e) {
     var b = e.target.closest ? e.target.closest('[data-act]') : null;
     if (!b || b.disabled) return;
+    var r = FL.route();
+    if (r.role === 'host' && !FL.guardHostRoute(r) && ['hcreate','hresume','hlogout','lang'].indexOf(b.dataset.act) < 0) { FL.render(true); return; }
     var f = FL.acts[b.dataset.act];
     if (f) {
       var result = f(b, e);
@@ -2639,6 +2646,7 @@ window.FL.dict = (function () {
   });
   document.addEventListener('change', function (e) {
     var el = e.target, name = el && el.dataset && el.dataset.change;
+    if (name && FL.route().role === 'host' && !FL.guardHostRoute(FL.route())) { FL.render(true); return; }
     if (name && FL.changes[name]) FL.changes[name](el, e);
   });
 

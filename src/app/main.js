@@ -34,6 +34,8 @@
   document.addEventListener('click', function (e) {
     var b = e.target.closest ? e.target.closest('[data-act]') : null;
     if (!b || b.disabled) return;
+    var r = FL.route();
+    if (r.role === 'host' && !FL.guardHostRoute(r) && ['hcreate','hresume','hlogout','lang'].indexOf(b.dataset.act) < 0) { FL.render(true); return; }
     var f = FL.acts[b.dataset.act];
     if (f) {
       var result = f(b, e);
@@ -45,6 +47,7 @@
   });
   document.addEventListener('change', function (e) {
     var el = e.target, name = el && el.dataset && el.dataset.change;
+    if (name && FL.route().role === 'host' && !FL.guardHostRoute(FL.route())) { FL.render(true); return; }
     if (name && FL.changes[name]) FL.changes[name](el, e);
   });
 

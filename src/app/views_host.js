@@ -13,6 +13,7 @@
       FL.host = null; H.csv = ''; H.tab = 'control';
       FL.store.stop(); FL.store.snap = null; FL.store.code = null;
     }
+    if (H.roomMismatch) { if (r.code) H.roomMismatch.requested = r.code; else H.roomMismatch = null; }
     return !!FL.host;
   };
 
