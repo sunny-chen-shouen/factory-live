@@ -40,7 +40,13 @@ by Git. Also test the deployed UI in separate teacher/student/projector tabs at
 - Reasons autosave as local drafts, keyed by room and team. They are explicitly
   not submitted to the teacher and are not in CSV exports.
 - The teacher can reveal/hide the short-run vs long-run explanation at debrief.
-- Projection pages show up to 12 factories, with controls for larger classes.
+- Up to 20 factories remain visible on one projection screen.
+- Market parameters stay hidden from students/projector until the teacher
+  explicitly announces them. Editing parameters withdraws that announcement.
+- Projector means use one complete-data cohort across tested headcounts, with
+  the cohort size labelled. Paired marginal analysis stays in teacher data.
+- Projection ledgers compare all factories with shutdown/exit; the debrief
+  foregrounds the lesson formula and labels forecast frequencies.
 
 ## RPC regression
 

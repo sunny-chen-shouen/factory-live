@@ -58,6 +58,10 @@ const cohortTeams=[{id:'a',present:2},{id:'b',present:3}];
 const cohortRuns=[['a',1,5],['a',2,9],['b',1,6],['b',2,10],['b',3,11]].map(([team_id,L,q])=>({team_id,L,q,kind:'trial',status:'host'}));
 const summary=C.trialSummary(cohortRuns,cohortTeams);
 ok('marginal output uses paired factories, not changing-cohort means',summary.mean[2]===9.5&&summary.mean[3]===11&&summary.marginal[3]===1&&summary.pairedCounts[3]===1);
+ok('projector averages use one complete-data cohort at all headcounts',summary.cohortN===1&&summary.cohortMean[1]===6&&summary.cohortMean[2]===10&&summary.cohortMean[3]===11);
+const mixed=[['a',1,8],['a',2,12],['a',3,14],['b',1,4],['b',2,5],['b',3,6],['b',4,7]].map(([team_id,L,q])=>({team_id,L,q,kind:'trial',status:'confirmed'}));
+const balanced=C.trialSummary(mixed,[{id:'a',present:3},{id:'b',present:4}]);
+ok('changing sample cannot create a false downward projector mean',balanced.mean[3]===10&&balanced.mean[4]===7&&balanced.cohortMean[3]===6&&balanced.cohortMean[4]===7);
 
 // recommender
 const tp=[{1:5,2:9,3:11,4:12},{1:4,2:7,3:9,4:10},{1:6,2:10,3:12,4:13},{1:5,2:8,3:10,4:11},{1:3,2:6,3:8,4:9}];

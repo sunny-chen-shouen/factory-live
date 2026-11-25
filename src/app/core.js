@@ -75,6 +75,8 @@
       return res;
     });
   };
+  FL.marketPublished = function (snap) { return window.FLCalc.PHASES.indexOf(snap.session.phase) > window.FLCalc.PHASES.indexOf('market') || snap.session.params.market_published === true; };
+  FL.marketWaiting = function () { return '<div class="card market-wait stack center">' + FL.factory('unk', 0) + '<h2>' + FL.t('market_wait') + '</h2><p>' + FL.t('market_wait_p') + '</p></div>'; };
   FL.lessonHTML = function () {
     var snap = FL.snap(), par = snap.session.params, sample = null;
     FL.active(snap).some(function (tm) {
@@ -133,6 +135,8 @@
   FL.tick = function () {
     var snap = FL.snap(); if (!snap) return;
     var s = FL.shiftOf(snap), st = FL.shiftState(s);
+    var stage = FL.$('.shift-stage');
+    if (stage) { stage.classList.toggle('is-running', st.st === 'run'); stage.classList.toggle('is-final', st.st === 'run' && st.n <= 3); }
     FL.$$('[data-cd]').forEach(function (box) {
       box.className = box.className.replace(/\b(idle|pre|run|done)\b/, st.st);
       var n = box.firstChild, l = box.lastChild;

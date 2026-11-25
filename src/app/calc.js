@@ -40,7 +40,11 @@
       if (qs.length) mean[L] = qs.reduce(function (a, b) { return a + b; }, 0) / qs.length;
       if (deltas.length) marginal[L] = deltas.reduce(function (a, b) { return a + b; }, 0) / deltas.length;
     }
-    return { mean: mean, marginal: marginal, counts: counts, pairedCounts: pairedCounts };
+    var maxL = 0; series.forEach(function (pts) { Object.keys(pts).forEach(function (k) { maxL = Math.max(maxL, +k); }); });
+    var cohort = series.filter(function (pts) { for (var k = 1; k <= maxL; k++) if (pts[k] == null) return false; return maxL > 0; });
+    var cohortMean = [];
+    for (var k = 1; k <= maxL; k++) if (cohort.length) cohortMean[k] = cohort.reduce(function (sum, pts) { return sum + pts[k]; }, 0) / cohort.length;
+    return { mean: mean, marginal: marginal, counts: counts, pairedCounts: pairedCounts, cohortMean: cohortMean, cohortN: cohort.length, maxL: maxL };
   }
 
   // Rows for the decision table: every tested L plus L=0.

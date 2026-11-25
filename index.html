@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="application-version" content="2026-11-26-qa6">
+<meta name="application-version" content="2026-11-26-classroom1">
 <title>工廠 LIVE · Factory LIVE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -14,6 +14,7 @@
   --r:16px; --shadow:0 1px 0 rgba(0,0,0,.04),0 6px 20px rgba(60,40,10,.07);
   --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
+
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:18px;line-height:1.5}
 body{min-height:100vh}
@@ -251,6 +252,51 @@ input.inl,select.inl{width:76px;min-height:38px;padding:4px 8px;font-size:16px}
  .screenbody .tiles.many .tile .nm{font-size:15px}.screenbody .tile .fac{flex-basis:30px;height:30px;max-height:30px}.screenbody .tile .in{gap:1px}
 }
 
+/* Classroom reading pass: visible factories, deliberate reveals, clear priorities. */
+a.btn{text-decoration:none}
+.class-profit-head-wrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.banner.warn{background:var(--accent-soft);border-color:#dfb394}
+.secondary-nav{border:1px solid var(--line);background:transparent;font-size:15px;font-weight:600;min-height:44px;color:var(--muted)}
+.home-app{max-width:620px}.home-app .brand{font-size:16px}.home-hero{text-align:center;padding:26px 24px}.home-factory{max-width:210px;margin:0 auto}.home-factory .fac{width:100%}.home-hero h1{font-size:40px}.home-hero h2{font-size:23px}.home-steps{font-size:15px;font-weight:700;color:var(--accent);padding-top:6px}.role-link{justify-content:space-between;text-align:left;padding:16px 20px}.role-link span{min-width:0}.role-link small{display:block;font-size:14px;font-weight:500;line-height:1.4;margin-top:4px}.role-link b{font-size:26px;flex:none}
+.profit-hero{text-align:center;padding:16px;border-radius:16px;background:var(--accent-soft)}.profit-value{font-size:76px;font-weight:900;line-height:1.1}.profit-compare{font-size:22px;font-weight:800;margin-top:8px}
+.market-wait{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px 24px}.market-wait .fac{width:180px;height:140px}.market-wait h2{font-size:30px}.market-wait p{max-width:600px;margin:0;color:var(--muted)}
+.screenbody>.row.gap{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}
+.screenbody .tiles{gap:10px;grid-auto-rows:minmax(0,1fr)}
+.screenbody .tiles.few{grid-auto-rows:150px}
+.screenbody .tile{padding:9px;border-radius:14px}
+.screenbody .tile .in{display:grid;grid-template-columns:minmax(42px,42%) minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:8px;row-gap:1px;align-content:center;justify-content:normal;text-align:left}
+.screenbody .tile .in>.fac,.screenbody .tiles.many .tile .in>.fac{grid-column:1;grid-row:1/4;flex-basis:auto;width:100%;height:auto;max-height:92px;min-height:48px;align-self:center}
+.screenbody .tile .nm{grid-column:2;grid-row:1;font-size:18px;line-height:1.3;min-height:1.3em;padding-right:10px}
+.screenbody .tile .sub{grid-column:2;grid-row:2;font-size:13px;line-height:1.25}
+.screenbody .tile .tag{grid-column:2;grid-row:3;justify-self:start;font-size:16px;line-height:1.25;margin:4px 0 0;padding:2px 7px;max-width:100%;white-space:nowrap}
+.screenbody .tile .badge{width:19px;height:19px;font-size:12px;top:3px;right:3px}
+.screenbody .shift-stage{min-height:110px;transition:background .25s;border-radius:18px}
+.screenbody .shift-stage.is-running{background:var(--accent);border-color:var(--accent)}
+.screenbody .shift-stage .cd{background:transparent;border-color:transparent;color:inherit;padding:0}
+.screenbody .shift-stage .cd .n{font-size:92px}.screenbody .shift-stage .cd.done .n,.screenbody .shift-stage .cd.idle .n{font-size:42px}
+.screenbody .shift-stage.is-final{outline:4px solid #eea36b;outline-offset:-4px}.screenbody .shift-stage.is-final .cd .n{transform:scale(1.08)}
+.screenbody .phase-progress{flex:none}
+.screenbody .market-guide{font-size:24px}.market-guide p{margin:6px 0}.screenbody .market-guide .banner{font-size:24px;line-height:1.5}
+.screenbody.phase-run1 .q-cards .card,.screenbody.phase-run2 .q-cards .card,.screenbody .summary-compact .card{display:flex;gap:16px;align-items:center;justify-content:center;padding:8px 14px}
+.screenbody.phase-run1 .q-cards .v,.screenbody.phase-run2 .q-cards .v,.screenbody .summary-compact .v{font-size:48px}.screenbody .summary-compact .k{font-size:22px}
+.screenbody.phase-ledger1>.row.gap,.screenbody.phase-ledger2>.row.gap{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}
+.class-comparison{height:100%;display:flex;flex-direction:column;gap:8px}.class-comparison h3{font-size:26px}.class-aha{font-size:25px;font-weight:800;color:var(--accent);margin:0}.class-profit-head,.class-profit-row{display:grid;grid-template-columns:minmax(0,1fr) repeat(3,52px);gap:4px;align-items:center;text-align:right;font-variant-numeric:tabular-nums}.class-profit-head span:first-child,.class-profit-row span:first-child{text-align:left;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.class-profit-head{font-size:16px;color:var(--muted);font-weight:700}.class-profit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 16px;align-content:start;flex:1}.class-profit-row{font-size:21px;border-bottom:1px solid var(--line);padding:4px 0}.class-profit-row strong{color:var(--accent)}.class-profit-row span:first-child{font-size:17px}.class-comparison>p.small{margin:0;font-size:18px}
+.lesson-hero{display:flex;align-items:center;justify-content:center;gap:36px;padding:16px 24px;border-radius:18px;background:var(--accent-soft);border:2px solid #dfb394}.lesson-formula{font-size:68px;font-weight:900;line-height:1.1;white-space:nowrap}.lesson-hero h2{font-size:34px}.lesson-hero p{margin:6px 0 0;max-width:650px;font-size:20px}.screenbody.phase-debrief>.row.gap{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.screenbody .debrief-lesson .lesson h3{font-size:28px}.screenbody .debrief-lesson .lesson>div:nth-child(2),.screenbody .debrief-lesson .lesson>.banner{display:none}.screenbody .debrief-lesson .lesson .small{font-size:24px;line-height:1.5}.screenbody .debrief-lesson .lesson .tiny{font-size:20px;line-height:1.5}
+.forecast-card{display:flex;flex-direction:column}.forecast-card h3{font-size:26px}.histogram{flex:1;min-height:120px;padding-top:28px;margin-bottom:12px;align-items:stretch}.hist-bin{display:flex;flex-direction:column;justify-content:flex-end;font-size:20px}.hist-track{height:auto;flex:1;min-height:100px}.hist-track>.hist-bar{position:relative;min-width:6px;width:70%}.hist-bar>b{position:absolute;top:-28px;left:50%;transform:translateX(-50%);font-size:19px;line-height:26px;color:var(--ink)}.hist-caption{font-size:18px;font-weight:700}.forecast-card>.small{font-size:18px;margin-top:6px}
+@media(min-width:1000px) and (max-height:800px){
+ .screenbody,.screenbody .stack{gap:8px}.screenbody>.row.gap{gap:14px}
+ .screenbody .shift-stage{min-height:88px;padding:8px 14px}.screenbody .shift-stage .cd .n{font-size:64px}.screenbody .shift-stage .cd.done .n,.screenbody .shift-stage .cd.idle .n{font-size:34px}.screenbody .shift-stage .cd .l{font-size:13px}
+ .screenbody .tile{padding:6px}.screenbody .tiles{gap:7px}.screenbody .tile .in{column-gap:5px;row-gap:0}.screenbody .tile .nm,.screenbody .tiles.many .tile .nm{font-size:15px;line-height:1.3;min-height:1.3em}.screenbody .tile .sub{font-size:11px}.screenbody .tile .tag{font-size:13px;margin-top:3px;padding:1px 5px}.screenbody .tile .in>.fac,.screenbody .tiles.many .tile .in>.fac{width:100%;height:auto;min-height:42px;max-height:66px}
+ .screenbody.phase-trial .card.stack{gap:5px}.screenbody.phase-trial .card.stack .big{font-size:16px}.screenbody.phase-trial .bar{height:14px!important}
+ .screenbody .market-guide,.screenbody .market-guide .banner{font-size:20px}.screenbody .market-guide h2{font-size:24px}
+ .screenbody.phase-run1 .q-cards .v,.screenbody.phase-run2 .q-cards .v,.screenbody .summary-compact .v{font-size:36px}.screenbody .summary-compact .k{font-size:17px}
+ .class-comparison h3{font-size:21px}.class-aha{font-size:20px}.class-profit-grid{gap:3px 12px}.class-profit-head,.class-profit-row{grid-template-columns:minmax(0,1fr) repeat(3,41px);gap:3px}.class-profit-row{font-size:18px;padding:3px 0}.class-profit-row span:first-child{font-size:15px}.class-profit-head{font-size:13px}.class-comparison>p.small{font-size:16px}
+ .lesson-hero{gap:24px;padding:12px 18px}.lesson-formula{font-size:52px}.lesson-hero h2{font-size:29px}.lesson-hero p{font-size:18px;max-width:620px}
+ .screenbody .debrief-lesson .lesson h3{font-size:23px}.screenbody .debrief-lesson .lesson .small{font-size:20px;line-height:1.45}.screenbody .debrief-lesson .lesson .tiny{font-size:18px;line-height:1.4}.forecast-card h3{font-size:21px}.hist-bin{font-size:16px}.hist-caption,.forecast-card>.small{font-size:16px}.histogram{margin-top:6px;margin-bottom:6px}
+}
+@media(prefers-reduced-motion:reduce){.screenbody .shift-stage.is-final .cd .n{transform:none}}
+
 </style>
 </head>
 <body>
@@ -303,7 +349,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if (qs.length) mean[L] = qs.reduce(function (a, b) { return a + b; }, 0) / qs.length;
       if (deltas.length) marginal[L] = deltas.reduce(function (a, b) { return a + b; }, 0) / deltas.length;
     }
-    return { mean: mean, marginal: marginal, counts: counts, pairedCounts: pairedCounts };
+    var maxL = 0; series.forEach(function (pts) { Object.keys(pts).forEach(function (k) { maxL = Math.max(maxL, +k); }); });
+    var cohort = series.filter(function (pts) { for (var k = 1; k <= maxL; k++) if (pts[k] == null) return false; return maxL > 0; });
+    var cohortMean = [];
+    for (var k = 1; k <= maxL; k++) if (cohort.length) cohortMean[k] = cohort.reduce(function (sum, pts) { return sum + pts[k]; }, 0) / cohort.length;
+    return { mean: mean, marginal: marginal, counts: counts, pairedCounts: pairedCounts, cohortMean: cohortMean, cohortN: cohort.length, maxL: maxL };
   }
 
   // Rows for the decision table: every tested L plus L=0.
@@ -947,15 +997,15 @@ window.FL.dict = (function () {
   a('sound_on', '啟用聲音', 'Enable sound');
   a('scan_join', '掃碼加入', 'Scan to join');
   a('joined_h', '已報到 {0} 家工廠 · {1} 人', '{0} factories · {1} people');
-  a('tested_n', '已試產 {0} 檔', '{0} tested');
+  a('tested_n', '已試 {0} 次', '{0} trials');
   a('k_short', '人數不足', 'Too few');
   a('rings', '環', 'rings');
   a('open_n', '開工 {0} 人', 'Open · {0}');
   a('renew_n', '續租 · {0} 人', 'Renew · {0}');
   a('no_dec_short', '未交', 'No entry');
   a('verified_progress', '已驗收', 'Verified');
-  a('chart_alt', '各組的人數與產量，粗線為全班平均', 'Workers vs rings per team; thick line is the class mean');
-  a('chart_h', '每組的試產結果（粗線＝全班平均）', 'Trial results per team (thick = class mean)');
+  a('chart_alt', '各組的人數與產量；粗線使用同一批完整資料工廠的平均', 'Workers vs rings; thick line averages the same complete-data factories');
+  a('chart_h', '試產曲線（粗線＝同一批工廠平均）', 'Trial curves (thick = same-factory mean)');
   a('market_screen_p', '兩期條件相同。今天的租金已付：它不會因為你開工或停工而改變。', 'Same conditions for both periods. Today\'s rent is already paid: it does not change whether you open or close.');
   a('screen_marginal', '多請一人，值不值得？', 'Is one more worker worth it?');
   a('d1_screen', '決策一：今天要請幾個人？', 'Decision 1: how many workers today?');
@@ -1113,7 +1163,40 @@ window.FL.dict = (function () {
   a("lesson_explain", "短期：今天租金已付，是沉沒成本；G>0 時開工能減少損失。長期：下期可不續租；只有 G 能補回租金，續租才不比退出差。", "Short run: today’s rent is sunk; opening reduces losses when G>0. Long run: rent is avoidable; renewing is no worse than exit only if G covers rent.");
   a("lesson_boundary", "邊界：G=0 時今天開工與停工無差異；G=F 時下期續租與退出無差異。", "At G=0, opening and closing today tie. At G=F, renewing and exiting next period tie.");
   a("lesson_example", "依試產估計：今天開工 {0}，停工 {1}；下期續租 {0}，退出 0。", "From trials: open today {0} vs close {1}; renew next period {0} vs exit 0.");
-  a('paired_marginal_note', '各檔平均可能包含不同工廠；邊際產量只比較同一家相鄰人數的增量。＝表示增收與工資相同。', 'Headcount averages may cover different factories. Marginal output compares adjacent headcounts within the same factory. = means added revenue equals wages.');
+  a('paired_marginal_note', '本表平均包含該人數所有有效資料；邊際產量以同一家相鄰人數配對，樣本數另列。投影平均則固定使用同一批完整資料工廠，兩者用途不同。', 'These means use all valid observations at each headcount. Marginal output uses within-factory pairs, with paired sample sizes shown. The projector uses one complete-data cohort for its mean curve.');
+  a('market_wait', '老師正在設定市場條件…', 'The teacher is setting market conditions…');
+  a('market_wait_p', '公布後，這裡會顯示售價、工資與租金。', 'Price, wages and rent will appear here when announced.');
+  a('market_publish', '公布市場條件', 'Announce market conditions');
+  a('market_republish', '重新公布目前條件', 'Announce these conditions again');
+  a('market_private', '目前只有老師看得到參數；學生和投影正在等公布。', 'Only the teacher sees these settings. Students and the projector are waiting.');
+  a('market_live', '已公布。調整任何參數後，需要再次公布。', 'Announced. Any parameter change requires a new announcement.');
+  a('publish_first', '請先按「公布市場條件」，再開始決策。', 'Announce the market conditions before starting decisions.');
+  a('market_compare', '同一筆租金，兩個決策', 'One rent, two decisions');
+  a('market_today', '租金 {0} 已付。開工與停工都要承擔這筆租金。', 'Rent of {0} is already paid, whether you open or close.');
+  a('market_next', '續租再付 {0}；退出不付租金，利潤 0。', 'Renewing costs {0} again. Exit means no rent and profit of 0.');
+  a('market_plan_hint', '請在手機上比較自己工廠各種人數的「營收 − 工資」。', 'Compare revenue minus wages for your own factory on your phone.');
+  a('sample_n', '工廠數', 'Factories');
+  a('paired_n', '配對家數', 'Paired n');
+  a('teacher_trial_stats', '試產統計（教師分析）', 'Trial statistics (teacher analysis)');
+  a('cohort_note', '粗線與平均表固定使用同一批 {0} 家工廠：須具備截至目前最高試產人數的完整資料。', 'The mean curve and table use the same {0} factories with complete data through the highest tested headcount.');
+  a('late_hint', '沒有自己的試產資料時，先參考投影上的同批工廠平均，再和組員討論估計；各家生產力不同，這不是你們的保證產量。', 'Without your own trials, refer to the projector mean and discuss an estimate. Factories differ; it does not guarantee your output.');
+  a('late_reference', '參考平均（{0} 家，非本桌試產）', 'Reference mean ({0} factories; not your trial)');
+  a('profit_delta', '相較{1}：{0}', 'Difference vs {1}: {0}');
+  a('class_vs_stop', '全班：實際利潤 vs 今天停工', 'Class: actual profit vs closing today');
+  a('class_vs_exit', '全班：實際利潤 vs 下期退出', 'Class: actual profit vs exit');
+  a('class_better', '{1} 家已結帳，其中 {0} 家比另一選項好', '{0} of {1} settled factories did better than the alternative');
+  a('actual_profit', '實際', 'Actual');
+  a('difference', '差額', 'Change');
+  a('class_sunk_note', '差額＝實際利潤 − 停工利潤。租金兩邊都扣，開工是否較好取決於營收能否補回工資。', 'Change = actual profit minus closing profit. Both pay rent; opening helps when revenue covers wages.');
+  a('class_exit_note', '退出的利潤是 0；缺少決策或驗收結果的工廠顯示「—」。', 'Exit earns 0. Missing decisions or verified output are shown as —.');
+  a('forecast_axis', '橫軸：預測退出家數｜柱頂：做此預測的工廠數', 'X: predicted exits · Bar labels: factories making that prediction');
+  a('home_kicker', '經濟學課堂實驗', 'An economics classroom game');
+  a('home_question', '今天開工，下期還要續租嗎？', 'Open today. Renew next period?');
+  a('home_intro', '用橡皮筋生產、計算成本，替你的工廠做兩次選擇。', 'Produce with rubber bands, work out costs and make two choices for your factory.');
+  a('home_steps', '試產 → 市場公布 → 決策 → 結帳', 'Trial → Market → Decide → Settle');
+  a('home_team_hint', '輸入房號，和同桌一起經營工廠', 'Enter the room code and manage a factory together');
+  a('home_screen_hint', '教室大螢幕：倒數、產量與全班結果', 'Classroom display: countdown, output and results');
+  a('home_host_hint', '建立場次、設定市場，帶全班往前走', 'Create a session, set the market and lead the class');
   return D;
 })();
 
@@ -1194,6 +1277,8 @@ window.FL.dict = (function () {
       return res;
     });
   };
+  FL.marketPublished = function (snap) { return window.FLCalc.PHASES.indexOf(snap.session.phase) > window.FLCalc.PHASES.indexOf('market') || snap.session.params.market_published === true; };
+  FL.marketWaiting = function () { return '<div class="card market-wait stack center">' + FL.factory('unk', 0) + '<h2>' + FL.t('market_wait') + '</h2><p>' + FL.t('market_wait_p') + '</p></div>'; };
   FL.lessonHTML = function () {
     var snap = FL.snap(), par = snap.session.params, sample = null;
     FL.active(snap).some(function (tm) {
@@ -1252,6 +1337,8 @@ window.FL.dict = (function () {
   FL.tick = function () {
     var snap = FL.snap(); if (!snap) return;
     var s = FL.shiftOf(snap), st = FL.shiftState(s);
+    var stage = FL.$('.shift-stage');
+    if (stage) { stage.classList.toggle('is-running', st.st === 'run'); stage.classList.toggle('is-final', st.st === 'run' && st.n <= 3); }
     FL.$$('[data-cd]').forEach(function (box) {
       box.className = box.className.replace(/\b(idle|pre|run|done)\b/, st.st);
       var n = box.firstChild, l = box.lastChild;
@@ -1411,7 +1498,7 @@ window.FL.dict = (function () {
     if (PREV[live]) {
       nav = '<div class="peekbar">' + (peeking
         ? '<div class="banner warn grow">' + t('peek_note', t('ph_' + (PREV[live] === 'trialpeek' ? 'trial' : PREV[live]))) + '</div><button class="btn primary block" data-act="peek">' + t('peek_back') + '</button>'
-        : '<button class="btn block" data-act="peek">← ' + t('peek_prev', t('ph_' + (PREV[live] === 'trialpeek' ? 'trial' : PREV[live]))) + '</button>') + '</div>';
+        : '<button class="btn block secondary-nav" data-act="peek">← ' + t('peek_prev', t('ph_' + (PREV[live] === 'trialpeek' ? 'trial' : PREV[live]))) + '</button>') + '</div>';
     }
     return '<div class="app-inner">' + topbar(me, snap) + '<div class="stack">' + (peeking ? nav : '') + body + (peeking ? '' : nav) + '</div>' +
       '<div class="center" style="margin-top:24px"><button class="btn sm ghost" data-act="leave">' + t('leave') + '</button></div></div>';
@@ -1529,7 +1616,11 @@ window.FL.dict = (function () {
   }
   function planTable(snap, me, highlightL) {
     var par = snap.session.params, pts = C.trialPoints(snap.runs, me.id), rows = C.planRows(pts, par.p, par.w);
-    if (rows.length < 2) return '<div class="muted small">' + t('no_trial_yet') + '</div>';
+    if (rows.length < 2) {
+      var ref = C.trialSummary(snap.runs, FL.active(snap));
+      var items = [1, 2, 3, 4].filter(function (L) { return L <= me.present && ref.cohortMean[L] != null; }).map(function (L) { return '<span>' + L + ' ' + t('people') + '：' + FL.n2(ref.cohortMean[L]) + ' ' + t('rings') + '</span>'; }).join(' · ');
+      return '<div class="banner warn">' + t('late_hint') + (items ? '<div class="small" style="margin-top:8px">' + t('late_reference', ref.cohortN) + '<br>' + items + '</div>' : '') + '</div>';
+    }
     return '<table class="t plan"><tr><th>' + t('c_workers') + '</th><th>' + t('c_rings') + '</th><th>' + t('c_rev') + '</th><th>' + t('c_wage') + '</th><th>' + t('c_net') + '</th><th>' + t('c_dv1') + '<br><small>' + t('c_dv2') + '</small></th></tr>' +
       rows.map(function (r) {
         return '<tr class="' + (r.L === highlightL ? 'hl' : '') + '"><td>' + r.L + '</td><td>' + r.q + '</td><td>' + r.rev + '</td><td>' + r.wage + '</td><td class="sign">' + sg(r.net) + '</td>' +
@@ -1538,6 +1629,7 @@ window.FL.dict = (function () {
   }
   function market(snap, me) {
     var par = snap.session.params;
+    if (!FL.marketPublished(snap)) return FL.marketWaiting();
     return '<div class="card accent stack"><h2>' + t('market_h') + '</h2>' + paramCards(par) + '<div>' + t('market_p', par.F) + '</div></div>' +
       '<div class="card stack"><h3>' + t('plan_h') + '</h3>' + planTable(snap, me) + '<div class="tiny muted">' + t('plan_note') + '</div></div>';
   }
@@ -1586,7 +1678,7 @@ window.FL.dict = (function () {
     if (sel === 'exit') return '<div class="banner">' + t('prev_exit') + '</div>';
     if (sel === 0) return '<div class="banner">' + (per === 1 ? t('prev_stop', sg(-par.F)) : t('prev_renew0', sg(-par.F))) + '</div>';
     var q = pts[sel];
-    if (q == null) return '<div class="banner warn">' + t('prev_untested') + '</div>';
+    if (q == null) return '<div class="banner warn">' + t('prev_untested') + ' ' + t('late_hint') + '</div>';
     var pr = par.p * q - par.w * sel - par.F;
     return '<div class="banner">' + t('prev_work', sel, q, par.p * q, par.w * sel, par.F, sg(pr)) + '</div>' + (per === 1 ? '<div class="tiny muted">' + t('prev_stop_cmp', sg(-par.F)) + '</div>' : '');
   }
@@ -1644,7 +1736,9 @@ window.FL.dict = (function () {
     } else {
       cmp = per === 1 ? t('cmp1_est', sg(P.profit), sg(P.counterfactual)) : t('cmp2_est', sg(P.profit), sg(P.counterfactual));
     }
-    out += '<div class="card stack"><h2>' + t('ledger_h', per) + '</h2>' + table + '<div class="banner">' + cmp + '</div>' + (P.counterfactualKind === 'estimate' ? '<div class="tiny muted">' + t('est_note') + '</div>' : '') + '</div>';
+    var delta = P.counterfactual == null ? null : P.profit - P.counterfactual;
+    var compare = delta == null ? '' : t('profit_delta', sg(delta), per === 1 ? t('stop') : P.renew ? t('exit') : t('renew')) + (P.counterfactualKind === 'estimate' ? '*' : '');
+    out += '<div class="card stack"><h2>' + t('ledger_h', per) + '</h2><div class="profit-hero"><div class="muted small">' + t('l_profit') + '</div><div class="profit-value num">' + sg(P.profit) + '</div><div class="profit-compare">' + compare + '</div></div>' + table + '<div class="banner">' + cmp + '</div>' + (P.counterfactualKind === 'estimate' ? '<div class="tiny muted">' + t('est_note') + '</div>' : '') + '</div>';
     if (per === 2) {
       out += '<div class="card"><div class="row"><div class="grow muted">' + t('total_h') + '</div><div class="huge num">' + sg(L.total) + '</div></div></div>';
       var agg = C.classAggregates(snap), p2 = P;
@@ -1699,7 +1793,7 @@ window.FL.dict = (function () {
   var FL = window.FL, C = window.FLCalc, t = FL.t, esc = FL.esc, sg = FL.sg;
   var PH = C.PHASES;
   var flip = { from: null, armed: false };
-  var tilePage = 0, PAGE_SIZE = 12;
+  var tilePage = 0, PAGE_SIZE = 20;
 
   function head(snap) {
     var cur = PH.indexOf(snap.session.phase);
@@ -1758,7 +1852,7 @@ window.FL.dict = (function () {
     var pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE)); tilePage = Math.min(tilePage, pages - 1);
     var visible = list.slice(tilePage * PAGE_SIZE, (tilePage + 1) * PAGE_SIZE);
     var tilesz = list.length > 12 ? 140 : list.length > 6 ? 165 : 220;
-    var cols = visible.length > 6 ? (/^run/.test(snap.session.phase) ? 6 : 4) : visible.length > 3 ? 3 : Math.max(visible.length, 1);
+    var cols = visible.length > 12 ? 5 : visible.length > 6 ? 4 : visible.length > 3 ? 3 : Math.max(visible.length, 1);
     return '<div class="tile-panel"><div class="tiles' + (list.length > 6 ? ' many' : '') + (visible.length <= 3 ? ' few' : '') + '" style="--tile:' + tilesz + 'px;--cols:' + cols + '">' + visible.map(function (tm) {
       var o = tileInfo(snap, tm), pre = flip.armed && /^run/.test(snap.session.phase);
       return '<div class="tile ' + o.state + ' flip ' + (pre ? 'pre' : '') + '"><div class="in">' +
@@ -1788,17 +1882,17 @@ window.FL.dict = (function () {
       if (any) s += '<path d="' + path + '" fill="none" stroke="#9a9488" stroke-width="2" opacity=".6"/>';
       for (var L2 = 1; L2 <= 4; L2++) if (pts[L2] != null) s += '<circle cx="' + x(L2) + '" cy="' + y(pts[L2]) + '" r="6" fill="#fff" stroke="#1c1b1a" stroke-width="2.5"/>';
     });
-    var mean = [], mp = 'M' + x(0) + ' ' + y(0);
-    for (var L3 = 1; L3 <= 4; L3++) { var a = byL[L3]; if (a.length) { var mu = a.reduce(function (p, c) { return p + c; }, 0) / a.length; mean[L3] = mu; mp += ' L' + x(L3) + ' ' + y(mu); } }
+    var summary = C.trialSummary(snap.runs, act), mean = summary.cohortMean, mp = 'M' + x(0) + ' ' + y(0);
+    for (var L3 = 1; L3 <= 4; L3++) if (mean[L3] != null) mp += ' L' + x(L3) + ' ' + y(mean[L3]);
     if (mean.length) { s += '<path d="' + mp + '" fill="none" stroke="#c2410c" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>'; for (var L4 = 1; L4 <= 4; L4++) if (mean[L4] != null) s += '<circle cx="' + x(L4) + '" cy="' + y(mean[L4]) + '" r="8" fill="#c2410c"/>'; }
     if (!mean.length) s += '<text x="350" y="185" text-anchor="middle" font-size="22" fill="#5b564e">' + t('chart_waiting') + '</text>';
-    return { svg: s + '</svg>', mean: mean, marginal: C.trialSummary(snap.runs, act).marginal };
+    return { svg: s + '</svg>', mean: mean, n: summary.cohortN };
   }
 
-  function meanTable(mean, marginal) {
+  function meanTable(mean, n) {
     var rows = '';
-    for (var L = 1; L <= 4; L++) if (mean[L] != null) rows += '<tr><td>' + L + '</td><td>' + FL.n2(mean[L]) + '</td><td class="sign">' + sg(marginal[L]) + '</td></tr>';
-    return rows ? '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('mean_q') + '</th><th>' + t('c_mp') + '</th></tr>' + rows + '</table><div class="tiny muted">' + t('paired_marginal_note') + '</div>' : '';
+    for (var L = 1; L <= 4; L++) if (mean[L] != null) rows += '<tr><td>' + L + '</td><td>' + FL.n2(mean[L]) + '</td><td>' + n + '</td></tr>';
+    return rows ? '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('mean_q') + '</th><th>' + t('sample_n') + '</th></tr>' + rows + '</table><div class="tiny muted">' + t('cohort_note', n) + '</div>' : '';
   }
 
   /* ------------------------------------------------ phases */
@@ -1823,30 +1917,22 @@ window.FL.dict = (function () {
     var producing = L ? act.filter(function (x) { return x.present >= L; }) : [];
     var done = L ? producing.filter(function (x) { return snap.runs.some(function (r) { return r.team_id === x.id && r.kind === 'trial' && r.L === L && (r.status === 'confirmed' || r.status === 'host'); }); }).length : 0;
     return '<div class="row gap" style="align-items:flex-start"><div class="grow stack" style="min-width:0">' +
-      '<div class="card dark row"><div class="grow"><div class="huge">' + (L ? t('trial_shift', L) : t('trial_wait_s')) + '</div></div>' +
+      '<div class="card dark row shift-stage"><div class="grow"><div class="huge">' + (L ? t('trial_shift', L) : t('trial_wait_s')) + '</div></div>' +
       '<div style="width:300px">' + FL.cdHTML(snap) + '</div></div>' +
       (L ? '<div class="card stack"><div class="big" style="font-weight:800">' + t('verified_progress') + '</div>' + progress(done, producing.length) + '</div>' : '') +
       tiles(snap) + '</div>' +
-      '<div class="stack" style="width:520px;flex:none"><div class="chartbox"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div>' + (meanTable(ch.mean, ch.marginal) ? '<div class="card">' + meanTable(ch.mean, ch.marginal) + '</div>' : '') + '</div></div>';
+      '<div class="stack" style="width:520px;flex:none"><div class="chartbox"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div>' + (meanTable(ch.mean, ch.n) ? '<div class="card">' + meanTable(ch.mean, ch.n) + '</div>' : '') + '</div></div>';
   }
 
   function marketScreen(snap) {
     var par = snap.session.params, ch = trialChart(snap);
+    if (!FL.marketPublished(snap)) return FL.marketWaiting();
     return '<div class="q-cards"><div class="card"><div class="k">' + t('p_name') + '</div><div class="v">' + par.p + '</div></div>' +
       '<div class="card"><div class="k">' + t('w_name') + '</div><div class="v">' + par.w + '</div></div>' +
       '<div class="card"><div class="k">' + t('f_name') + '</div><div class="v">' + par.F + '</div></div></div>' +
       '<div class="card accent big" style="font-weight:700">' + t('market_screen_p', par.F) + '</div>' +
-      '<div class="row gap" style="align-items:flex-start"><div class="chartbox grow mkt"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div><div class="card" style="width:430px;flex:none">' + marketTable(snap, ch.mean, ch.marginal) + '</div></div>';
+      '<div class="row gap" style="align-items:flex-start"><div class="chartbox grow mkt"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div><div class="card stack market-guide" style="width:430px;flex:none"><h2>' + t('market_compare') + '</h2><div class="banner"><b>' + t('period1') + '</b><p>' + t('market_today', par.F) + '</p></div><div class="banner"><b>' + t('period2') + '</b><p>' + t('market_next', par.F) + '</p></div><p>' + t('market_plan_hint') + '</p><div class="small muted">' + t('cohort_note', ch.n) + '</div></div></div>';
   }
-  function marketTable(snap, mean, marginal) {
-    var par = snap.session.params, rows = '';
-    for (var L = 1; L <= 4; L++) if (mean[L] != null) {
-      var dq = marginal[L]; rows += '<tr><td>' + L + '</td><td>' + (dq == null ? '—' : FL.n2(par.p * dq)) + '</td><td>' + par.w + '</td><td class="sign">' + (dq == null ? '—' : par.p * dq > par.w ? '✓' : par.p * dq === par.w ? '=' : '✗') + '</td></tr>';
-    }
-    return '<div style="font-weight:800;font-size:22px;margin-bottom:6px">' + t('screen_marginal') + '</div>' +
-      (rows ? '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('c_dv_short') + '</th><th>' + t('w_name') + '</th><th></th></tr>' + rows + '</table><div class="tiny muted">' + t('paired_marginal_note') + '</div>' : '');
-  }
-
   function decideScreen(snap, per) {
     var act = FL.active(snap), n = snap.locked.filter(function (x) { return x.period === per && act.some(function (a) { return a.id === x.team_id; }); }).length;
     return '<div class="card dark"><div class="huge">' + (per === 1 ? t('d1_screen') : t('d2_screen')) + '</div><div style="font-size:26px;margin-top:6px;opacity:.9">' + (per === 1 ? t('d1_screen_p', snap.session.params.F) : t('d2_screen_p', snap.session.params.F)) + '</div></div>' +
@@ -1864,7 +1950,7 @@ window.FL.dict = (function () {
     var act = FL.active(snap), kind = per === 1 ? 'p1' : 'p2';
     var prod = act.filter(function (x) { var d = C.decisionOf(snap.decisions, x.id, per); return d && d.renew && d.L > 0; });
     var done = prod.filter(function (x) { return snap.runs.some(function (r) { return r.team_id === x.id && r.kind === kind && (r.status === 'confirmed' || r.status === 'host'); }); }).length;
-    return '<div class="card dark row"><div class="grow"><div class="huge">' + t('run_screen', per) + '</div></div><div style="width:300px">' + FL.cdHTML(snap) + '</div></div>' +
+    return '<div class="card dark row shift-stage"><div class="grow"><div class="huge">' + t('run_screen', per) + '</div></div><div style="width:300px">' + FL.cdHTML(snap) + '</div></div>' +
       summaryCards(snap, per) + '<div class="card stack"><div class="big" style="font-weight:800">' + t('verified_progress') + '</div>' + progress(done, prod.length) + '</div>' + tiles(snap);
   }
 
@@ -1902,23 +1988,32 @@ window.FL.dict = (function () {
         '<div class="big" style="font-weight:700">' + line + '</div>' +
         '<table class="t"><tr><th></th><th>' + t('l_decision') + '</th><th>' + t('c_rev') + '</th><th>' + t('c_wage') + '</th><th>' + t('l_rent') + '</th><th>' + t('l_profit') + '</th><th>' + t('l_alt') + '</th></tr>' + rows + '</table><div class="tiny muted">* ' + t('est_note') + '</div></div>';
     }
-    return '<div class="row gap" style="align-items:flex-start"><div class="grow stack" style="min-width:0">' + body + '</div><div class="stack" style="width:46%;flex:none">' + summaryCards(snap, per) + tiles(snap) + '</div></div>';
+    return '<div class="row gap" style="align-items:flex-start"><div class="grow stack" style="min-width:0">' + body + '</div><div class="stack" style="width:46%;flex:none">' + classComparison(snap, per) + '</div></div>';
+  }
+
+  function classComparison(snap, per) {
+    var base = per === 1 ? -snap.session.params.F : 0, valid = 0, better = 0;
+    var cards = FL.active(snap).map(function (tm) {
+      var P = C.ledger(tm, snap).periods[per];
+      if (P.complete) { valid++; if (P.profit > base) better++; }
+      return '<div class="class-profit-row"><span title="' + esc(tm.name) + '">' + tm.table_no + ' · ' + esc(tm.name) + '</span><b>' + (P.complete ? sg(P.profit) : '—') + '</b><span>' + sg(base) + '</span><strong>' + (P.complete ? sg(P.profit - base) : '—') + '</strong></div>';
+    }).join('');
+    var header = '<div class="class-profit-head"><span>' + t('team_name') + '</span><span>' + t('actual_profit') + '</span><span>' + t(per === 1 ? 'stop' : 'exit') + '</span><span>' + t('difference') + '</span></div>';
+    return '<div class="card class-comparison"><h3>' + t(per === 1 ? 'class_vs_stop' : 'class_vs_exit') + '</h3><p class="class-aha">' + t('class_better', better, valid) + '</p><div class="class-profit-head-wrap">' + header + header + '</div><div class="class-profit-grid">' + cards + '</div><p class="small muted">' + t(per === 1 ? 'class_sunk_note' : 'class_exit_note') + '</p></div>';
   }
 
   function debriefScreen(snap) {
-    var par = snap.session.params, a = C.classAggregates(snap), ch = trialChart(snap);
-    var names = a.openThenExit.map(function (id) { var tm = FL.team(snap, id); return tm ? esc(tm.name) : ''; }).join('、');
-    // prediction histogram
-    var N = a.n, actualReady = a.n > 0 && a.decided2 === a.n, pairedReady = a.n > 0 && a.paired === a.n, bins = {}, maxc = 1;
-    a.predicts.forEach(function (p) { bins[p] = (bins[p] || 0) + 1; if (bins[p] > maxc) maxc = bins[p]; });
+    var par = snap.session.params, a = C.classAggregates(snap);
+    var N = a.n, actualReady = N > 0 && a.decided2 === N, pairedReady = N > 0 && a.paired === N, bins = {}, maxc = 1;
+    a.predicts.forEach(function (p) { bins[p] = (bins[p] || 0) + 1; maxc = Math.max(maxc, bins[p]); });
     var bars = '';
-    for (var k = 0; k <= N; k++) bars += '<div class="hist-bin"><div class="hist-track"><div style="height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (actualReady && k === a.exit2 ? 'var(--accent)' : '#d6cfc2') + ';min-height:' + (bins[k] ? 4 : 0) + 'px"></div></div><div class="' + (actualReady && k === a.exit2 ? 'sign' : 'muted') + '">' + k + (actualReady && k === a.exit2 ? ' ▲' : '') + '</div></div>';
-    return '<div class="q-cards"><div class="card"><div class="v">' + (pairedReady ? a.exitsAmongOpened : '—') + '</div><div class="k">' + t('s_open_then_exit') + '</div></div>' +
+    for (var k = 0; k <= N; k++) bars += '<div class="hist-bin"><div class="hist-track"><div class="hist-bar" style="height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (actualReady && k === a.exit2 ? 'var(--accent)' : '#9e9586') + '">' + (bins[k] ? '<b>' + bins[k] + '</b>' : '') + '</div></div><div class="' + (actualReady && k === a.exit2 ? 'sign' : 'muted') + '">' + k + (actualReady && k === a.exit2 ? ' ▲' : '') + '</div></div>';
+    var hero = par.show_lesson ? '<div class="lesson-hero"><div class="lesson-formula">0 &lt; G &lt; F</div><div><h2>' + t('s_open_then_exit') + '</h2><p>' + t('lesson_rule') + '</p></div></div>' : '<div class="card accent big">' + t('slip_q', par.F) + '</div>';
+    return '<div class="q-cards summary-compact"><div class="card"><div class="v">' + (pairedReady ? a.exitsAmongOpened : '—') + '</div><div class="k">' + t('s_open_then_exit') + '</div></div>' +
       '<div class="card"><div class="v">' + (a.decided1 ? a.opened1 : '—') + '</div><div class="k">' + t('s_open') + '</div></div>' +
-      '<div class="card"><div class="v">' + (actualReady ? a.exit2 : '—') + '</div><div class="k">' + t('s_exit') + '</div></div></div>' +
-      '<div class="card accent big" style="font-weight:700">' + (pairedReady ? t('debrief_screen', names || t('none'), par.F) : t('forecast_pending', a.decided2, a.n)) + '</div>' +
-      '<div class="row gap" style="align-items:flex-start"><div class="card grow"><div style="font-weight:800;font-size:22px">' + t('pred_vs_actual') + '</div>' + (a.predicts.length ? '<div class="histogram">' + bars + '</div><div class="tiny muted">' + (actualReady ? t('pred_note') : t('forecast_pending', a.decided2, a.n)) + '</div>' : '<div class="muted">' + t('no_forecasts') + '</div>') + '</div>' +
-      '<div class="card" style="width:46%;flex:none">' + (par.show_lesson ? FL.lessonHTML() : '<div style="font-weight:800;font-size:22px">' + t('slip_h') + '</div><div class="big" style="margin-top:8px">' + t('slip_q', par.F) + '</div>') + '</div></div>';
+      '<div class="card"><div class="v">' + (actualReady ? a.exit2 : '—') + '</div><div class="k">' + t('s_exit') + '</div></div></div>' + (!actualReady ? '<div class="banner warn small">' + t('forecast_pending', a.decided2, N) + '</div>' : '') + hero +
+      '<div class="row gap"><div class="card forecast-card"><h3>' + t('pred_vs_actual') + '</h3>' + (a.predicts.length ? '<div class="histogram">' + bars + '</div><div class="hist-caption">' + t('forecast_axis') + '</div><div class="small muted">' + (actualReady ? t('pred_note') : t('forecast_pending', a.decided2, N)) + '</div>' : '<div class="muted">' + t('no_forecasts') + '</div>') + '</div>' +
+      '<div class="card debrief-lesson">' + (par.show_lesson ? FL.lessonHTML() : '<h2>' + t('slip_h') + '</h2><p>' + t('slip_q', par.F) + '</p>') + '</div></div>';
   }
 
   /* ------------------------------------------------ main */
@@ -1979,7 +2074,8 @@ window.FL.dict = (function () {
 
   /* ------------------------------------------------ helpers */
   var hc = function () { return FL.host.code; }, hk = function () { return FL.host.key; };
-  function patch(p) { return FL.run(FL.api.hostSet(hc(), hk(), p)); }
+  var hostQueue = Promise.resolve();
+  function patch(p) { var code = hc(), key = hk(); hostQueue = hostQueue.catch(function () {}).then(function () { return FL.api.hostSet(code, key, p); }); return FL.run(hostQueue); }
   function twice(el, msg) { // two-step confirmation without browser dialogs
     if (el.dataset.armed) { return true; }
     el.dataset.armed = '1'; var old = el.innerHTML; el.innerHTML = msg; el.classList.add('dark');
@@ -2039,10 +2135,11 @@ window.FL.dict = (function () {
     var snap = FL.snap(), ph = snap.session.phase, cur = PH.indexOf(ph), nxt = PH[i];
     var p = pending(snap);
     if (i > cur && p.length && /^(decide|run|trial)/.test(ph) && el && !twice(el, t('confirm_skip', p.length))) return;
-    patch({ phase: nxt, reveal: C.revealFor(nxt), shift: {} });
+    if (ph === 'market' && nxt === 'decide1' && !FL.marketPublished(snap)) return FL.toast(t('publish_first'));
+    return patch({ phase: nxt, reveal: C.revealFor(nxt), shift: {} });
   }
-  FL.acts.hnext = function (el) { go(PH.indexOf(FL.snap().session.phase) + 1, el); };
-  FL.acts.hprev = function () { go(PH.indexOf(FL.snap().session.phase) - 1, null); };
+  FL.acts.hnext = function (el) { return go(PH.indexOf(FL.snap().session.phase) + 1, el); };
+  FL.acts.hprev = function () { return go(PH.indexOf(FL.snap().session.phase) - 1, null); };
 
   /* ------------------------------------------------ control tab */
   function startShiftBtn(snap, L) {
@@ -2069,7 +2166,7 @@ window.FL.dict = (function () {
       var seg = [1, 2, 3, 4].map(function (l) { return '<button class="btn ' + (H.trialL === l ? 'on acc' : '') + '" data-act="htrialL" data-lv="' + l + '">' + l + '<small>' + t('done_n', done[l]) + '</small></button>'; }).join('');
       out = tip + '<div class="card stack"><h3>' + t('trial_pick') + '</h3><div class="seg" style="grid-template-columns:repeat(4,1fr)">' + seg + '</div>' + startShiftBtn(snap, H.trialL) + '</div>' + pendingCard(snap);
     } else if (ph === 'market') {
-      out = tip + '<div class="card stack"><h3>' + t('tab_params') + '</h3>' + paramForm(snap) + '</div>' + recommendCard(snap);
+      out = tip + '<div class="card stack"><h3>' + t('tab_params') + '</h3>' + paramForm(snap) + '<div class="banner">' + t(par.market_published ? 'market_live' : 'market_private') + '</div><button class="btn primary block" data-act="hpublish">' + t(par.market_published ? 'market_republish' : 'market_publish') + '</button></div>' + recommendCard(snap);
     } else if (ph === 'decide1' || ph === 'decide2') {
       out = tip + pendingCard(snap, true);
     } else if (ph === 'run1' || ph === 'run2') {
@@ -2144,7 +2241,7 @@ window.FL.dict = (function () {
     var f = function (k, lab, v, hi) { return '<label class="field"><span>' + lab + '</span><input class="" type="number" min="1" max="' + hi + '" value="' + v + '" data-change="hparam" data-k="' + k + '"' + (locked ? ' disabled' : '') + '></label>'; };
     return '<div class="row wrap" style="align-items:flex-end">' + f('p', t('p_name'), par.p, 50) + f('w', t('w_name'), par.w, 100) + f('F', t('f_name'), par.F, 300) + f('secs', t('secs_name'), par.secs, 90) + '</div>' + (locked ? '<div class="tiny muted">' + t('params_locked') + '</div>' : '');
   }
-  FL.acts.hparam = function (el) { var v = Math.max(1, Math.round(+el.value || 1)); var o = {}; o[el.dataset.k] = v; patch({ params: o }); };
+  FL.acts.hparam = function (el) { var v = Math.max(1, Math.round(+el.value || 1)); var o = { market_published: false }; o[el.dataset.k] = v; return patch({ params: o }); };
   FL.changes.hparam = FL.acts.hparam;
 
   function allPoints(snap) { return FL.active(snap).map(function (tm) { return C.trialPoints(snap.runs, tm.id); }); }
@@ -2156,7 +2253,13 @@ window.FL.dict = (function () {
     }).join('') : '<div class="muted small">' + t('rec_need') + '</div>';
     return '<div class="card stack"><h3>' + t('rec_h') + '</h3><div class="tiny muted">' + t('rec_note') + '</div>' + rows + '</div>' + gTable(snap, par);
   }
-  FL.acts.hrec = function (el) { patch({ params: { p: +el.dataset.p, w: +el.dataset.w, F: +el.dataset.f } }); };
+  FL.acts.hrec = function (el) { return patch({ params: { p: +el.dataset.p, w: +el.dataset.w, F: +el.dataset.f, market_published: false } }); };
+  FL.acts.hpublish = function () {
+    var par = {}, fields = FL.$$('[data-change="hparam"]');
+    fields.forEach(function (el) { par[el.dataset.k] = Math.max(1, Math.round(+el.value || 1)); });
+    par.market_published = true;
+    return patch({ params: par });
+  };
   function gTable(snap, par) {
     var act = FL.active(snap), aha = 0, ren = 0, zero = 0, rows = act.map(function (tm) {
       var pts = C.trialPoints(snap.runs, tm.id); if (Object.keys(pts).length < 1) return '';
@@ -2196,7 +2299,9 @@ window.FL.dict = (function () {
       return '<tr><td>' + tm.table_no + '</td><td><b>' + esc(tm.name) + '</b></td><td><input class="inl" type="number" min="0" max="4" value="' + tm.present + '" data-change="hk" data-team="' + tm.id + '" style="width:60px"></td>' + cells + prod(1) + prod(2) +
         '<td><button class="btn sm ghost" data-act="hdel" data-team="' + tm.id + '">' + t('del') + '</button></td></tr>';
     }).join('');
-    return '<div class="card" style="overflow-x:auto"><table class="t compact"><tr><th>#</th><th>' + t('team_name') + '</th><th>' + t('capacity') + '</th><th>L=1</th><th>L=2</th><th>L=3</th><th>L=4</th><th>' + t('period1') + '</th><th>' + t('period2') + '</th><th></th></tr>' + (rows || '<tr><td colspan="10" class="muted">' + t('none_yet') + '</td></tr>') + '</table><div class="tiny muted" style="margin-top:8px">' + t('teams_note') + '</div></div>';
+    var summary = C.trialSummary(snap.runs, FL.active(snap)), stats = '';
+    for (var k = 1; k <= 4; k++) if (summary.mean[k] != null) stats += '<tr><td>' + k + '</td><td>' + FL.n2(summary.mean[k]) + '</td><td>' + summary.counts[k] + '</td><td>' + sg(summary.marginal[k]) + '</td><td>' + summary.pairedCounts[k] + '</td></tr>';
+    return '<div class="card" style="overflow-x:auto"><table class="t compact"><tr><th>#</th><th>' + t('team_name') + '</th><th>' + t('capacity') + '</th><th>L=1</th><th>L=2</th><th>L=3</th><th>L=4</th><th>' + t('period1') + '</th><th>' + t('period2') + '</th><th></th></tr>' + (rows || '<tr><td colspan="10" class="muted">' + t('none_yet') + '</td></tr>') + '</table><div class="tiny muted" style="margin-top:8px">' + t('teams_note') + '</div></div>' + (stats ? '<div class="card stack"><h3>' + t('teacher_trial_stats') + '</h3><table class="t compact"><tr><th>' + t('c_workers') + '</th><th>' + t('mean_q') + '</th><th>n</th><th>' + t('c_mp') + '</th><th>' + t('paired_n') + '</th></tr>' + stats + '</table><div class="small muted">' + t('paired_marginal_note') + '</div></div>' : '');
   }
 
   /* ------------------------------------------------ tools */
@@ -2425,12 +2530,12 @@ window.FL.dict = (function () {
   FL.changes = FL.changes || {};
 
   FL.views.home = function () {
-    return '<div class="app"><div class="topbar"><div class="brand"><i></i>' + t('app_title') + '</div><div class="grow"></div><button class="btn sm ghost" data-act="lang">' + (FL.lang === 'zh' ? 'EN' : '中') + '</button></div>' +
-      '<div class="stack"><div class="card stack"><h1>' + t('app_title') + '</h1><div class="muted">' + t('tagline') + '</div>' +
+    return '<div class="app home-app"><div class="topbar"><div class="brand"><i></i>' + t('home_kicker') + '</div><div class="grow"></div><button class="btn sm ghost" data-act="lang">' + (FL.lang === 'zh' ? 'EN' : '中') + '</button></div>' +
+      '<div class="stack"><div class="card home-hero stack"><div class="home-factory">' + FL.factory('open', 3, { label: t('app_title') }) + '</div><h1>' + t('app_title') + '</h1><h2>' + t('home_question') + '</h2><div class="muted">' + t('home_intro') + '</div><div class="home-steps">' + t('home_steps') + '</div>' +
       (FL.useLocal ? '<div class="banner warn small">' + t('local_banner') + '</div>' : '') + '</div>' +
-      '<a class="btn primary block" href="#/team">' + t('home_team') + '</a>' +
-      '<a class="btn block" href="#/screen">' + t('home_screen') + '</a>' +
-      '<a class="btn block" href="#/host">' + t('home_host') + '</a></div></div>';
+      '<a class="btn primary block role-link" href="#/team"><span>' + t('home_team') + '<small>' + t('home_team_hint') + '</small></span><b aria-hidden="true">→</b></a>' +
+      '<a class="btn block role-link" href="#/screen"><span>' + t('home_screen') + '<small>' + t('home_screen_hint') + '</small></span><b aria-hidden="true">→</b></a>' +
+      '<a class="btn block role-link" href="#/host"><span>' + t('home_host') + '<small>' + t('home_host_hint') + '</small></span><b aria-hidden="true">→</b></a></div></div>';
   };
 
   FL.boot = function () {

@@ -77,7 +77,7 @@
     if (PREV[live]) {
       nav = '<div class="peekbar">' + (peeking
         ? '<div class="banner warn grow">' + t('peek_note', t('ph_' + (PREV[live] === 'trialpeek' ? 'trial' : PREV[live]))) + '</div><button class="btn primary block" data-act="peek">' + t('peek_back') + '</button>'
-        : '<button class="btn block" data-act="peek">← ' + t('peek_prev', t('ph_' + (PREV[live] === 'trialpeek' ? 'trial' : PREV[live]))) + '</button>') + '</div>';
+        : '<button class="btn block secondary-nav" data-act="peek">← ' + t('peek_prev', t('ph_' + (PREV[live] === 'trialpeek' ? 'trial' : PREV[live]))) + '</button>') + '</div>';
     }
     return '<div class="app-inner">' + topbar(me, snap) + '<div class="stack">' + (peeking ? nav : '') + body + (peeking ? '' : nav) + '</div>' +
       '<div class="center" style="margin-top:24px"><button class="btn sm ghost" data-act="leave">' + t('leave') + '</button></div></div>';
@@ -195,7 +195,11 @@
   }
   function planTable(snap, me, highlightL) {
     var par = snap.session.params, pts = C.trialPoints(snap.runs, me.id), rows = C.planRows(pts, par.p, par.w);
-    if (rows.length < 2) return '<div class="muted small">' + t('no_trial_yet') + '</div>';
+    if (rows.length < 2) {
+      var ref = C.trialSummary(snap.runs, FL.active(snap));
+      var items = [1, 2, 3, 4].filter(function (L) { return L <= me.present && ref.cohortMean[L] != null; }).map(function (L) { return '<span>' + L + ' ' + t('people') + '：' + FL.n2(ref.cohortMean[L]) + ' ' + t('rings') + '</span>'; }).join(' · ');
+      return '<div class="banner warn">' + t('late_hint') + (items ? '<div class="small" style="margin-top:8px">' + t('late_reference', ref.cohortN) + '<br>' + items + '</div>' : '') + '</div>';
+    }
     return '<table class="t plan"><tr><th>' + t('c_workers') + '</th><th>' + t('c_rings') + '</th><th>' + t('c_rev') + '</th><th>' + t('c_wage') + '</th><th>' + t('c_net') + '</th><th>' + t('c_dv1') + '<br><small>' + t('c_dv2') + '</small></th></tr>' +
       rows.map(function (r) {
         return '<tr class="' + (r.L === highlightL ? 'hl' : '') + '"><td>' + r.L + '</td><td>' + r.q + '</td><td>' + r.rev + '</td><td>' + r.wage + '</td><td class="sign">' + sg(r.net) + '</td>' +
@@ -204,6 +208,7 @@
   }
   function market(snap, me) {
     var par = snap.session.params;
+    if (!FL.marketPublished(snap)) return FL.marketWaiting();
     return '<div class="card accent stack"><h2>' + t('market_h') + '</h2>' + paramCards(par) + '<div>' + t('market_p', par.F) + '</div></div>' +
       '<div class="card stack"><h3>' + t('plan_h') + '</h3>' + planTable(snap, me) + '<div class="tiny muted">' + t('plan_note') + '</div></div>';
   }
@@ -252,7 +257,7 @@
     if (sel === 'exit') return '<div class="banner">' + t('prev_exit') + '</div>';
     if (sel === 0) return '<div class="banner">' + (per === 1 ? t('prev_stop', sg(-par.F)) : t('prev_renew0', sg(-par.F))) + '</div>';
     var q = pts[sel];
-    if (q == null) return '<div class="banner warn">' + t('prev_untested') + '</div>';
+    if (q == null) return '<div class="banner warn">' + t('prev_untested') + ' ' + t('late_hint') + '</div>';
     var pr = par.p * q - par.w * sel - par.F;
     return '<div class="banner">' + t('prev_work', sel, q, par.p * q, par.w * sel, par.F, sg(pr)) + '</div>' + (per === 1 ? '<div class="tiny muted">' + t('prev_stop_cmp', sg(-par.F)) + '</div>' : '');
   }
@@ -310,7 +315,9 @@
     } else {
       cmp = per === 1 ? t('cmp1_est', sg(P.profit), sg(P.counterfactual)) : t('cmp2_est', sg(P.profit), sg(P.counterfactual));
     }
-    out += '<div class="card stack"><h2>' + t('ledger_h', per) + '</h2>' + table + '<div class="banner">' + cmp + '</div>' + (P.counterfactualKind === 'estimate' ? '<div class="tiny muted">' + t('est_note') + '</div>' : '') + '</div>';
+    var delta = P.counterfactual == null ? null : P.profit - P.counterfactual;
+    var compare = delta == null ? '' : t('profit_delta', sg(delta), per === 1 ? t('stop') : P.renew ? t('exit') : t('renew')) + (P.counterfactualKind === 'estimate' ? '*' : '');
+    out += '<div class="card stack"><h2>' + t('ledger_h', per) + '</h2><div class="profit-hero"><div class="muted small">' + t('l_profit') + '</div><div class="profit-value num">' + sg(P.profit) + '</div><div class="profit-compare">' + compare + '</div></div>' + table + '<div class="banner">' + cmp + '</div>' + (P.counterfactualKind === 'estimate' ? '<div class="tiny muted">' + t('est_note') + '</div>' : '') + '</div>';
     if (per === 2) {
       out += '<div class="card"><div class="row"><div class="grow muted">' + t('total_h') + '</div><div class="huge num">' + sg(L.total) + '</div></div></div>';
       var agg = C.classAggregates(snap), p2 = P;

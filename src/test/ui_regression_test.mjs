@@ -20,9 +20,11 @@ assert.match(text, /未交/); assert.doesNotMatch(text, /全部到齊/); assert.
 snap.session.phase = 'trial'; text = render('screen');
 assert.match(text, /合格環數／20秒/); assert.match(text, /等待已確認試產資料/);
 assert.ok(![...w.document.querySelectorAll('.card')].some(el => !el.textContent.trim() && !el.querySelector('svg')));
-// Large rosters are paginated rather than silently dropping factories.
+// A normal class needs no page operator: all 20 factories stay visible.
 snap.teams = Array.from({length: 13}, (_, i) => ({...team,id:'t'+i,table_no:i+1,name:'工廠'+i}));
-render('screen'); assert.equal(w.document.querySelectorAll('.tile').length, 12);
+render('screen'); assert.equal(w.document.querySelectorAll('.tile').length, 13);
+snap.teams = Array.from({length: 21}, (_, i) => ({...team,id:'t'+i,table_no:i+1,name:'工廠'+i}));
+render('screen'); assert.equal(w.document.querySelectorAll('.tile').length, 20);
 FL.acts.tilepage({dataset:{d:'1'}}); assert.equal(w.document.querySelectorAll('.tile').length, 1);
 snap.teams = [team]; snap.session.phase = 'debrief'; render('team');
 const a = w.document.getElementById('slip1'), b = w.document.getElementById('slip2');
@@ -55,6 +57,18 @@ text = render('screen'); assert.match(text, /估計利潤 \+5/); assert.doesNotM
 snap.session.params.F = 12; snap.session.phase = 'debrief';
 FL.lang = 'en'; text = render('screen'); assert.match(text, /Short run vs long run/); assert.doesNotMatch(text, /⟦/);
 assert.equal(C.classAggregates(snap).decided2, 1);
+// Editing stays private until explicit announcement; navigation cannot reveal
+// draft parameters. Publish carries every field and is serialized after edits.
+FL.lang = 'zh'; snap.session.phase = 'market'; snap.session.params.market_published = false;
+text = render('screen'); assert.match(text, /正在設定市場/); assert.equal(w.document.querySelectorAll('.q-cards').length, 0);
+text = render('team'); assert.match(text, /正在設定市場/); assert.equal(w.document.querySelectorAll('.seg.c3').length, 0);
+let writes = []; FL.api.hostSet = async (code,key,p) => { writes.push(p); Object.assign(snap.session.params,p.params||{}); if(p.phase) snap.session.phase=p.phase; };
+render('host'); await FL.acts.hnext({dataset:{}}); assert.equal(writes.length,0);
+await FL.acts.hrec({dataset:{p:'3',w:'4',f:'10'}}); assert.equal(snap.session.params.market_published,false);
+render('host'); await FL.acts.hpublish(); assert.equal(snap.session.params.market_published,true);
+text = render('screen'); assert.doesNotMatch(text,/正在設定市場/); assert.equal(w.document.querySelectorAll('.q-cards').length,1);
+const lastWrite = writes.at(-1).params; assert.deepEqual([lastWrite.p,lastWrite.w,lastWrite.F],[3,4,10]);
+render('host'); await FL.acts.hnext({dataset:{}}); assert.equal(snap.session.phase,'decide1');
 // Switching rooms clears the previous room's CSV preview and selected tab.
 FL.host = null; FL.H.csv = 'old room export'; FL.H.tab = 'tools'; render('host');
 w.document.getElementById('h_code').value = 'NEXT'; w.document.getElementById('h_key2').value = 'test-key';

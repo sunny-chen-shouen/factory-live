@@ -36,7 +36,8 @@
 
   /* ------------------------------------------------ helpers */
   var hc = function () { return FL.host.code; }, hk = function () { return FL.host.key; };
-  function patch(p) { return FL.run(FL.api.hostSet(hc(), hk(), p)); }
+  var hostQueue = Promise.resolve();
+  function patch(p) { var code = hc(), key = hk(); hostQueue = hostQueue.catch(function () {}).then(function () { return FL.api.hostSet(code, key, p); }); return FL.run(hostQueue); }
   function twice(el, msg) { // two-step confirmation without browser dialogs
     if (el.dataset.armed) { return true; }
     el.dataset.armed = '1'; var old = el.innerHTML; el.innerHTML = msg; el.classList.add('dark');
@@ -96,10 +97,11 @@
     var snap = FL.snap(), ph = snap.session.phase, cur = PH.indexOf(ph), nxt = PH[i];
     var p = pending(snap);
     if (i > cur && p.length && /^(decide|run|trial)/.test(ph) && el && !twice(el, t('confirm_skip', p.length))) return;
-    patch({ phase: nxt, reveal: C.revealFor(nxt), shift: {} });
+    if (ph === 'market' && nxt === 'decide1' && !FL.marketPublished(snap)) return FL.toast(t('publish_first'));
+    return patch({ phase: nxt, reveal: C.revealFor(nxt), shift: {} });
   }
-  FL.acts.hnext = function (el) { go(PH.indexOf(FL.snap().session.phase) + 1, el); };
-  FL.acts.hprev = function () { go(PH.indexOf(FL.snap().session.phase) - 1, null); };
+  FL.acts.hnext = function (el) { return go(PH.indexOf(FL.snap().session.phase) + 1, el); };
+  FL.acts.hprev = function () { return go(PH.indexOf(FL.snap().session.phase) - 1, null); };
 
   /* ------------------------------------------------ control tab */
   function startShiftBtn(snap, L) {
@@ -126,7 +128,7 @@
       var seg = [1, 2, 3, 4].map(function (l) { return '<button class="btn ' + (H.trialL === l ? 'on acc' : '') + '" data-act="htrialL" data-lv="' + l + '">' + l + '<small>' + t('done_n', done[l]) + '</small></button>'; }).join('');
       out = tip + '<div class="card stack"><h3>' + t('trial_pick') + '</h3><div class="seg" style="grid-template-columns:repeat(4,1fr)">' + seg + '</div>' + startShiftBtn(snap, H.trialL) + '</div>' + pendingCard(snap);
     } else if (ph === 'market') {
-      out = tip + '<div class="card stack"><h3>' + t('tab_params') + '</h3>' + paramForm(snap) + '</div>' + recommendCard(snap);
+      out = tip + '<div class="card stack"><h3>' + t('tab_params') + '</h3>' + paramForm(snap) + '<div class="banner">' + t(par.market_published ? 'market_live' : 'market_private') + '</div><button class="btn primary block" data-act="hpublish">' + t(par.market_published ? 'market_republish' : 'market_publish') + '</button></div>' + recommendCard(snap);
     } else if (ph === 'decide1' || ph === 'decide2') {
       out = tip + pendingCard(snap, true);
     } else if (ph === 'run1' || ph === 'run2') {
@@ -201,7 +203,7 @@
     var f = function (k, lab, v, hi) { return '<label class="field"><span>' + lab + '</span><input class="" type="number" min="1" max="' + hi + '" value="' + v + '" data-change="hparam" data-k="' + k + '"' + (locked ? ' disabled' : '') + '></label>'; };
     return '<div class="row wrap" style="align-items:flex-end">' + f('p', t('p_name'), par.p, 50) + f('w', t('w_name'), par.w, 100) + f('F', t('f_name'), par.F, 300) + f('secs', t('secs_name'), par.secs, 90) + '</div>' + (locked ? '<div class="tiny muted">' + t('params_locked') + '</div>' : '');
   }
-  FL.acts.hparam = function (el) { var v = Math.max(1, Math.round(+el.value || 1)); var o = {}; o[el.dataset.k] = v; patch({ params: o }); };
+  FL.acts.hparam = function (el) { var v = Math.max(1, Math.round(+el.value || 1)); var o = { market_published: false }; o[el.dataset.k] = v; return patch({ params: o }); };
   FL.changes.hparam = FL.acts.hparam;
 
   function allPoints(snap) { return FL.active(snap).map(function (tm) { return C.trialPoints(snap.runs, tm.id); }); }
@@ -213,7 +215,13 @@
     }).join('') : '<div class="muted small">' + t('rec_need') + '</div>';
     return '<div class="card stack"><h3>' + t('rec_h') + '</h3><div class="tiny muted">' + t('rec_note') + '</div>' + rows + '</div>' + gTable(snap, par);
   }
-  FL.acts.hrec = function (el) { patch({ params: { p: +el.dataset.p, w: +el.dataset.w, F: +el.dataset.f } }); };
+  FL.acts.hrec = function (el) { return patch({ params: { p: +el.dataset.p, w: +el.dataset.w, F: +el.dataset.f, market_published: false } }); };
+  FL.acts.hpublish = function () {
+    var par = {}, fields = FL.$$('[data-change="hparam"]');
+    fields.forEach(function (el) { par[el.dataset.k] = Math.max(1, Math.round(+el.value || 1)); });
+    par.market_published = true;
+    return patch({ params: par });
+  };
   function gTable(snap, par) {
     var act = FL.active(snap), aha = 0, ren = 0, zero = 0, rows = act.map(function (tm) {
       var pts = C.trialPoints(snap.runs, tm.id); if (Object.keys(pts).length < 1) return '';
@@ -253,7 +261,9 @@
       return '<tr><td>' + tm.table_no + '</td><td><b>' + esc(tm.name) + '</b></td><td><input class="inl" type="number" min="0" max="4" value="' + tm.present + '" data-change="hk" data-team="' + tm.id + '" style="width:60px"></td>' + cells + prod(1) + prod(2) +
         '<td><button class="btn sm ghost" data-act="hdel" data-team="' + tm.id + '">' + t('del') + '</button></td></tr>';
     }).join('');
-    return '<div class="card" style="overflow-x:auto"><table class="t compact"><tr><th>#</th><th>' + t('team_name') + '</th><th>' + t('capacity') + '</th><th>L=1</th><th>L=2</th><th>L=3</th><th>L=4</th><th>' + t('period1') + '</th><th>' + t('period2') + '</th><th></th></tr>' + (rows || '<tr><td colspan="10" class="muted">' + t('none_yet') + '</td></tr>') + '</table><div class="tiny muted" style="margin-top:8px">' + t('teams_note') + '</div></div>';
+    var summary = C.trialSummary(snap.runs, FL.active(snap)), stats = '';
+    for (var k = 1; k <= 4; k++) if (summary.mean[k] != null) stats += '<tr><td>' + k + '</td><td>' + FL.n2(summary.mean[k]) + '</td><td>' + summary.counts[k] + '</td><td>' + sg(summary.marginal[k]) + '</td><td>' + summary.pairedCounts[k] + '</td></tr>';
+    return '<div class="card" style="overflow-x:auto"><table class="t compact"><tr><th>#</th><th>' + t('team_name') + '</th><th>' + t('capacity') + '</th><th>L=1</th><th>L=2</th><th>L=3</th><th>L=4</th><th>' + t('period1') + '</th><th>' + t('period2') + '</th><th></th></tr>' + (rows || '<tr><td colspan="10" class="muted">' + t('none_yet') + '</td></tr>') + '</table><div class="tiny muted" style="margin-top:8px">' + t('teams_note') + '</div></div>' + (stats ? '<div class="card stack"><h3>' + t('teacher_trial_stats') + '</h3><table class="t compact"><tr><th>' + t('c_workers') + '</th><th>' + t('mean_q') + '</th><th>n</th><th>' + t('c_mp') + '</th><th>' + t('paired_n') + '</th></tr>' + stats + '</table><div class="small muted">' + t('paired_marginal_note') + '</div></div>' : '');
   }
 
   /* ------------------------------------------------ tools */
