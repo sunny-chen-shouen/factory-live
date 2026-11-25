@@ -224,6 +224,7 @@ input.inl,select.inl{width:76px;min-height:38px;padding:4px 8px;font-size:16px}
 .screenbody .tiles{flex:1;min-height:0;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:8px}
 .screenbody .tile{padding:6px;min-width:0;min-height:0}.screenbody .tile .fac{max-height:66px}.screenbody .tile .nm{font-size:17px}.screenbody .tile .sub{font-size:14px}.screenbody .tile .tag{font-size:14px;padding:1px 8px}.screenbody .tile .badge{width:22px;height:22px;top:4px;right:4px;font-size:13px}
 .screenbody .tile .in{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%}
+.screenbody .tile .in>*{flex-shrink:0}.screenbody .tile .nm{line-height:1.4;min-height:1.4em;max-width:100%}.screenbody .tile .fac{flex-basis:66px;height:66px}
 .tile-pagination{display:flex;align-items:center;justify-content:center;gap:14px;font-size:15px;flex:none}.tile-pagination .btn{min-height:30px;padding:2px 12px}
 .histogram{display:flex;gap:4px;margin:10px 0 8px}.hist-bin{flex:1;min-width:0;text-align:center;font-size:15px}.hist-track{height:110px;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid var(--line)}.hist-track>div{width:70%;border-radius:3px 3px 0 0}
 .lesson .banner{font-size:20px}.lesson .small{font-size:18px}.lesson .tiny{font-size:14px}
@@ -236,4 +237,5 @@ input.inl,select.inl{width:76px;min-height:38px;padding:4px 8px;font-size:16px}
  .screenbody table.t td,.screenbody table.t th{font-size:15px;padding:5px}.screenbody table.t th{font-size:12px}.screenbody .tiny{font-size:12px}.screenbody .bar{height:18px!important}
  .screenbody .chartbox>div{font-size:17px!important}.screenbody .lobby-h{font-size:25px}.screenbody .lobby-card{padding:14px;gap:9px;width:340px}.screenbody .qrframe{width:240px}.screenbody .lc-kick{font-size:18px}.screenbody .lc-url{font-size:12px}.screenbody .codeboxes b{height:60px;font-size:38px;width:48px}
  .hist-track{height:90px}.lesson .small{font-size:16px}.lesson .banner{font-size:17px}.lesson .tiny{font-size:12px}
+ .screenbody .tiles.many .tile .nm{font-size:15px}.screenbody .tile .fac{flex-basis:30px;height:30px;max-height:30px}
 }
