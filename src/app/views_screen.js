@@ -63,7 +63,8 @@
     var pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE)); tilePage = Math.min(tilePage, pages - 1);
     var visible = list.slice(tilePage * PAGE_SIZE, (tilePage + 1) * PAGE_SIZE);
     var tilesz = list.length > 12 ? 140 : list.length > 6 ? 165 : 220;
-    return '<div class="tile-panel"><div class="tiles' + (list.length > 6 ? ' many' : '') + '" style="--tile:' + tilesz + 'px;--cols:' + (visible.length > 6 ? 4 : visible.length > 3 ? 3 : Math.max(visible.length, 1)) + '">' + visible.map(function (tm) {
+    var cols = visible.length > 6 ? (/^run/.test(snap.session.phase) ? 6 : 4) : visible.length > 3 ? 3 : Math.max(visible.length, 1);
+    return '<div class="tile-panel"><div class="tiles' + (list.length > 6 ? ' many' : '') + '" style="--tile:' + tilesz + 'px;--cols:' + cols + '">' + visible.map(function (tm) {
       var o = tileInfo(snap, tm), pre = flip.armed && /^run/.test(snap.session.phase);
       return '<div class="tile ' + o.state + ' flip ' + (pre ? 'pre' : '') + '"><div class="in">' +
         (o.badge ? '<div class="badge ' + (o.off ? 'off' : '') + '">' + o.badge + '</div>' : '') +
@@ -96,13 +97,13 @@
     for (var L3 = 1; L3 <= 4; L3++) { var a = byL[L3]; if (a.length) { var mu = a.reduce(function (p, c) { return p + c; }, 0) / a.length; mean[L3] = mu; mp += ' L' + x(L3) + ' ' + y(mu); } }
     if (mean.length) { s += '<path d="' + mp + '" fill="none" stroke="#c2410c" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>'; for (var L4 = 1; L4 <= 4; L4++) if (mean[L4] != null) s += '<circle cx="' + x(L4) + '" cy="' + y(mean[L4]) + '" r="8" fill="#c2410c"/>'; }
     if (!mean.length) s += '<text x="350" y="185" text-anchor="middle" font-size="22" fill="#5b564e">' + t('chart_waiting') + '</text>';
-    return { svg: s + '</svg>', mean: mean };
+    return { svg: s + '</svg>', mean: mean, marginal: C.trialSummary(snap.runs, act).marginal };
   }
 
-  function meanTable(mean) {
-    var rows = '', prev = 0;
-    for (var L = 1; L <= 4; L++) if (mean[L] != null) { rows += '<tr><td>' + L + '</td><td>' + FL.n2(mean[L]) + '</td><td class="sign">' + sg(mean[L] - prev) + '</td></tr>'; prev = mean[L]; }
-    return rows ? '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('mean_q') + '</th><th>' + t('c_mp') + '</th></tr>' + rows + '</table>' : '';
+  function meanTable(mean, marginal) {
+    var rows = '';
+    for (var L = 1; L <= 4; L++) if (mean[L] != null) rows += '<tr><td>' + L + '</td><td>' + FL.n2(mean[L]) + '</td><td class="sign">' + sg(marginal[L]) + '</td></tr>';
+    return rows ? '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('mean_q') + '</th><th>' + t('c_mp') + '</th></tr>' + rows + '</table><div class="tiny muted">' + t('paired_marginal_note') + '</div>' : '';
   }
 
   /* ------------------------------------------------ phases */
@@ -131,7 +132,7 @@
       '<div style="width:300px">' + FL.cdHTML(snap) + '</div></div>' +
       (L ? '<div class="card stack"><div class="big" style="font-weight:800">' + t('verified_progress') + '</div>' + progress(done, producing.length) + '</div>' : '') +
       tiles(snap) + '</div>' +
-      '<div class="stack" style="width:520px;flex:none"><div class="chartbox"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div>' + (meanTable(ch.mean) ? '<div class="card">' + meanTable(ch.mean) + '</div>' : '') + '</div></div>';
+      '<div class="stack" style="width:520px;flex:none"><div class="chartbox"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div>' + (meanTable(ch.mean, ch.marginal) ? '<div class="card">' + meanTable(ch.mean, ch.marginal) + '</div>' : '') + '</div></div>';
   }
 
   function marketScreen(snap) {
@@ -140,15 +141,15 @@
       '<div class="card"><div class="k">' + t('w_name') + '</div><div class="v">' + par.w + '</div></div>' +
       '<div class="card"><div class="k">' + t('f_name') + '</div><div class="v">' + par.F + '</div></div></div>' +
       '<div class="card accent big" style="font-weight:700">' + t('market_screen_p', par.F) + '</div>' +
-      '<div class="row gap" style="align-items:flex-start"><div class="chartbox grow mkt"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div><div class="card" style="width:430px;flex:none">' + marketTable(snap, ch.mean) + '</div></div>';
+      '<div class="row gap" style="align-items:flex-start"><div class="chartbox grow mkt"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div><div class="card" style="width:430px;flex:none">' + marketTable(snap, ch.mean, ch.marginal) + '</div></div>';
   }
-  function marketTable(snap, mean) {
-    var par = snap.session.params, rows = '', prev = 0;
+  function marketTable(snap, mean, marginal) {
+    var par = snap.session.params, rows = '';
     for (var L = 1; L <= 4; L++) if (mean[L] != null) {
-      var dq = mean[L] - prev; rows += '<tr><td>' + L + '</td><td>' + FL.n2(par.p * dq) + '</td><td>' + par.w + '</td><td class="sign">' + (par.p * dq >= par.w ? '✓' : '✗') + '</td></tr>'; prev = mean[L];
+      var dq = marginal[L]; rows += '<tr><td>' + L + '</td><td>' + (dq == null ? '—' : FL.n2(par.p * dq)) + '</td><td>' + par.w + '</td><td class="sign">' + (dq == null ? '—' : par.p * dq > par.w ? '✓' : par.p * dq === par.w ? '=' : '✗') + '</td></tr>';
     }
     return '<div style="font-weight:800;font-size:22px;margin-bottom:6px">' + t('screen_marginal') + '</div>' +
-      (rows ? '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('c_dv_short') + '</th><th>' + t('w_name') + '</th><th></th></tr>' + rows + '</table>' : '');
+      (rows ? '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('c_dv_short') + '</th><th>' + t('w_name') + '</th><th></th></tr>' + rows + '</table><div class="tiny muted">' + t('paired_marginal_note') + '</div>' : '');
   }
 
   function decideScreen(snap, per) {

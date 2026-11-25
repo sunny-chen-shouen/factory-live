@@ -347,5 +347,6 @@ window.FL.dict = (function () {
   a("lesson_explain", "短期：今天租金已付，是沉沒成本；G>0 時開工能減少損失。長期：下期可不續租；只有 G 能補回租金，續租才不比退出差。", "Short run: today’s rent is sunk; opening reduces losses when G>0. Long run: rent is avoidable; renewing is no worse than exit only if G covers rent.");
   a("lesson_boundary", "邊界：G=0 時今天開工與停工無差異；G=F 時下期續租與退出無差異。", "At G=0, opening and closing today tie. At G=F, renewing and exiting next period tie.");
   a("lesson_example", "依試產估計：今天開工 {0}，停工 {1}；下期續租 {0}，退出 0。", "From trials: open today {0} vs close {1}; renew next period {0} vs exit 0.");
+  a('paired_marginal_note', '各檔平均可能包含不同工廠；邊際產量只比較同一家相鄰人數的增量。＝表示增收與工資相同。', 'Headcount averages may cover different factories. Marginal output compares adjacent headcounts within the same factory. = means added revenue equals wages.');
   return D;
 })();

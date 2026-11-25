@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="application-version" content="2026-11-26-qa2">
+<meta name="application-version" content="2026-11-26-qa3">
 <title>工廠 LIVE · Factory LIVE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -286,6 +286,25 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function net(p, w, L, q) { return p * q - w * L; }            // 營收扣工資
   function profit(p, w, F, L, q) { return p * q - w * L - F; }  // rent already counted once
 
+  // Adjacent headcounts must be compared within the same factory: class
+  // membership changes when smaller teams cannot run the higher headcount.
+  function trialSummary(runs, teams) {
+    var mean = [], marginal = [], counts = [], pairedCounts = [];
+    var series = teams.filter(function (tm) { return tm.present > 0; }).map(function (tm) { return trialPoints(runs, tm.id); });
+    for (var L = 1; L <= 4; L++) {
+      var qs = [], deltas = [];
+      series.forEach(function (pts) {
+        if (pts[L] == null) return;
+        qs.push(pts[L]);
+        if (L === 1 || pts[L - 1] != null) deltas.push(pts[L] - (L === 1 ? 0 : pts[L - 1]));
+      });
+      counts[L] = qs.length; pairedCounts[L] = deltas.length;
+      if (qs.length) mean[L] = qs.reduce(function (a, b) { return a + b; }, 0) / qs.length;
+      if (deltas.length) marginal[L] = deltas.reduce(function (a, b) { return a + b; }, 0) / deltas.length;
+    }
+    return { mean: mean, marginal: marginal, counts: counts, pairedCounts: pairedCounts };
+  }
+
   // Rows for the decision table: every tested L plus L=0.
   function planRows(points, p, w) {
     var Ls = Object.keys(points).map(Number).sort(function (a, b) { return a - b; });
@@ -447,7 +466,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   var api = {
     PHASES: PHASES, revealFor: revealFor, trialPoints: trialPoints, net: net, profit: profit,
-    planRows: planRows, bestPlan: bestPlan, decisionOf: decisionOf, runOf: runOf, ledger: ledger,
+    planRows: planRows, bestPlan: bestPlan, trialSummary: trialSummary, decisionOf: decisionOf, runOf: runOf, ledger: ledger,
     classAggregates: classAggregates, verifierOf: verifierOf, verifies: verifies, recommend: recommend
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -1091,6 +1110,7 @@ window.FL.dict = (function () {
   a("lesson_explain", "短期：今天租金已付，是沉沒成本；G>0 時開工能減少損失。長期：下期可不續租；只有 G 能補回租金，續租才不比退出差。", "Short run: today’s rent is sunk; opening reduces losses when G>0. Long run: rent is avoidable; renewing is no worse than exit only if G covers rent.");
   a("lesson_boundary", "邊界：G=0 時今天開工與停工無差異；G=F 時下期續租與退出無差異。", "At G=0, opening and closing today tie. At G=F, renewing and exiting next period tie.");
   a("lesson_example", "依試產估計：今天開工 {0}，停工 {1}；下期續租 {0}，退出 0。", "From trials: open today {0} vs close {1}; renew next period {0} vs exit 0.");
+  a('paired_marginal_note', '各檔平均可能包含不同工廠；邊際產量只比較同一家相鄰人數的增量。＝表示增收與工資相同。', 'Headcount averages may cover different factories. Marginal output compares adjacent headcounts within the same factory. = means added revenue equals wages.');
   return D;
 })();
 
@@ -1734,7 +1754,8 @@ window.FL.dict = (function () {
     var pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE)); tilePage = Math.min(tilePage, pages - 1);
     var visible = list.slice(tilePage * PAGE_SIZE, (tilePage + 1) * PAGE_SIZE);
     var tilesz = list.length > 12 ? 140 : list.length > 6 ? 165 : 220;
-    return '<div class="tile-panel"><div class="tiles' + (list.length > 6 ? ' many' : '') + '" style="--tile:' + tilesz + 'px;--cols:' + (visible.length > 6 ? 4 : visible.length > 3 ? 3 : Math.max(visible.length, 1)) + '">' + visible.map(function (tm) {
+    var cols = visible.length > 6 ? (/^run/.test(snap.session.phase) ? 6 : 4) : visible.length > 3 ? 3 : Math.max(visible.length, 1);
+    return '<div class="tile-panel"><div class="tiles' + (list.length > 6 ? ' many' : '') + '" style="--tile:' + tilesz + 'px;--cols:' + cols + '">' + visible.map(function (tm) {
       var o = tileInfo(snap, tm), pre = flip.armed && /^run/.test(snap.session.phase);
       return '<div class="tile ' + o.state + ' flip ' + (pre ? 'pre' : '') + '"><div class="in">' +
         (o.badge ? '<div class="badge ' + (o.off ? 'off' : '') + '">' + o.badge + '</div>' : '') +
@@ -1767,13 +1788,13 @@ window.FL.dict = (function () {
     for (var L3 = 1; L3 <= 4; L3++) { var a = byL[L3]; if (a.length) { var mu = a.reduce(function (p, c) { return p + c; }, 0) / a.length; mean[L3] = mu; mp += ' L' + x(L3) + ' ' + y(mu); } }
     if (mean.length) { s += '<path d="' + mp + '" fill="none" stroke="#c2410c" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>'; for (var L4 = 1; L4 <= 4; L4++) if (mean[L4] != null) s += '<circle cx="' + x(L4) + '" cy="' + y(mean[L4]) + '" r="8" fill="#c2410c"/>'; }
     if (!mean.length) s += '<text x="350" y="185" text-anchor="middle" font-size="22" fill="#5b564e">' + t('chart_waiting') + '</text>';
-    return { svg: s + '</svg>', mean: mean };
+    return { svg: s + '</svg>', mean: mean, marginal: C.trialSummary(snap.runs, act).marginal };
   }
 
-  function meanTable(mean) {
-    var rows = '', prev = 0;
-    for (var L = 1; L <= 4; L++) if (mean[L] != null) { rows += '<tr><td>' + L + '</td><td>' + FL.n2(mean[L]) + '</td><td class="sign">' + sg(mean[L] - prev) + '</td></tr>'; prev = mean[L]; }
-    return rows ? '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('mean_q') + '</th><th>' + t('c_mp') + '</th></tr>' + rows + '</table>' : '';
+  function meanTable(mean, marginal) {
+    var rows = '';
+    for (var L = 1; L <= 4; L++) if (mean[L] != null) rows += '<tr><td>' + L + '</td><td>' + FL.n2(mean[L]) + '</td><td class="sign">' + sg(marginal[L]) + '</td></tr>';
+    return rows ? '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('mean_q') + '</th><th>' + t('c_mp') + '</th></tr>' + rows + '</table><div class="tiny muted">' + t('paired_marginal_note') + '</div>' : '';
   }
 
   /* ------------------------------------------------ phases */
@@ -1802,7 +1823,7 @@ window.FL.dict = (function () {
       '<div style="width:300px">' + FL.cdHTML(snap) + '</div></div>' +
       (L ? '<div class="card stack"><div class="big" style="font-weight:800">' + t('verified_progress') + '</div>' + progress(done, producing.length) + '</div>' : '') +
       tiles(snap) + '</div>' +
-      '<div class="stack" style="width:520px;flex:none"><div class="chartbox"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div>' + (meanTable(ch.mean) ? '<div class="card">' + meanTable(ch.mean) + '</div>' : '') + '</div></div>';
+      '<div class="stack" style="width:520px;flex:none"><div class="chartbox"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div>' + (meanTable(ch.mean, ch.marginal) ? '<div class="card">' + meanTable(ch.mean, ch.marginal) + '</div>' : '') + '</div></div>';
   }
 
   function marketScreen(snap) {
@@ -1811,15 +1832,15 @@ window.FL.dict = (function () {
       '<div class="card"><div class="k">' + t('w_name') + '</div><div class="v">' + par.w + '</div></div>' +
       '<div class="card"><div class="k">' + t('f_name') + '</div><div class="v">' + par.F + '</div></div></div>' +
       '<div class="card accent big" style="font-weight:700">' + t('market_screen_p', par.F) + '</div>' +
-      '<div class="row gap" style="align-items:flex-start"><div class="chartbox grow mkt"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div><div class="card" style="width:430px;flex:none">' + marketTable(snap, ch.mean) + '</div></div>';
+      '<div class="row gap" style="align-items:flex-start"><div class="chartbox grow mkt"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div><div class="card" style="width:430px;flex:none">' + marketTable(snap, ch.mean, ch.marginal) + '</div></div>';
   }
-  function marketTable(snap, mean) {
-    var par = snap.session.params, rows = '', prev = 0;
+  function marketTable(snap, mean, marginal) {
+    var par = snap.session.params, rows = '';
     for (var L = 1; L <= 4; L++) if (mean[L] != null) {
-      var dq = mean[L] - prev; rows += '<tr><td>' + L + '</td><td>' + FL.n2(par.p * dq) + '</td><td>' + par.w + '</td><td class="sign">' + (par.p * dq >= par.w ? '✓' : '✗') + '</td></tr>'; prev = mean[L];
+      var dq = marginal[L]; rows += '<tr><td>' + L + '</td><td>' + (dq == null ? '—' : FL.n2(par.p * dq)) + '</td><td>' + par.w + '</td><td class="sign">' + (dq == null ? '—' : par.p * dq > par.w ? '✓' : par.p * dq === par.w ? '=' : '✗') + '</td></tr>';
     }
     return '<div style="font-weight:800;font-size:22px;margin-bottom:6px">' + t('screen_marginal') + '</div>' +
-      (rows ? '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('c_dv_short') + '</th><th>' + t('w_name') + '</th><th></th></tr>' + rows + '</table>' : '');
+      (rows ? '<table class="t"><tr><th>' + t('c_workers') + '</th><th>' + t('c_dv_short') + '</th><th>' + t('w_name') + '</th><th></th></tr>' + rows + '</table><div class="tiny muted">' + t('paired_marginal_note') + '</div>' : '');
   }
 
   function decideScreen(snap, per) {

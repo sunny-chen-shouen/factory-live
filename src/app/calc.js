@@ -24,6 +24,25 @@
   function net(p, w, L, q) { return p * q - w * L; }            // 營收扣工資
   function profit(p, w, F, L, q) { return p * q - w * L - F; }  // rent already counted once
 
+  // Adjacent headcounts must be compared within the same factory: class
+  // membership changes when smaller teams cannot run the higher headcount.
+  function trialSummary(runs, teams) {
+    var mean = [], marginal = [], counts = [], pairedCounts = [];
+    var series = teams.filter(function (tm) { return tm.present > 0; }).map(function (tm) { return trialPoints(runs, tm.id); });
+    for (var L = 1; L <= 4; L++) {
+      var qs = [], deltas = [];
+      series.forEach(function (pts) {
+        if (pts[L] == null) return;
+        qs.push(pts[L]);
+        if (L === 1 || pts[L - 1] != null) deltas.push(pts[L] - (L === 1 ? 0 : pts[L - 1]));
+      });
+      counts[L] = qs.length; pairedCounts[L] = deltas.length;
+      if (qs.length) mean[L] = qs.reduce(function (a, b) { return a + b; }, 0) / qs.length;
+      if (deltas.length) marginal[L] = deltas.reduce(function (a, b) { return a + b; }, 0) / deltas.length;
+    }
+    return { mean: mean, marginal: marginal, counts: counts, pairedCounts: pairedCounts };
+  }
+
   // Rows for the decision table: every tested L plus L=0.
   function planRows(points, p, w) {
     var Ls = Object.keys(points).map(Number).sort(function (a, b) { return a - b; });
@@ -185,7 +204,7 @@
 
   var api = {
     PHASES: PHASES, revealFor: revealFor, trialPoints: trialPoints, net: net, profit: profit,
-    planRows: planRows, bestPlan: bestPlan, decisionOf: decisionOf, runOf: runOf, ledger: ledger,
+    planRows: planRows, bestPlan: bestPlan, trialSummary: trialSummary, decisionOf: decisionOf, runOf: runOf, ledger: ledger,
     classAggregates: classAggregates, verifierOf: verifierOf, verifies: verifies, recommend: recommend
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

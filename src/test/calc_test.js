@@ -54,6 +54,10 @@ ok('shutdown alternative is a positive-worker plan, even if it loses more',C.led
 const renewedZero=JSON.parse(JSON.stringify(snap));renewedZero.decisions[1]={team_id:'A',period:2,renew:true,L:0};
 ok('renew but hire zero: rent lost; exact exit alternative is zero',C.ledger(T,renewedZero).periods[2].profit===-12&&C.ledger(T,renewedZero).periods[2].counterfactual===0);
 ok('unverified trial data excluded from plans',!Object.keys(C.trialPoints([{team_id:'A',kind:'trial',L:1,q:99,status:'disputed'}],'A')).length);
+const cohortTeams=[{id:'a',present:2},{id:'b',present:3}];
+const cohortRuns=[['a',1,5],['a',2,9],['b',1,6],['b',2,10],['b',3,11]].map(([team_id,L,q])=>({team_id,L,q,kind:'trial',status:'host'}));
+const summary=C.trialSummary(cohortRuns,cohortTeams);
+ok('marginal output uses paired factories, not changing-cohort means',summary.mean[2]===9.5&&summary.mean[3]===11&&summary.marginal[3]===1&&summary.pairedCounts[3]===1);
 
 // recommender
 const tp=[{1:5,2:9,3:11,4:12},{1:4,2:7,3:9,4:10},{1:6,2:10,3:12,4:13},{1:5,2:8,3:10,4:11},{1:3,2:6,3:8,4:9}];
