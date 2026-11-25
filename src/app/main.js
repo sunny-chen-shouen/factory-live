@@ -23,7 +23,7 @@
     } else if (r.role === 'screen') {
       if (r.code) FL.store.start(r.code, 1500);
     } else if (r.role === 'host') {
-      if (FL.host) { FL.store.start(FL.host.code, 1500); FL.bots.reload(); }
+      if (FL.guardHostRoute(r)) { FL.store.start(FL.host.code, 1500); FL.bots.reload(); }
     }
     if (FL.store.code && !FL.useLocal && !FL._rt) { FL._rt = true; FL.store.enableRealtime(FL.cfg); }
     FL.render(true);

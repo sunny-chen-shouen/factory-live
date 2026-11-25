@@ -140,7 +140,7 @@
     FL.$$('[data-cd]').forEach(function (box) {
       box.className = box.className.replace(/\b(idle|pre|run|done)\b/, st.st);
       var n = box.firstChild, l = box.lastChild;
-      var txt = st.st === 'idle' ? FL.t('cd_idle') : st.st === 'pre' ? String(st.n) : st.st === 'run' ? String(st.n) : FL.t('cd_done');
+      var txt = st.st === 'idle' ? FL.t(box.closest('.shift-stage') ? 'waiting_teacher' : 'cd_idle') : st.st === 'pre' ? String(st.n) : st.st === 'run' ? String(st.n) : FL.t('cd_done');
       var lab = st.st === 'pre' ? FL.t('cd_pre') : st.st === 'run' ? FL.t('cd_run') : st.st === 'done' ? FL.t('cd_done_l') : '';
       if (n.textContent !== txt) n.textContent = txt;
       if (l.textContent !== lab) l.textContent = lab;

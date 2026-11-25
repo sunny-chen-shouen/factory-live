@@ -7,16 +7,24 @@
 
   function loadHost() { try { return JSON.parse(FL.ls.get('fl_host') || 'null'); } catch (e) { return null; } }
   FL.host = loadHost();
+  FL.guardHostRoute = function (r) {
+    if (FL.host && r.code && FL.host.code.toUpperCase() !== r.code) {
+      H.roomMismatch = { requested: r.code, saved: FL.host.code };
+      FL.host = null; H.csv = ''; H.tab = 'control';
+      FL.store.stop(); FL.store.snap = null; FL.store.code = null;
+    }
+    return !!FL.host;
+  };
 
   /* ------------------------------------------------ login / create */
-  function login() {
+  function login(r) {
     return '<div class="app"><div class="topbar"><a class="btn sm ghost" href="#/" aria-label="' + t('back_home') + '">←</a><div class="brand"><i></i>' + t('app_title') + '</div><div class="grow"></div><button class="btn sm ghost" data-act="lang">' + (FL.lang === 'zh' ? 'EN' : '中') + '</button></div>' +
       (FL.useLocal ? '<div class="banner warn small" style="margin-bottom:12px">' + t('local_banner') + '</div>' : '') +
-      '<div class="stack"><div class="card stack"><h2>' + t('h_create') + '</h2><div class="muted small">' + t('h_create_p') + '</div>' +
+      '<div class="stack">' + (H.roomMismatch ? '<div class="banner warn" role="alert">' + t('host_room_mismatch', esc(H.roomMismatch.requested), esc(H.roomMismatch.saved)) + '</div>' : '') + '<div class="card stack"><h2>' + t('h_create') + '</h2><div class="muted small">' + t('h_create_p') + '</div>' +
       '<label class="field"><span>' + t('h_key') + '</span><input id="h_key" type="password" autocomplete="new-password" placeholder="' + t('h_key_ph') + '"></label>' +
       '<button class="btn primary block" data-act="hcreate">' + t('h_create_btn') + '</button></div>' +
       '<div class="card stack"><h2>' + t('h_resume') + '</h2>' +
-      '<label class="field"><span>' + t('room_code') + '</span><input id="h_code" type="text" maxlength="4" style="text-transform:uppercase"></label>' +
+      '<label class="field"><span>' + t('room_code') + '</span><input id="h_code" type="text" maxlength="4" value="' + esc(r.code || '') + '" style="text-transform:uppercase"></label>' +
       '<label class="field"><span>' + t('h_key') + '</span><input id="h_key2" type="password" autocomplete="current-password"></label>' +
       '<button class="btn block" data-act="hresume">' + t('h_resume_btn') + '</button></div></div></div>';
   }
@@ -31,7 +39,7 @@
       return FL.api.hostSet(code, key, {}).then(function () { setHost(code, key); });
     }).catch(function (e) { FL.showError(e); });
   };
-  function setHost(code, key) { H.csv = ''; H.tab = 'control'; H.armed = null; FL.host = { code: code, key: key }; FL.ls.set('fl_host', JSON.stringify(FL.host)); FL.go('#/host/' + code); FL.boot(); }
+  function setHost(code, key) { H.csv = ''; H.tab = 'control'; H.armed = null; H.roomMismatch = null; FL.host = { code: code, key: key }; FL.ls.set('fl_host', JSON.stringify(FL.host)); FL.go('#/host/' + code); FL.boot(); }
   FL.acts.hlogout = function () { FL.ls.del('fl_host'); FL.host = null; FL.store.stop(); FL.go('#/host'); FL.render(true); };
 
   /* ------------------------------------------------ helpers */
@@ -64,7 +72,7 @@
 
   /* ------------------------------------------------ main */
   FL.views.host = function (r) {
-    if (!FL.host) return login();
+    if (!FL.guardHostRoute(r)) return login(r);
     var snap = FL.snap();
     if (!snap) return '<div class="app"><div class="card center">' + t('loading') + '</div><div class="center" style="margin-top:14px"><button class="btn ghost" data-act="hlogout">' + t('leave') + '</button></div></div>';
     var ph = snap.session.phase, i = PH.indexOf(ph);
@@ -134,9 +142,10 @@
     } else if (ph === 'run1' || ph === 'run2') {
       out = tip + '<div class="card stack"><h3>' + t('run_shift') + '</h3>' + startShiftBtn(snap) + '</div>' + pendingCard(snap) + disputeCard(snap);
     } else if (ph === 'ledger1' || ph === 'ledger2') {
-      var per = ph === 'ledger1' ? 1 : 2, opts = '<option value="">' + t('auto_pick') + '</option>' + FL.active(snap).map(function (tm) {
-        var l = C.ledger(tm, snap), P = l.periods[per], mark = per === 1 ? (P.complete ? sg(P.profit) : '') : (l.openThenExit ? '★ ' : '') + (P.complete ? sg(P.profit) : '');
-        return '<option value="' + tm.id + '"' + (par.featured === tm.id ? ' selected' : '') + '>' + esc(tm.name) + ' ' + mark + '</option>';
+      var per = ph === 'ledger1' ? 1 : 2, chosen = par.featured_period === per || (per === 1 && !par.featured_period) ? par.featured : null;
+      var opts = '<option value="">' + t('auto_pick') + '</option>' + FL.active(snap).map(function (tm) {
+        var l = C.ledger(tm, snap), P = l.periods[per], mark = per === 1 ? (P.complete ? sg(P.profit) : '') : (C.isExitExample(l) ? '★ ' : '') + (P.complete ? sg(P.profit) : '');
+        return '<option value="' + tm.id + '"' + (chosen === tm.id ? ' selected' : '') + '>' + esc(tm.name) + ' ' + mark + '</option>';
       }).join('');
       out = tip + '<div class="card stack"><h3>' + t('feat_h') + '</h3><select data-change="hfeat">' + opts + '</select><div class="tiny muted">' + t('feat_note') + '</div></div>' + disputeCard(snap);
     } else {
@@ -181,7 +190,7 @@
     var v = FL.$('#hq_' + el.dataset.team).value; if (v === '') return;
     return FL.run(FL.api.hostRun(hc(), hk(), el.dataset.team, el.dataset.kind, +el.dataset.lv, +v), t('toast_saved'));
   };
-  FL.acts.hfeat = function (el) { patch({ params: { featured: el.value || null } }); };
+  FL.acts.hfeat = function (el) { return patch({ params: { featured: el.value || null, featured_period: FL.snap().session.phase === 'ledger1' ? 1 : 2 } }); };
   FL.acts.hlesson = function () { return patch({ params: { show_lesson: !FL.snap().session.params.show_lesson } }); };
   FL.changes = FL.changes || {};
   FL.changes.hfeat = FL.acts.hfeat;

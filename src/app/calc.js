@@ -134,6 +134,34 @@
     return out;
   }
 
+  function isExitExample(l) {
+    var a = l.periods[1], b = l.periods[2];
+    return !!(l.openThenExit && a.complete && b.complete && l.plan.G > 0 && b.counterfactual != null && b.profit > b.counterfactual);
+  }
+  function featuredTeam(snap, period) {
+    var par = snap.session.params, teams = snap.teams.filter(function (tm) { return tm.present > 0; });
+    var explicit = par.featured_period === period || (period === 1 && !par.featured_period);
+    if (explicit && par.featured) {
+      var selected = teams.filter(function (tm) { return tm.id === par.featured; })[0];
+      if (selected) return selected;
+    }
+    var scored = teams.map(function (tm) {
+      var l = ledger(tm, snap), p = l.periods[period], rank = 99;
+      if (period === 1 && p.complete) rank = p.L > 0 && p.profit < 0 && p.profit > -par.F ? 0 : 2;
+      if (period === 2 && p.complete && p.counterfactual != null && p.profit >= p.counterfactual) rank = isExitExample(l) ? 0 : 1;
+      return { team: tm, rank: rank };
+    }).filter(function (x) { return x.rank < 99; }).sort(function (a, b) { return a.rank - b.rank || a.team.table_no - b.team.table_no; });
+    return scored.length ? scored[0].team : null;
+  }
+  function comparisonRows(snap, period) {
+    return snap.teams.filter(function (tm) { return tm.present > 0; }).map(function (tm) {
+      var p = ledger(tm, snap).periods[period], base = period === 1 ? -snap.session.params.F : p.counterfactual;
+      var actual = p.complete ? p.profit : null, comparable = p.complete && base != null;
+      return { team: tm, actual: actual, alternative: base == null ? null : base, delta: comparable ? actual - base : null,
+        estimated: period === 2 && p.counterfactualKind === 'estimate', comparable: comparable };
+    });
+  }
+
   // Aggregates for the projector and debrief
   function classAggregates(snap) {
     var teams = snap.teams.filter(function (t) { return t.present > 0; });
@@ -209,6 +237,7 @@
   var api = {
     PHASES: PHASES, revealFor: revealFor, trialPoints: trialPoints, net: net, profit: profit,
     planRows: planRows, bestPlan: bestPlan, trialSummary: trialSummary, decisionOf: decisionOf, runOf: runOf, ledger: ledger,
+    isExitExample: isExitExample, featuredTeam: featuredTeam, comparisonRows: comparisonRows,
     classAggregates: classAggregates, verifierOf: verifierOf, verifies: verifies, recommend: recommend
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

@@ -27,10 +27,10 @@
       var pts = C.trialPoints(snap.runs, tm.id), n = Object.keys(pts).length;
       o.state = 'stop'; o.tag = t('tested_n', n);
     }
-    else if (ph === 'decide1') { o.state = 'unk'; o.tag = lockedFor(1) ? t('locked') : t('thinking'); o.badge = lockedFor(1) ? '✓' : '…'; o.off = !lockedFor(1); }
+    else if (ph === 'decide1') { o.state = 'unk'; o.tag = lockedFor(1) ? t('locked') : t('thinking'); o.locked = lockedFor(1); o.tag = o.locked ? '' : t('thinking'); o.badge = lockedFor(1) ? '✓' : '…'; o.off = !lockedFor(1); }
     else if (ph === 'decide2') {
       if (d1) { o.state = d1.L > 0 ? 'open' : 'stop'; o.L = d1.L; }
-      o.tag = lockedFor(2) ? t('locked') : t('thinking'); o.badge = lockedFor(2) ? '✓' : '…'; o.off = !lockedFor(2);
+      o.locked = lockedFor(2); o.tag = o.locked ? '' : t('thinking'); o.badge = lockedFor(2) ? '✓' : '…'; o.off = !lockedFor(2);
     }
     else if (ph === 'run1' || ph === 'ledger1') {
       if (d1) { o.state = d1.L > 0 ? 'open' : 'stop'; o.L = d1.L; o.tag = d1.L > 0 ? t('open_n', d1.L) : t('stop'); }
@@ -66,10 +66,10 @@
     var cols = visible.length > 12 ? 5 : visible.length > 6 ? 4 : visible.length > 3 ? 3 : Math.max(visible.length, 1);
     return '<div class="tile-panel"><div class="tiles' + (list.length > 6 ? ' many' : '') + (visible.length <= 3 ? ' few' : '') + '" style="--tile:' + tilesz + 'px;--cols:' + cols + '">' + visible.map(function (tm) {
       var o = tileInfo(snap, tm), pre = flip.armed && /^run/.test(snap.session.phase);
-      return '<div class="tile ' + o.state + ' flip ' + (pre ? 'pre' : '') + '"><div class="in">' +
+      return '<div class="tile ' + o.state + ' flip ' + (pre ? 'pre' : '') + (/^decide/.test(snap.session.phase) ? (o.locked ? ' decision-locked' : ' decision-waiting') : '') + '"><div class="in">' +
         (o.badge ? '<div class="badge ' + (o.off ? 'off' : '') + '">' + o.badge + '</div>' : '') +
         FL.factory(o.state, o.L, { label: tm.name }) +
-        '<div class="nm" title="' + esc(tm.name) + '">' + esc(tm.name) + '</div><div class="sub">' + o.sub + '</div><div class="tag' + (/^−/.test(o.tag) ? ' neg' : '') + '">' + esc(o.tag) + '</div></div></div>';
+        '<div class="nm" title="' + esc(tm.name) + '">' + esc(tm.name) + '</div><div class="sub">' + o.sub + '</div>' + (o.tag ? '<div class="tag' + (/^−/.test(o.tag) ? ' neg' : '') + '">' + esc(o.tag) + '</div>' : '') + '</div></div>';
     }).join('') + '</div>' + (pages > 1 ? '<div class="tile-pagination"><button class="btn sm" data-act="tilepage" data-d="-1"' + (!tilePage ? ' disabled' : '') + '>←</button><span>' + t('tile_page', tilePage + 1, pages) + '</span><button class="btn sm" data-act="tilepage" data-d="1"' + (tilePage === pages - 1 ? ' disabled' : '') + '>→</button></div>' : '') + '</div>';
   }
   FL.acts.tilepage = function (el) { tilePage = Math.max(0, tilePage + Number(el.dataset.d)); FL.render(true); };
@@ -162,55 +162,39 @@
     var prod = act.filter(function (x) { var d = C.decisionOf(snap.decisions, x.id, per); return d && d.renew && d.L > 0; });
     var done = prod.filter(function (x) { return snap.runs.some(function (r) { return r.team_id === x.id && r.kind === kind && (r.status === 'confirmed' || r.status === 'host'); }); }).length;
     return '<div class="card dark row shift-stage"><div class="grow"><div class="huge">' + t('run_screen', per) + '</div></div><div style="width:300px">' + FL.cdHTML(snap) + '</div></div>' +
-      summaryCards(snap, per) + '<div class="card stack"><div class="big" style="font-weight:800">' + t('verified_progress') + '</div>' + progress(done, prod.length) + '</div>' + tiles(snap);
-  }
-
-  function featured(snap, per) {
-    var fid = snap.session.params.featured, act = FL.active(snap), pick = null;
-    if (fid) pick = act.filter(function (x) { return x.id === fid; })[0];
-    if (!pick) {
-      act.forEach(function (tm) {
-        if (pick) return;
-        var L = C.ledger(tm, snap);
-        if (per === 1 ? (L.periods[1].complete && L.periods[1].L > 0 && L.periods[1].profit < 0) : L.openThenExit && L.periods[2].complete) pick = tm;
-      });
-    }
-    return pick;
+      summaryCards(snap, per) + '<div class="card production-progress"><span>' + t('verified_progress') + '</span>' + progress(done, prod.length) + '</div>' + tiles(snap);
   }
 
   function ledgerScreen(snap, per) {
-    var par = snap.session.params, tm = featured(snap, per), body = '';
-    if (!tm) body = '<div class="card big">' + t('no_featured') + '</div>';
+    var par = snap.session.params, tm = C.featuredTeam(snap, per), body = '';
+    if (!tm) body = '<div class="card ledger-feature empty-feature"><h2>' + t('no_featured_valid') + '</h2><p>' + t('first_rent_paid',sg(-par.F)) + '</p></div>';
     else {
-      var L = C.ledger(tm, snap), P = L.periods[per];
-      var line;
-      if (per === 1) line = P.complete ? (P.L > 0 ? t('feat1_open', esc(tm.name), P.L, sg(P.profit), sg(P.counterfactual)) : t('feat1_stop', esc(tm.name), sg(P.profit))) : '';
-      else if (P.complete) {
-        if (P.renew) line = t('feat2_renew', esc(tm.name), sg(P.profit));
-        else if (L.openThenExit && L.plan.G > 0 && L.plan.G < par.F) line = t('feat2_exit', esc(tm.name), sg(L.periods[1].profit), L.plan.G, par.F);
-        else line = t('feat2_exit_plain', esc(tm.name)) + (P.counterfactual != null ? ' ' + t('feat2_exit_est', sg(P.counterfactual)) : '');
-      } else line = '';
-      var rows = '';
-      [1, 2].forEach(function (k) {
-        var Q = L.periods[k]; if (!Q.complete && k === 2 && per === 1) return;
-        rows += '<tr class="' + (k === per ? 'hl' : '') + '"><td>' + t('period' + k) + '</td><td>' + (!Q.decided ? t('no_dec_short') : k === 2 && !Q.renew ? t('exit') : Q.L === 0 ? t('stop') : t('hire_n', Q.L)) + '</td><td>' + (Q.complete ? FL.n2(Q.rev) : '—') + '</td><td>' + (Q.complete ? (Q.wage ? '−' + FL.n2(Q.wage) : '0') : '—') + '</td><td>' + (Q.rent == null ? '—' : Q.rent ? '−' + FL.n2(Q.rent) : '0') + '</td><td class="sign">' + (Q.complete ? sg(Q.profit) : '—') + '</td><td>' + (Q.complete && Q.counterfactual != null ? sg(Q.counterfactual) + (Q.counterfactualKind === 'estimate' ? '*' : '') : '—') + '</td></tr>';
-      });
-      body = '<div class="card stack"><div class="row"><div style="width:120px">' + FL.factory(P.renew === false ? 'exit' : (P.L > 0 ? 'open' : 'stop'), P.L || 0, { label: tm.name }) + '</div><div class="grow"><div class="huge">' + esc(tm.name) + '</div><div class="muted big">' + t('table_n', tm.table_no) + '</div></div></div>' +
-        '<div class="big" style="font-weight:700">' + line + '</div>' +
-        '<table class="t"><tr><th></th><th>' + t('l_decision') + '</th><th>' + t('c_rev') + '</th><th>' + t('c_wage') + '</th><th>' + t('l_rent') + '</th><th>' + t('l_profit') + '</th><th>' + t('l_alt') + '</th></tr>' + rows + '</table><div class="tiny muted">* ' + t('est_note') + '</div></div>';
+      var l = C.ledger(tm, snap), p = l.periods[per], before = l.periods[1];
+      var choice = !p.decided ? t('no_dec_short') : per === 2 && !p.renew ? t('exit') : p.L === 0 ? t('stop') : t('hire_n', p.L);
+      var other = per === 1 ? (p.L > 0 ? t('stop') : t('open_option')) : p.renew ? t('exit') : t('renew');
+      var diff = p.complete && p.counterfactual != null ? p.profit - p.counterfactual : null;
+      body = '<div class="card ledger-feature"><div class="feature-identity"><div class="feature-icon">' + FL.factory(p.renew === false ? 'exit' : p.L > 0 ? 'open' : 'stop', p.L || 0, {label:tm.name}) + '</div><div><h2>' + esc(tm.name) + '</h2><div class="muted">' + t('table_n',tm.table_no) + '</div></div></div>' +
+        '<div class="feature-duel"><div><span>' + choice + '</span><b>' + (p.complete ? sg(p.profit) : '—') + '</b></div><i>vs</i><div><span>' + other + (p.counterfactualKind === 'estimate' ? '*' : '') + '</span><b>' + (p.complete ? sg(p.counterfactual) : '—') + '</b></div></div>' +
+        '<div class="feature-context"><div class="feature-difference">' + (diff == null ? t('comparison_unknown_short') : t('choice_delta',sg(diff)) + (p.counterfactualKind === 'estimate' ? '*' : '')) + '</div><div class="feature-arithmetic">' + (p.complete ? t('profit_arithmetic',FL.n2(p.rev),FL.n2(p.wage),FL.n2(p.rent)) : t('ledger_pending')) + '</div>' +
+        (per === 2 ? '<div class="feature-periods">' + t('period_totals',before.complete?sg(before.profit):'—',p.complete?sg(p.profit):'—',sg(l.total)) + '</div>' : '') +
+        (p.counterfactualKind === 'estimate' ? '<div class="estimate-note">* ' + t('est_note') + '</div>' : '') + '</div></div>';
     }
-    return '<div class="row gap" style="align-items:flex-start"><div class="grow stack" style="min-width:0">' + body + '</div><div class="stack" style="width:46%;flex:none">' + classComparison(snap, per) + '</div></div>';
+    return '<div class="ledger-layout">' + body + classComparison(snap,per) + '</div>';
   }
 
   function classComparison(snap, per) {
-    var base = per === 1 ? -snap.session.params.F : 0, valid = 0, better = 0;
-    var cards = FL.active(snap).map(function (tm) {
-      var P = C.ledger(tm, snap).periods[per];
-      if (P.complete) { valid++; if (P.profit > base) better++; }
-      return '<div class="class-profit-row"><span title="' + esc(tm.name) + '">' + tm.table_no + ' · ' + esc(tm.name) + '</span><b>' + (P.complete ? sg(P.profit) : '—') + '</b><span>' + sg(base) + '</span><strong>' + (P.complete ? sg(P.profit - base) : '—') + '</strong></div>';
+    var rows = C.comparisonRows(snap,per), comparable = rows.filter(function(r){return r.comparable;}), better = comparable.filter(function(r){return r.delta>0;}).length;
+    var vals = [0]; rows.forEach(function(r){if(r.actual!=null)vals.push(r.actual);if(r.alternative!=null)vals.push(r.alternative);});
+    var lo = Math.min.apply(null,vals), hi = Math.max.apply(null,vals), span = hi-lo || 1;
+    lo -= span*.08; hi += span*.08;
+    function x(v){return 100*(v-lo)/(hi-lo);}
+    var bars = rows.map(function(r){
+      var track = '<div class="profit-track"><i class="zero-guide" style="left:'+x(0)+'%"></i>';
+      if(r.comparable)track += '<i class="profit-segment '+(r.delta<0?'worse':'better')+'" style="left:'+Math.min(x(r.actual),x(r.alternative))+'%;width:'+Math.abs(x(r.actual)-x(r.alternative))+'%"></i><i class="alternative-marker '+(r.estimated?'estimated':'')+'" style="left:'+x(r.alternative)+'%"></i><i class="actual-dot" style="left:'+x(r.actual)+'%"></i>';
+      track += '</div>';
+      return '<div class="profit-plot-row" data-team="'+esc(r.team.id)+'" data-actual="'+(r.actual==null?'':r.actual)+'" data-alternative="'+(r.alternative==null?'':r.alternative)+'" data-delta="'+(r.delta==null?'':r.delta)+'"><span class="plot-name" title="'+esc(r.team.name)+'">'+r.team.table_no+' · '+esc(r.team.name)+'</span>'+track+'<span class="plot-values">'+(r.actual==null?'—':sg(r.actual))+' <small>/ '+(r.alternative==null?'—':sg(r.alternative)+(r.estimated?'*':''))+'</small></span></div>';
     }).join('');
-    var header = '<div class="class-profit-head"><span>' + t('team_name') + '</span><span>' + t('actual_profit') + '</span><span>' + t(per === 1 ? 'stop' : 'exit') + '</span><span>' + t('difference') + '</span></div>';
-    return '<div class="card class-comparison"><h3>' + t(per === 1 ? 'class_vs_stop' : 'class_vs_exit') + '</h3><p class="class-aha">' + t('class_better', better, valid) + '</p><div class="class-profit-head-wrap">' + header + header + '</div><div class="class-profit-grid">' + cards + '</div><p class="small muted">' + t(per === 1 ? 'class_sunk_note' : 'class_exit_note') + '</p></div>';
+    return '<div class="card class-comparison chart-comparison"><div class="comparison-heading"><h2 class="class-aha">'+t('class_comparable_better',better,comparable.length)+'</h2><span>'+t(per===1?'class_vs_stop':'class_vs_alternative')+'</span></div><div class="plot-legend">'+t('profit_plot_legend')+'</div><div class="profit-plot" style="--plot-rows:'+Math.max(1,Math.ceil(rows.length/2))+'">'+bars+'</div><div class="plot-footer">'+t(per===1?'plot_stop_note':'plot_alternative_note')+(comparable.length<rows.length?' '+t('comparison_missing',rows.length-comparable.length):'')+'</div></div>';
   }
 
   function debriefScreen(snap) {
@@ -218,8 +202,8 @@
     var N = a.n, actualReady = N > 0 && a.decided2 === N, pairedReady = N > 0 && a.paired === N, bins = {}, maxc = 1;
     a.predicts.forEach(function (p) { bins[p] = (bins[p] || 0) + 1; maxc = Math.max(maxc, bins[p]); });
     var bars = '';
-    for (var k = 0; k <= N; k++) bars += '<div class="hist-bin"><div class="hist-track"><div class="hist-bar" style="height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (actualReady && k === a.exit2 ? 'var(--accent)' : '#9e9586') + '">' + (bins[k] ? '<b>' + bins[k] + '</b>' : '') + '</div></div><div class="' + (actualReady && k === a.exit2 ? 'sign' : 'muted') + '">' + '<span class="hist-number">' + k + '</span>' + (actualReady && k === a.exit2 ? '<span class="actual-marker">▲</span>' : '') + '</div></div>';
-    var hero = par.show_lesson ? '<div class="lesson-hero"><div class="lesson-formula">0 &lt; G &lt; F</div><div><h2>' + t('s_open_then_exit') + '</h2><p>' + t('lesson_rule') + '</p></div></div>' : '<div class="card accent big">' + t('slip_q', par.F) + '</div>';
+    for (var k = 0; k <= N; k++) bars += '<div class="hist-bin' + (actualReady && k === a.exit2 ? ' actual-bin' : '') + '"><div class="hist-track">' + (actualReady && k === a.exit2 ? '<i class="actual-exit-line"></i><span class="actual-exit-label">' + t('actual_exits_n',a.exit2) + '</span>' : '') + '<div class="hist-bar" style="height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (actualReady && k === a.exit2 ? 'var(--accent)' : '#ded8ce') + '">' + (bins[k] ? '<b>' + bins[k] + '</b>' : '') + '</div></div><div class="' + (actualReady && k === a.exit2 ? 'sign' : 'muted') + '">' + '<span class="hist-number">' + k + '</span>' + (actualReady && k === a.exit2 ? '<span class="actual-marker">▲</span>' : '') + '</div></div>';
+    var hero = par.show_lesson ? '<div class="lesson-hero"><div class="lesson-formula">0 &lt; G &lt; F</div><div><h2>' + t('s_open_then_exit') + '</h2><p>' + t('lesson_rule') + '</p></div></div>' : '<div class="card accent outcome-banner">' + (pairedReady ? t('observed_open_exit',a.exitsAmongOpened) : t('forecast_pending',a.decided2,N)) + '</div>';
     return '<div class="q-cards summary-compact"><div class="card"><div class="v">' + (pairedReady ? a.exitsAmongOpened : '—') + '</div><div class="k">' + t('s_open_then_exit') + '</div></div>' +
       '<div class="card"><div class="v">' + (a.decided1 ? a.opened1 : '—') + '</div><div class="k">' + t('s_open') + '</div></div>' +
       '<div class="card"><div class="v">' + (actualReady ? a.exit2 : '—') + '</div><div class="k">' + t('s_exit') + '</div></div></div>' + (!actualReady ? '<div class="banner warn small">' + t('forecast_pending', a.decided2, N) + '</div>' : '') + hero +
