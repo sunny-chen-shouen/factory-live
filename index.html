@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="application-version" content="2026-11-26-qa1">
 <title>工廠 LIVE · Factory LIVE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -207,6 +208,46 @@ body{background:var(--paper) radial-gradient(circle at 1px 1px,rgba(120,53,15,.0
 .card.center .muted.small{white-space:nowrap}
 .seg.c5 .btn{font-size:24px}
 
+/* Reliable actions and readable phone drafts. */
+.action-error{position:fixed;z-index:100;left:16px;right:16px;bottom:16px;max-width:540px;margin:auto;padding:14px 48px 14px 16px;border:2px solid var(--accent);border-radius:14px;background:#fff5ef;box-shadow:var(--shadow);font-size:16px;max-height:40vh;overflow:auto}
+.action-error .error-close{position:absolute;top:5px;right:5px;min-width:32px;padding:2px 8px}
+.action-error details{font-size:13px;margin-top:8px}.action-error pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0}
+.saving{border-color:var(--muted)!important}.save-state{display:block;line-height:1.3}.save-failed,[aria-invalid=true]{color:var(--accent);border-color:var(--accent)!important}
+input.inl,select.inl{width:76px;min-height:38px;padding:4px 8px;font-size:16px}
+.topbar .brand{white-space:nowrap;flex-shrink:0}.topbar .pill{white-space:nowrap;font-size:13px;padding:3px 8px}.topbar .btn{flex-shrink:0}
+@media(max-width:440px){.topbar{gap:7px}.topbar .brand{font-size:17px}.topbar .brand i{width:11px;height:11px}.topbar .btn.sm{padding:6px 10px}.topbar .grow{min-width:0}.topbar .pill{font-size:11px}}
+.cd.done .n,.cd.idle .n{font-size:clamp(34px,6vw,54px);white-space:normal}.cd.done .l{white-space:normal}
+
+/* A complete projection canvas, with explicit pages for larger classes. */
+.screenwrap{height:100vh;min-height:0;padding:18px 26px;gap:12px;overflow:hidden}
+.screenhead{flex:none;min-height:42px}.stepper-phase{flex:none;flex-wrap:nowrap;gap:5px}.stepper-phase .ph{font-size:15px;padding:3px 10px;white-space:nowrap}
+.screenbody{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px}
+.screenbody .stack{display:flex;flex-direction:column;gap:12px;min-height:0}.screenbody .stack>*+*{margin-top:0}
+.screenbody>.row.gap{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:stretch!important;gap:16px}
+.screenbody>.row.gap>*{width:auto!important;min-width:0;min-height:0}
+.screenbody .huge{font-size:clamp(28px,2.4vw,42px);overflow-wrap:anywhere}.screenbody .big{font-size:clamp(18px,1.5vw,24px)}
+.screenbody .card.dark.row>.grow{min-width:0}.screenbody .card.dark.row>div:last-child{width:260px!important;flex:none}
+.screenbody .cd{padding:10px 8px}.screenbody .cd .n{font-size:68px}.screenbody .cd.done .n,.screenbody .cd.idle .n{font-size:clamp(30px,2.7vw,44px);white-space:normal;line-height:1.05}.screenbody .cd .l{font-size:15px;white-space:normal;line-height:1.25}
+.screenbody .q-cards{gap:12px;flex:none}.screenbody .q-cards .card{padding:12px}.screenbody .q-cards .v{font-size:76px}.screenbody .q-cards .k{font-size:20px}
+.screenbody .chartbox{display:flex;flex-direction:column;flex:1;min-height:0}.screenbody .chartbox svg{display:block;flex:1;width:100%;height:100%;min-height:0}.screenbody .chartbox.mkt svg{max-height:none;min-height:0}
+.screenbody .tile-panel{display:flex;flex-direction:column;gap:8px;flex:1;min-height:0}
+.screenbody .tiles{flex:1;min-height:0;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:8px}
+.screenbody .tile{padding:6px;min-width:0;min-height:0}.screenbody .tile .fac{max-height:66px}.screenbody .tile .nm{font-size:17px}.screenbody .tile .sub{font-size:14px}.screenbody .tile .tag{font-size:14px;padding:1px 8px}.screenbody .tile .badge{width:22px;height:22px;top:4px;right:4px;font-size:13px}
+.screenbody .tile .in{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%}
+.tile-pagination{display:flex;align-items:center;justify-content:center;gap:14px;font-size:15px;flex:none}.tile-pagination .btn{min-height:30px;padding:2px 12px}
+.histogram{display:flex;gap:4px;margin:10px 0 8px}.hist-bin{flex:1;min-width:0;text-align:center;font-size:15px}.hist-track{height:110px;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid var(--line)}.hist-track>div{width:70%;border-radius:3px 3px 0 0}
+.lesson .banner{font-size:20px}.lesson .small{font-size:18px}.lesson .tiny{font-size:14px}
+.screenbody .lobby{flex:1;min-height:0;gap:20px}.screenbody .lobby>.stack{height:100%}.screenbody .lobby-card{max-height:100%;padding:20px;gap:12px}.screenbody .lobby-h{font-size:30px}
+@media(min-width:1000px) and (max-height:800px){
+ .screenwrap{padding:12px 20px;gap:8px}.screenhead{min-height:38px;gap:12px}.screenhead .pill{font-size:20px!important}.screenhead .brand{font-size:20px}.stepper-phase .ph{font-size:13px;padding:2px 9px}
+ .screenbody,.screenbody .stack{gap:8px}.screenbody .card{padding:10px 12px;border-radius:15px}.screenbody .card.dark.row>div:last-child{width:230px!important}.screenbody .cd{padding:7px}.screenbody .cd .n{font-size:54px}.screenbody .cd.done .n,.screenbody .cd.idle .n{font-size:34px}.screenbody .cd .l{font-size:13px}
+ .screenbody .q-cards .v{font-size:56px}.screenbody .q-cards .k{font-size:17px}.screenbody .big{font-size:18px}.screenbody .huge{font-size:29px}.screenbody .card.dark>div[style*="font-size:26px"]{font-size:20px!important}
+ .screenbody .tiles{gap:6px}.screenbody .tile{padding:4px}.screenbody .tile .fac,.screenbody .tiles.many .tile .fac{max-height:34px}.screenbody .tile .nm{font-size:15px}.screenbody .tile .sub{font-size:12px}.screenbody .tile .tag{font-size:13px;padding:0 7px;margin-top:2px}.screenbody .tile .badge{width:18px;height:18px;font-size:12px;top:3px;right:3px}
+ .screenbody table.t td,.screenbody table.t th{font-size:15px;padding:5px}.screenbody table.t th{font-size:12px}.screenbody .tiny{font-size:12px}.screenbody .bar{height:18px!important}
+ .screenbody .chartbox>div{font-size:17px!important}.screenbody .lobby-h{font-size:25px}.screenbody .lobby-card{padding:14px;gap:9px;width:340px}.screenbody .qrframe{width:240px}.screenbody .lc-kick{font-size:18px}.screenbody .lc-url{font-size:12px}.screenbody .codeboxes b{height:60px;font-size:38px;width:48px}
+ .hist-track{height:90px}.lesson .small{font-size:16px}.lesson .banner{font-size:17px}.lesson .tiny{font-size:12px}
+}
+
 </style>
 </head>
 <body>
@@ -235,7 +276,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function trialPoints(runs, teamId) {
     var pts = {};
     runs.forEach(function (r) {
-      if (r.team_id === teamId && r.kind === 'trial') pts[r.L] = r.q;
+      if (r.team_id === teamId && r.kind === 'trial' && (r.status === 'confirmed' || r.status === 'host')) pts[r.L] = r.q;
     });
     return pts;
   }
@@ -291,21 +332,23 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var par = snap.session.params, p = par.p, w = par.w, F = par.F;
     var pts = trialPoints(snap.runs, team.id);
     var plan = bestPlan(pts, p, w);
+    var operating = plan.rows.filter(function (r) { return r.L > 0; }).sort(function (a, b) { return b.net - a.net || a.L - b.L; })[0];
     var out = { team: team, params: { p: p, w: w, F: F }, points: pts, plan: plan, periods: {} };
 
     [1, 2].forEach(function (k) {
       var d = decisionOf(snap.decisions, team.id, k);
-      var P = { period: k, decided: !!d, renew: d ? d.renew : null, L: d ? d.L : null, predict: d ? d.predict : null };
+      var P = { period: k, decided: !!d, renew: d ? d.renew : null, L: d ? d.L : null, predict: d ? d.predict : null,
+        rent: k === 1 ? F : (d ? (d.renew ? F : 0) : null), complete: false };
       if (d) {
         if (k === 2 && !d.renew) {
           P.q = null; P.rev = 0; P.wage = 0; P.rent = 0; P.profit = 0;
-          P.counterfactual = plan.G - F;               // estimate if they had renewed
+          P.counterfactual = Object.keys(pts).length ? plan.G - F : null;
           P.counterfactualKind = 'estimate';
           P.complete = true;
         } else if (d.L === 0) {
           P.q = 0; P.rev = 0; P.wage = 0; P.rent = F; P.profit = -F;
-          P.counterfactual = plan.G - F;               // had they worked the best plan (estimate)
-          P.counterfactualKind = 'estimate';
+          P.counterfactual = k === 2 ? 0 : (operating ? operating.net - F : null);
+          P.counterfactualKind = k === 2 ? 'exact' : 'estimate';
           P.complete = true;
         } else {
           var r = runOf(snap.runs, team.id, k === 1 ? 'p1' : 'p2', d.L);
@@ -323,7 +366,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     });
 
     var p1 = out.periods[1], p2 = out.periods[2];
-    out.total = (p1.complete ? p1.profit : 0) + (p2.complete ? p2.profit : 0);
+    out.total = p1.complete && p2.complete ? p1.profit + p2.profit : null;
     out.openThenExit = !!(p1.decided && p1.L > 0 && p2.decided && !p2.renew);
     return out;
   }
@@ -331,11 +374,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // Aggregates for the projector and debrief
   function classAggregates(snap) {
     var teams = snap.teams.filter(function (t) { return t.present > 0; });
-    var res = { n: teams.length, opened1: 0, stopped1: 0, renew2: 0, exit2: 0, openThenExit: [], predicts: [], exitsAmongOpened: 0 };
+    var res = { n: teams.length, decided1: 0, decided2: 0, paired: 0, opened1: 0, stopped1: 0, renew2: 0, exit2: 0, openThenExit: [], predicts: [], exitsAmongOpened: 0 };
     teams.forEach(function (t) {
       var d1 = decisionOf(snap.decisions, t.id, 1), d2 = decisionOf(snap.decisions, t.id, 2);
-      if (d1) { if (d1.L > 0) res.opened1++; else res.stopped1++; }
+      if (d1) { res.decided1++; if (d1.L > 0) res.opened1++; else res.stopped1++; }
+      if (d1 && d2) res.paired++;
       if (d2) {
+        res.decided2++;
         if (d2.renew) res.renew2++; else res.exit2++;
         if (d2.predict != null) res.predicts.push(d2.predict);
         if (d1 && d1.L > 0 && !d2.renew) { res.exitsAmongOpened++; res.openThenExit.push(t.id); }
@@ -344,18 +389,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     return res;
   }
 
-  // Neighbour who verifies a table: odd ↔ next even; a lone odd table is verified by the one below.
+  // Pair the actual roster, not table-number parity. Last three form a cycle
+  // when the roster is odd, so every table counts and is counted exactly once.
   function verifierOf(team, teams) {
-    var nos = teams.filter(function (t) { return t.present > 0; }).map(function (t) { return t.table_no; });
-    var n = team.table_no, cand;
-    if (n % 2 === 1) cand = nos.indexOf(n + 1) >= 0 ? n + 1 : n - 1;
-    else cand = n - 1;
-    if (nos.indexOf(cand) < 0) {
-      // fall back to the nearest other table
-      var others = nos.filter(function (x) { return x !== n; }).sort(function (a, b) { return Math.abs(a - n) - Math.abs(b - n); });
-      cand = others.length ? others[0] : null;
-    }
-    return cand == null ? null : teams.filter(function (t) { return t.table_no === cand; })[0] || null;
+    var roster = teams.filter(function (t) { return t.present > 0; }).slice().sort(function (a, b) { return a.table_no - b.table_no; });
+    var i = roster.findIndex(function (t) { return t.id === team.id; }), n = roster.length;
+    if (i < 0 || n < 2) return null;
+    if (n % 2 && i >= n - 3) return roster[n - 3 + (i - (n - 3) + 1) % 3];
+    return roster[i % 2 ? i - 1 : i + 1];
   }
 
   // Which table does `team` verify? (inverse of verifierOf; may be several for an odd class)
@@ -445,13 +486,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       updateTeam: function (team, token, present) { return rpc('fl_update_team', { p_team: team, p_token: token, p_present: present }); },
       snapshot: function (code) { return rpc('fl_snapshot', { p_code: code }); },
       myDecisions: function (team, token) { return rpc('fl_my_decisions', { p_team: team, p_token: token }); },
-      submit: function (team, token, period, renew, L, predict) { return rpc('fl_submit', { p_team: team, p_token: token, p_period: period, p_renew: renew, p_L: L, p_predict: predict == null ? null : predict }); },
-      report: function (team, token, target, kind, L, q) { return rpc('fl_report', { p_team: team, p_token: token, p_target: target, p_kind: kind, p_L: L, p_q: q }); },
-      confirm: function (team, token, kind, L, ok) { return rpc('fl_confirm', { p_team: team, p_token: token, p_kind: kind, p_L: L, p_ok: ok }); },
+      submit: function (team, token, period, renew, L, predict) { return rpc('fl_submit', { p_team: team, p_token: token, p_period: period, p_renew: renew, p_l: L, p_predict: predict == null ? null : predict }); },
+      report: function (team, token, target, kind, L, q) { return rpc('fl_report', { p_team: team, p_token: token, p_target: target, p_kind: kind, p_l: L, p_q: q }); },
+      confirm: function (team, token, kind, L, ok) { return rpc('fl_confirm', { p_team: team, p_token: token, p_kind: kind, p_l: L, p_ok: ok }); },
       hostSet: function (code, key, patch) { return rpc('fl_host_set', { p_code: code, p_key: key, p_patch: patch }); },
-      hostRun: function (code, key, team, kind, L, q) { return rpc('fl_host_run', { p_code: code, p_key: key, p_team: team, p_kind: kind, p_L: L, p_q: q == null ? null : q }); },
+      hostRun: function (code, key, team, kind, L, q) { return rpc('fl_host_run', { p_code: code, p_key: key, p_team: team, p_kind: kind, p_l: L, p_q: q == null ? null : q }); },
       hostTeam: function (code, key, team, patch, del) { return rpc('fl_host_team', { p_code: code, p_key: key, p_team: team, p_patch: patch || {}, p_delete: !!del }); },
-      hostDecide: function (code, key, team, period, renew, L, predict) { return rpc('fl_host_decide', { p_code: code, p_key: key, p_team: team, p_period: period, p_renew: renew, p_L: L, p_predict: predict == null ? null : predict }); },
+      hostDecide: function (code, key, team, period, renew, L, predict) { return rpc('fl_host_decide', { p_code: code, p_key: key, p_team: team, p_period: period, p_renew: renew, p_l: L, p_predict: predict == null ? null : predict }); },
       hostReset: function (code, key, scope) { return rpc('fl_host_reset', { p_code: code, p_key: key, p_scope: scope }); }
     };
   }
@@ -766,7 +807,7 @@ window.FL.dict = (function () {
   a('trial_wait', '等老師宣布下一班。每一班會指定上工人數 1、2、3、4。', 'Wait for the next shift. Shifts are run with 1, 2, 3, then 4 workers.');
   a('trial_wait_s', '等待下一班試產', 'Waiting for the next trial shift');
   a('trial_shift', '試產：{0} 人上工', 'Trial: {0} on the line');
-  a('you_work', '請 {0} 位同學上工', 'Put {0} workers on the line');
+  a('you_work', '請 {0} 位同學上工', 'Workers to put on the line: {0}');
   a('you_verify_only', '這班要 {1} 人，你們只有 {0} 人，這班只負責驗收。', 'This shift needs {1}; you only have {0}. You verify this time.');
   a('my_trial', '我們的試產紀錄', 'Our trial results');
   a('no_trial_yet', '還沒有試產紀錄。', 'No trial results yet.');
@@ -786,7 +827,7 @@ window.FL.dict = (function () {
 
   // verification
   a('verify_h', '驗收：{0}（桌 {1}）', 'Verify: {0} (table {1})');
-  a('verify_p', '他們這班 {0} 人上工。響鈴放手後，輕提起始環，數還連在主繩上的合格單環。', '{0} of them worked. After the bell, lift the start ring and count valid single rings still on the main chain.');
+  a('verify_p', '他們這班 {0} 人上工。響鈴放手後，輕提起始環，數還連在主繩上的合格單環。', 'Their headcount this shift: {0}. After the bell, lift the start ring and count valid single rings still on the main chain.');
   a('verify_after', '響鈴放手後才能回報。', 'You can report after the bell.');
   a('report_btn', '送出回報', 'Send count');
   a('report_again', '更正回報', 'Send a correction');
@@ -838,7 +879,7 @@ window.FL.dict = (function () {
   a('profit_0', '利潤 0', 'profit 0');
   a('d2_hire', '續租後要請幾位工人？', 'If you renew, how many workers?');
   a('pred_h', '全班預測', 'Class forecast');
-  a('pred_p', '今天開工的 {0} 家工廠中，下期有幾家會退出？', 'Of the {0} factories that opened today, how many will exit next period?');
+  a('pred_p', '全班 {0} 家工廠中，下期有幾家會退出？', 'Of all {0} factories, how many will exit next period?');
   a('thinking', '思考中', 'Thinking');
 
   // run
@@ -968,7 +1009,7 @@ window.FL.dict = (function () {
   a('cls_renew', '值得續租', 'Renew');
   a('cls_stop', '停工', 'Shut');
   a('del', '移除', 'Remove');
-  a('teams_note', '改任何格子都會立即更新所有人。橘色？表示待確認，！表示有爭議。', 'Edits update everyone immediately. ? = awaiting confirmation, ! = disputed.');
+  a('teams_note', '修改欄位後移開焦點即儲存；請確認「已儲存」提示。L=1–4 為各人數試產環數；？待確認，！有爭議。', 'Edits save when you leave the field; check the saved message. L=1–4 are trial ring counts. ? = awaiting confirmation; ! = disputed.');
   a('bots_h', '模擬隊伍（彩排用）', 'Rehearsal bots');
   a('bots_p', '新增會自己試產、決策、驗收的假隊伍，讓你一個人也能完整跑一遍。', 'Adds fake teams that trial, decide and verify on their own so you can rehearse alone.');
   a('bots_added', '已新增 {0} 組', 'Added {0}');
@@ -986,10 +1027,10 @@ window.FL.dict = (function () {
   a('tip_decide1', '學生密選今天要請幾人。全部鎖定後再進入生產，系統會同時翻牌。', 'Students privately pick today\'s headcount. Once all are locked, move on: the cards flip together.');
   a('tip_run1', '已翻牌。開始班次，響鈴後鄰桌驗收、本桌確認。', 'Cards are revealed. Start the shift; neighbours count and tables confirm.');
   a('tip_ledger1', '挑一家「開工但仍虧損」的工廠，請他比較開工與停工。', 'Pick a factory that opened and still lost money; compare open vs closed.');
-  a('tip_decide2', '學生密選續租或退出，並預測「今天開工的工廠有幾家會退出」。', 'Students privately pick renew or exit and forecast how many open factories will exit.');
+  a('tip_decide2', '學生密選續租或退出，並預測「全班有幾家工廠會退出」。', 'Students privately pick renew or exit and forecast how many factories in the class will exit.');
   a('tip_run2', '續租的工廠生產，退出的工廠協助驗收。', 'Renewing factories produce; exited ones help verify.');
   a('tip_ledger2', '挑一家★工廠（今天開工、下期退出）請他說兩句話。', 'Pick a ★ factory (opened today, exits next) and ask for the two-sentence explanation.');
-  a('tip_debrief', '收離場單。可匯出 CSV 留作課後講解。', 'Collect the exit slips. Export the CSV for follow-up.');
+  a('tip_debrief', '請學生寫下理由，再顯示教學重點。離場單草稿只在學生手機；CSV 匯出包含遊戲數據，不含草稿。', 'Ask students to write their reasons, then reveal the lesson. Drafts stay on student devices; CSV exports game data only.');
 
   // errors
   a('err_generic', '發生錯誤', 'Something went wrong');
@@ -1020,6 +1061,34 @@ window.FL.dict = (function () {
   a('peek_back', '回到目前階段', 'Back to now');
   a('peek_note', '這是上一階段「{0}」的內容（唯讀），目前進行的階段不受影響。', 'Read-only view of the earlier step “{0}”. The live step is unchanged.');
   a('back_home', '回首頁', 'Home');
+  a("dismiss", "關閉", "Dismiss");
+  a("error_details", "技術細節", "Technical details");
+  a("err_retry", "未能儲存，請檢查連線後再試；輸入仍保留。", "Could not save. Check your connection and try again; your input is retained.");
+  a("saving", "儲存中…", "Saving…");
+  a("save_failed", "未儲存，請重試", "Not saved; retry");
+  a("capacity", "實到人數", "Headcount");
+  a("your_verifier", "由 {0}（桌 {1}）驗收你們；下方是你們要驗收的工廠。", "{0} (table {1}) counts your rings. The factory you count is shown below.");
+  a("need_teacher_verifier", "目前只有一家工廠，請助教驗收並在教師台代登。", "Only one factory is present. Ask a TA to verify and enter the count in the teacher console.");
+  a("all_verified", "所有應生產工廠已驗收。", "All producing factories are verified.");
+  a("no_producing", "本期沒有需要生產的工廠。", "No factory needs to produce this period.");
+  a("no_eligible", "尚無可驗收工廠。請確認班次與決策。", "No eligible factory yet. Check the shift and decisions.");
+  a("missing_decisions", "尚有 {0} 家未交決策，請補交或由老師代登。", "{0} factories have not submitted. Ask them to submit or enter decisions for them.");
+  a("forecast_pending", "第二期有效決策 {0}/{1} 家；資料未齊，實際退出數尚未定案。", "Period 2 decisions: {0}/{1}. Actual exits remain unconfirmed until all submit.");
+  a("no_forecasts", "尚無有效預測。", "No forecasts have been submitted.");
+  a("chart_y", "合格環數／{0}秒", "Valid rings / {0} sec");
+  a("chart_waiting", "等待已確認試產資料", "Waiting for verified trial data");
+  a("tile_page", "第 {0}/{1} 頁", "Page {0}/{1}");
+  a("draft_note", "理由只存在這支手機的瀏覽器，不會送給老師。請依老師指示分享或繳交。", "Reasons stay in this browser on this device and are not sent to the teacher. Share or submit them as instructed.");
+  a("draft_ready", "輸入時會自動保存草稿。", "Drafts save as you type.");
+  a("draft_saved", "草稿已保存在這支手機。", "Draft saved on this device.");
+  a("draft_memory", "瀏覽器無法保存；請先複製文字，重新整理可能遺失。", "Browser storage is unavailable. Copy your text before refreshing.");
+  a("lesson_show", "顯示教學重點", "Reveal the lesson");
+  a("lesson_hide", "隱藏教學重點", "Hide the lesson");
+  a("lesson_title", "短期與長期：租金能否避免？", "Short run vs long run: is rent avoidable?");
+  a("lesson_rule", "G = 最佳可行人數的「營收 − 工資」。先用已確認的試產資料估計。", "G = revenue minus wages at the best feasible headcount, estimated from verified trial data.");
+  a("lesson_explain", "短期：今天租金已付，是沉沒成本；G>0 時開工能減少損失。長期：下期可不續租；只有 G 能補回租金，續租才不比退出差。", "Short run: today’s rent is sunk; opening reduces losses when G>0. Long run: rent is avoidable; renewing is no worse than exit only if G covers rent.");
+  a("lesson_boundary", "邊界：G=0 時今天開工與停工無差異；G=F 時下期續租與退出無差異。", "At G=0, opening and closing today tie. At G=F, renewing and exiting next period tie.");
+  a("lesson_example", "依試產估計：今天開工 {0}，停工 {1}；下期續租 {0}，退出 0。", "From trials: open today {0} vs close {1}; renew next period {0} vs exit 0.");
   return D;
 })();
 
@@ -1039,7 +1108,7 @@ window.FL.dict = (function () {
   var memStore = {};
   FL.ls = {
     get: function (k) { try { var v = localStorage.getItem(k); return v == null ? (memStore[k] == null ? null : memStore[k]) : v; } catch (e) { return memStore[k] == null ? null : memStore[k]; } },
-    set: function (k, v) { memStore[k] = String(v); try { localStorage.setItem(k, v); } catch (e) { /* memory only */ } },
+    set: function (k, v) { memStore[k] = String(v); try { localStorage.setItem(k, v); return true; } catch (e) { return false; } },
     del: function (k) { delete memStore[k]; try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }
   };
 
@@ -1074,11 +1143,44 @@ window.FL.dict = (function () {
   FL.errText = function (e) {
     var m = (e && e.message) || String(e);
     var k = 'err_' + m.replace(/[^a-zA-Z_]/g, '').toLowerCase().slice(0, 24);
-    return FL.dict[k] ? FL.t(k) : FL.t('err_generic') + ' (' + m + ')';
+    return FL.dict[k] ? FL.t(k) : FL.t('err_retry');
+  };
+  FL.showError = function (e) {
+    var old = FL.$('.action-error'); if (old) old.remove();
+    var box = document.createElement('div'); box.className = 'action-error'; box.setAttribute('role', 'alert');
+    box.innerHTML = '<button class="btn sm ghost error-close" aria-label="' + FL.t('dismiss') + '">×</button><b>' + FL.esc(FL.errText(e)) + '</b><details><summary>' + FL.t('error_details') + '</summary><pre></pre></details>';
+    box.querySelector('pre').textContent = (e && e.message) || String(e);
+    box.querySelector('button').onclick = function () { box.remove(); };
+    document.body.appendChild(box);
   };
   FL.run = function (promise, okMsg) { // run an action, show friendly errors, then refresh
-    return promise.then(function (r) { if (okMsg) FL.toast(okMsg); return FL.store.refresh().then(function () { return r; }); })
-      .catch(function (e) { FL.toast(FL.errText(e)); return FL.store.refresh().then(function () { return undefined; }); });
+    return promise.then(function (r) { if (okMsg) FL.toast(okMsg); return FL.store.refresh().then(function () { return { ok: true, value: r }; }); })
+      .catch(function (e) { FL.showError(e); return { ok: false, error: e }; });
+  };
+  FL.saveField = function (el, promise) {
+    el.setAttribute('aria-busy', 'true'); el.classList.add('saving');
+    var status = document.createElement('span'); status.className = 'save-state tiny'; status.setAttribute('role', 'status');
+    status.textContent = FL.t('saving'); el.insertAdjacentElement('afterend', status);
+    return FL.run(promise).then(function (res) {
+      el.removeAttribute('aria-busy'); el.classList.remove('saving');
+      el.setAttribute('aria-invalid', res.ok ? 'false' : 'true');
+      status.textContent = FL.t(res.ok ? 'toast_saved' : 'save_failed'); status.classList.toggle('save-failed', !res.ok);
+      if (res.ok) FL.toast(FL.t('toast_saved'));
+      return res;
+    });
+  };
+  FL.lessonHTML = function () {
+    var snap = FL.snap(), par = snap.session.params, sample = null;
+    FL.active(snap).some(function (tm) {
+      var plan = C.bestPlan(C.trialPoints(snap.runs, tm.id), par.p, par.w);
+      if (plan.G > 0 && plan.G < par.F) { sample = { team: tm, plan: plan }; return true; }
+      return false;
+    });
+    return '<div class="lesson stack"><h3>' + FL.t('lesson_title') + '</h3><div class="small">' + FL.t('lesson_rule') + '</div>' +
+      '<div class="banner">0 &lt; G &lt; F → ' + FL.t('s_open_then_exit') + '</div>' +
+      '<div class="small">' + FL.t('lesson_explain') + '</div>' +
+      (sample ? '<div class="small"><b>' + FL.esc(sample.team.name) + '</b> · G=' + FL.n2(sample.plan.G) + ', F=' + par.F + '<br>' + FL.t('lesson_example', FL.sg(sample.plan.G - par.F), FL.sg(-par.F)) + '</div>' : '') +
+      '<div class="tiny muted">' + FL.t('lesson_boundary') + '</div></div>';
   };
 
   /* ------------------------------------------------ factory icon (shape + text carry meaning, not colour) */
@@ -1334,6 +1436,9 @@ window.FL.dict = (function () {
   // Neighbour verification (I count them) + my own confirmation (they counted me)
   function verifyBlock(snap, me, kind, L) {
     var teams = snap.teams, out = '';
+    var assigned = C.verifierOf(me, teams), shift = FL.shiftOf(snap), context = shift ? shift.id : kind + ':' + L;
+    if (U.countContext !== context) { U.cnt = {}; U.countContext = context; }
+    out += '<div class="card small">' + (assigned ? t('your_verifier', esc(assigned.name), assigned.table_no) : t('need_teacher_verifier')) + '</div>';
     var targets = C.verifies(me, teams).filter(function (tg) {
       if (kind === 'trial') return tg.present >= L;
       var per = kind === 'p1' ? 1 : 2, d = C.decisionOf(snap.decisions, tg.id, per);
@@ -1384,10 +1489,10 @@ window.FL.dict = (function () {
   FL.acts.report = function (el) {
     var id = el.dataset.target, cur = U.cnt[id];
     if (cur == null) { var tg = FL.snap().runs.filter(function (r) { return r.team_id === id && r.kind === el.dataset.kind; })[0]; cur = tg ? tg.q : 0; }
-    FL.run(FL.api.report(FL.me.team_id, FL.me.token, id, el.dataset.kind, +el.dataset.lv, cur), t('toast_sent'));
+    return FL.run(FL.api.report(FL.me.team_id, FL.me.token, id, el.dataset.kind, +el.dataset.lv, cur), t('toast_sent'));
   };
   FL.acts.confirm = function (el) {
-    FL.run(FL.api.confirm(FL.me.team_id, FL.me.token, el.dataset.kind, +el.dataset.lv, el.dataset.ok === '1'), el.dataset.ok === '1' ? t('toast_confirmed') : t('toast_disputed'));
+    return FL.run(FL.api.confirm(FL.me.team_id, FL.me.token, el.dataset.kind, +el.dataset.lv, el.dataset.ok === '1'), el.dataset.ok === '1' ? t('toast_confirmed') : t('toast_disputed'));
   };
 
   /* ------------------------------------------------ market */
@@ -1419,7 +1524,7 @@ window.FL.dict = (function () {
     return FL.myDec.filter(function (x) { return x.period === per; }).map(function (x) { return { period: per, renew: x.renew, L: x.L, predict: x.predict, team_id: FL.me.team_id }; })[0] || null;
   }
   function openCount(snap) {
-    return snap.teams.filter(function (tm) { var d = C.decisionOf(snap.decisions, tm.id, 1); return d && d.L > 0; }).length;
+    return FL.active(snap).length;
   }
   function decide(snap, me, per) {
     var par = snap.session.params, K = me.present, mine = myDecision(snap, per), pts = C.trialPoints(snap.runs, me.id);
@@ -1467,18 +1572,18 @@ window.FL.dict = (function () {
   FL.acts.sel1 = function (el) { U.sel1 = +el.dataset.lv; FL.render(true); };
   FL.acts.renew = function (el) { U.renew2 = el.dataset.v === '1'; if (!U.renew2) U.sel2 = 0; FL.render(true); };
   FL.acts.sel2 = function (el) { U.sel2 = +el.dataset.lv; FL.render(true); };
-  function afterLock(p) { return FL.run(p, t('toast_locked')).then(function () { return FL.api.myDecisions(FL.me.team_id, FL.me.token).then(function (d) { FL.myDec = d; FL.render(true); }); }); }
+  function afterLock(p) { return FL.run(p, t('toast_locked')).then(function (res) { if (!res.ok) return res; return FL.api.myDecisions(FL.me.team_id, FL.me.token).then(function (d) { FL.myDec = d; FL.render(true); return res; }); }); }
   FL.acts.lock1 = function () {
     var snap = FL.snap(), mine = myDecision(snap, 1), L = U.sel1 != null ? U.sel1 : (mine ? mine.L : null);
     if (L == null) return;
-    afterLock(FL.api.submit(FL.me.team_id, FL.me.token, 1, true, L, null));
+    return afterLock(FL.api.submit(FL.me.team_id, FL.me.token, 1, true, L, null));
   };
   FL.acts.lock2 = function () {
     var snap = FL.snap(), mine = myDecision(snap, 2);
     var renew = U.renew2 != null ? U.renew2 : (mine ? mine.renew : null), L = U.sel2 != null ? U.sel2 : (mine ? mine.L : 0);
     if (renew == null) return;
     var pred = U.pred != null ? U.pred : (mine && mine.predict != null ? mine.predict : 0);
-    afterLock(FL.api.submit(FL.me.team_id, FL.me.token, 2, renew, renew ? L : 0, pred));
+    return afterLock(FL.api.submit(FL.me.team_id, FL.me.token, 2, renew, renew ? L : 0, pred));
   };
 
   /* ------------------------------------------------ production */
@@ -1518,26 +1623,35 @@ window.FL.dict = (function () {
     if (per === 2) {
       out += '<div class="card"><div class="row"><div class="grow muted">' + t('total_h') + '</div><div class="huge num">' + sg(L.total) + '</div></div></div>';
       var agg = C.classAggregates(snap), p2 = P;
-      if (p2.predict != null) out += '<div class="card small">' + t('pred_result', p2.predict, agg.exitsAmongOpened) + '</div>';
+      if (p2.predict != null) out += '<div class="card small">' + (agg.decided2 === agg.n ? t('pred_result', p2.predict, agg.exit2) : t('forecast_pending', agg.decided2, agg.n)) + '</div>';
     }
     return out;
   }
 
   function debrief(snap, me) {
     var L = C.ledger(me, snap), par = snap.session.params, p1 = L.periods[1], p2 = L.periods[2];
+    var key = 'fl_slip_' + snap.session.code + '_' + me.id;
+    if (U.slipKey !== key) {
+      U.slipKey = key; var saved = {}; try { saved = JSON.parse(FL.ls.get(key) || '{}'); } catch (e) { /* empty draft */ }
+      U.slip1 = saved.slip1 || ''; U.slip2 = saved.slip2 || '';
+    }
     return '<div class="card accent stack"><h2>' + t('debrief_h') + '</h2><div>' + t('slip_q', par.F) + '</div></div>' +
-      '<div class="card stack"><h3>' + t('slip_h') + '</h3><label class="field"><span>' + t('slip_1') + '</span><input type="text" id="slip1" value="' + esc(U.slip1) + '"></label>' +
-      '<label class="field"><span>' + t('slip_2') + '</span><input type="text" id="slip2" value="' + esc(U.slip2) + '"></label></div>' +
+      '<div class="card stack"><h3>' + t('slip_h') + '</h3><div class="tiny muted">' + t('draft_note') + '</div><label class="field"><span>' + t('slip_1') + '</span><textarea id="slip1">' + esc(U.slip1) + '</textarea></label>' +
+      '<label class="field"><span>' + t('slip_2') + '</span><textarea id="slip2">' + esc(U.slip2) + '</textarea></label><div id="draft_status" class="tiny muted" role="status">' + t('draft_ready') + '</div></div>' +
       '<div class="card"><table class="t"><tr><th></th><th>' + t('period1') + '</th><th>' + t('period2') + '</th></tr>' +
       '<tr><td>' + t('l_decision') + '</td><td>' + (p1.decided ? (p1.L === 0 ? t('stop') : t('hire_n', p1.L)) : '—') + '</td><td>' + (p2.decided ? (p2.renew ? t('renew') + ' · ' + t('hire_n', p2.L) : t('exit')) : '—') + '</td></tr>' +
       '<tr><td>' + t('l_profit') + '</td><td class="sign">' + (p1.complete ? sg(p1.profit) : '—') + '</td><td class="sign">' + (p2.complete ? sg(p2.profit) : '—') + '</td></tr>' +
       '<tr><td>' + t('l_alt') + '</td><td>' + (p1.complete ? sg(p1.counterfactual) : '—') + '</td><td>' + (p2.complete ? sg(p2.counterfactual) : '—') + '</td></tr></table>' +
-      '<div class="tiny muted" style="margin-top:6px">' + t('est_note') + '</div></div>';
+      '<div class="tiny muted" style="margin-top:6px">' + t('est_note') + '</div></div>' + (par.show_lesson ? FL.lessonHTML() : '');
   }
   FL.afterTeam = function () {
     var a = FL.$('#slip1'), b = FL.$('#slip2');
-    if (a) a.oninput = function () { U.slip1 = a.value; };
-    if (b) b.oninput = function () { U.slip2 = b.value; };
+    function save() {
+      U.slip1 = a.value; U.slip2 = b.value;
+      var saved = FL.ls.set(U.slipKey, JSON.stringify({ slip1: U.slip1, slip2: U.slip2 }));
+      FL.$('#draft_status').textContent = t(saved ? 'draft_saved' : 'draft_memory');
+    }
+    if (a && b) { a.oninput = save; b.oninput = save; }
   };
   FL.views.team.after = FL.afterTeam;
 
@@ -1559,6 +1673,7 @@ window.FL.dict = (function () {
   var FL = window.FL, C = window.FLCalc, t = FL.t, esc = FL.esc, sg = FL.sg;
   var PH = C.PHASES;
   var flip = { from: null, armed: false };
+  var tilePage = 0, PAGE_SIZE = 12;
 
   function head(snap) {
     var cur = PH.indexOf(snap.session.phase);
@@ -1614,25 +1729,29 @@ window.FL.dict = (function () {
 
   function tiles(snap, mini) {
     var list = FL.active(snap);
+    var pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE)); tilePage = Math.min(tilePage, pages - 1);
+    var visible = list.slice(tilePage * PAGE_SIZE, (tilePage + 1) * PAGE_SIZE);
     var tilesz = list.length > 12 ? 140 : list.length > 6 ? 165 : 220;
-    return '<div class="tiles' + (list.length > 6 ? ' many' : '') + '" style="--tile:' + tilesz + 'px">' + list.map(function (tm) {
+    return '<div class="tile-panel"><div class="tiles' + (list.length > 6 ? ' many' : '') + '" style="--tile:' + tilesz + 'px;--cols:' + (visible.length > 6 ? 4 : visible.length > 3 ? 3 : Math.max(visible.length, 1)) + '">' + visible.map(function (tm) {
       var o = tileInfo(snap, tm), pre = flip.armed && /^run/.test(snap.session.phase);
       return '<div class="tile ' + o.state + ' flip ' + (pre ? 'pre' : '') + '"><div class="in">' +
         (o.badge ? '<div class="badge ' + (o.off ? 'off' : '') + '">' + o.badge + '</div>' : '') +
         FL.factory(o.state, o.L, { label: tm.name }) +
-        '<div class="nm">' + esc(tm.name) + '</div><div class="sub">' + o.sub + '</div><div class="tag' + (/^−/.test(o.tag) ? ' neg' : '') + '">' + esc(o.tag) + '</div></div></div>';
-    }).join('') + '</div>';
+        '<div class="nm" title="' + esc(tm.name) + '">' + esc(tm.name) + '</div><div class="sub">' + o.sub + '</div><div class="tag' + (/^−/.test(o.tag) ? ' neg' : '') + '">' + esc(o.tag) + '</div></div></div>';
+    }).join('') + '</div>' + (pages > 1 ? '<div class="tile-pagination"><button class="btn sm" data-act="tilepage" data-d="-1"' + (!tilePage ? ' disabled' : '') + '>←</button><span>' + t('tile_page', tilePage + 1, pages) + '</span><button class="btn sm" data-act="tilepage" data-d="1"' + (tilePage === pages - 1 ? ' disabled' : '') + '>→</button></div>' : '') + '</div>';
   }
+  FL.acts.tilepage = function (el) { tilePage = Math.max(0, tilePage + Number(el.dataset.d)); FL.render(true); };
 
   /* ------------------------------------------------ chart: trial points + class mean */
   function trialChart(snap) {
-    var act = FL.active(snap), W = 640, H = 380, m = { l: 56, r: 20, t: 20, b: 48 };
+    var act = FL.active(snap), W = 640, H = 380, m = { l: 56, r: 20, t: 42, b: 48 };
     var byL = { 1: [], 2: [], 3: [], 4: [] }, series = [];
     act.forEach(function (tm) { var pts = C.trialPoints(snap.runs, tm.id); series.push(pts); for (var L = 1; L <= 4; L++) if (pts[L] != null) byL[L].push(pts[L]); });
     var maxQ = 1; for (var L0 = 1; L0 <= 4; L0++) byL[L0].forEach(function (q) { if (q > maxQ) maxQ = q; });
     maxQ = Math.ceil((maxQ + 1) / 2) * 2;
     var x = function (L) { return m.l + (W - m.l - m.r) * (L / 4); }, y = function (q) { return H - m.b - (H - m.t - m.b) * (q / maxQ); };
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="' + t('chart_alt') + '">';
+    s += '<text x="' + m.l + '" y="22" font-size="18" fill="#5b564e">' + t('chart_y', snap.session.params.secs) + '</text>';
     for (var g = 0; g <= maxQ; g += maxQ <= 10 ? 2 : 4) s += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(g) + '" y2="' + y(g) + '" stroke="#e3dccd" stroke-width="2"/><text x="' + (m.l - 10) + '" y="' + (y(g) + 6) + '" text-anchor="end" font-size="18" fill="#5b564e">' + g + '</text>';
     for (var L = 0; L <= 4; L++) s += '<text x="' + x(L) + '" y="' + (H - 18) + '" text-anchor="middle" font-size="20" fill="#1c1b1a" font-weight="700">' + L + '</text>';
     s += '<text x="' + (W / 2) + '" y="' + (H - 0) + '" text-anchor="middle" font-size="16" fill="#5b564e">' + t('c_workers') + '</text>';
@@ -1645,6 +1764,7 @@ window.FL.dict = (function () {
     var mean = [], mp = 'M' + x(0) + ' ' + y(0);
     for (var L3 = 1; L3 <= 4; L3++) { var a = byL[L3]; if (a.length) { var mu = a.reduce(function (p, c) { return p + c; }, 0) / a.length; mean[L3] = mu; mp += ' L' + x(L3) + ' ' + y(mu); } }
     if (mean.length) { s += '<path d="' + mp + '" fill="none" stroke="#c2410c" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>'; for (var L4 = 1; L4 <= 4; L4++) if (mean[L4] != null) s += '<circle cx="' + x(L4) + '" cy="' + y(mean[L4]) + '" r="8" fill="#c2410c"/>'; }
+    if (!mean.length) s += '<text x="350" y="185" text-anchor="middle" font-size="22" fill="#5b564e">' + t('chart_waiting') + '</text>';
     return { svg: s + '</svg>', mean: mean };
   }
 
@@ -1656,6 +1776,7 @@ window.FL.dict = (function () {
 
   /* ------------------------------------------------ phases */
   function progress(n, total) {
+    if (!total) return '<div class="small muted">' + t('no_eligible') + '</div>';
     return '<div class="row" style="gap:16px"><div class="bar grow" style="height:26px"><i style="width:' + (total ? Math.round(100 * n / total) : 0) + '%"></i></div><div class="big num" style="font-weight:800">' + n + ' / ' + total + '</div></div>';
   }
 
@@ -1679,7 +1800,7 @@ window.FL.dict = (function () {
       '<div style="width:300px">' + FL.cdHTML(snap) + '</div></div>' +
       (L ? '<div class="card stack"><div class="big" style="font-weight:800">' + t('verified_progress') + '</div>' + progress(done, producing.length) + '</div>' : '') +
       tiles(snap) + '</div>' +
-      '<div class="stack" style="width:520px;flex:none"><div class="chartbox"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div>' + '<div class="card">' + meanTable(ch.mean) + '</div></div></div>';
+      '<div class="stack" style="width:520px;flex:none"><div class="chartbox"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div>' + (meanTable(ch.mean) ? '<div class="card">' + meanTable(ch.mean) + '</div>' : '') + '</div></div>';
   }
 
   function marketScreen(snap) {
@@ -1707,8 +1828,9 @@ window.FL.dict = (function () {
 
   function summaryCards(snap, per) {
     var a = C.classAggregates(snap);
+    var submitted = per === 1 ? a.decided1 : a.decided2;
     var cells = per === 1 ? [[a.opened1, t('s_open')], [a.stopped1, t('s_stop')]] : [[a.renew2, t('s_renew')], [a.exit2, t('s_exit')]];
-    return '<div class="q-cards" style="grid-template-columns:repeat(2,1fr)">' + cells.map(function (c) { return '<div class="card"><div class="v">' + c[0] + '</div><div class="k">' + c[1] + '</div></div>'; }).join('') + '</div>';
+    return '<div class="q-cards" style="grid-template-columns:repeat(2,1fr)">' + cells.map(function (c) { return '<div class="card"><div class="v">' + (submitted ? c[0] : '—') + '</div><div class="k">' + c[1] + '</div></div>'; }).join('') + '</div>' + (submitted < a.n ? '<div class="banner warn small">' + t('missing_decisions', a.n - submitted) + '</div>' : '');
   }
 
   function runScreen(snap, per) {
@@ -1743,7 +1865,7 @@ window.FL.dict = (function () {
       var rows = '';
       [1, 2].forEach(function (k) {
         var Q = L.periods[k]; if (!Q.complete && k === 2 && per === 1) return;
-        rows += '<tr class="' + (k === per ? 'hl' : '') + '"><td>' + t('period' + k) + '</td><td>' + (!Q.decided ? '—' : k === 2 && !Q.renew ? t('exit') : Q.L === 0 ? t('stop') : t('hire_n', Q.L)) + '</td><td>' + (Q.complete ? FL.n2(Q.rev) : '—') + '</td><td>' + (Q.complete ? (Q.wage ? '−' + FL.n2(Q.wage) : '0') : '—') + '</td><td>' + (Q.decided && !(k === 2 && !Q.renew) ? '−' + par.F : '0') + '</td><td class="sign">' + (Q.complete ? sg(Q.profit) : '—') + '</td><td>' + (Q.complete ? sg(Q.counterfactual) + (Q.counterfactualKind === 'estimate' ? '*' : '') : '—') + '</td></tr>';
+        rows += '<tr class="' + (k === per ? 'hl' : '') + '"><td>' + t('period' + k) + '</td><td>' + (!Q.decided ? t('no_dec_short') : k === 2 && !Q.renew ? t('exit') : Q.L === 0 ? t('stop') : t('hire_n', Q.L)) + '</td><td>' + (Q.complete ? FL.n2(Q.rev) : '—') + '</td><td>' + (Q.complete ? (Q.wage ? '−' + FL.n2(Q.wage) : '0') : '—') + '</td><td>' + (Q.rent == null ? '—' : Q.rent ? '−' + FL.n2(Q.rent) : '0') + '</td><td class="sign">' + (Q.complete ? sg(Q.profit) : '—') + '</td><td>' + (Q.complete && Q.counterfactual != null ? sg(Q.counterfactual) + (Q.counterfactualKind === 'estimate' ? '*' : '') : '—') + '</td></tr>';
       });
       body = '<div class="card stack"><div class="row"><div style="width:120px">' + FL.factory(P.renew === false ? 'exit' : (P.L > 0 ? 'open' : 'stop'), P.L || 0, { label: tm.name }) + '</div><div class="grow"><div class="huge">' + esc(tm.name) + '</div><div class="muted big">' + t('table_n', tm.table_no) + '</div></div></div>' +
         '<div class="big" style="font-weight:700">' + line + '</div>' +
@@ -1756,16 +1878,16 @@ window.FL.dict = (function () {
     var par = snap.session.params, a = C.classAggregates(snap), ch = trialChart(snap);
     var names = a.openThenExit.map(function (id) { var tm = FL.team(snap, id); return tm ? esc(tm.name) : ''; }).join('、');
     // prediction histogram
-    var N = a.opened1, bins = {}, maxc = 1;
+    var N = a.n, actualReady = a.n > 0 && a.decided2 === a.n, pairedReady = a.n > 0 && a.paired === a.n, bins = {}, maxc = 1;
     a.predicts.forEach(function (p) { bins[p] = (bins[p] || 0) + 1; if (bins[p] > maxc) maxc = bins[p]; });
     var bars = '';
-    for (var k = 0; k <= Math.max(N, 1); k++) bars += '<div style="flex:1;text-align:center"><div style="height:120px;display:flex;align-items:flex-end;justify-content:center"><div style="width:70%;height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (k === a.exitsAmongOpened ? 'var(--accent)' : '#d6cfc2') + ';border:2px solid var(--ink);min-height:' + (bins[k] ? 6 : 0) + 'px"></div></div><div class="' + (k === a.exitsAmongOpened ? 'sign' : 'muted') + '" style="font-size:20px">' + k + (k === a.exitsAmongOpened ? ' ▲' : '') + '</div></div>';
-    return '<div class="q-cards"><div class="card"><div class="v">' + a.exitsAmongOpened + '</div><div class="k">' + t('s_open_then_exit') + '</div></div>' +
-      '<div class="card"><div class="v">' + a.opened1 + '</div><div class="k">' + t('s_open') + '</div></div>' +
-      '<div class="card"><div class="v">' + a.exit2 + '</div><div class="k">' + t('s_exit') + '</div></div></div>' +
-      '<div class="card accent big" style="font-weight:700">' + t('debrief_screen', names || t('none'), par.F) + '</div>' +
-      '<div class="row gap" style="align-items:flex-start"><div class="card grow"><div style="font-weight:800;font-size:22px">' + t('pred_vs_actual') + '</div><div style="display:flex;gap:6px;margin-top:10px">' + bars + '</div><div class="tiny muted">' + t('pred_note') + '</div></div>' +
-      '<div class="card" style="width:46%;flex:none"><div style="font-weight:800;font-size:22px">' + t('slip_h') + '</div><div class="big" style="margin-top:8px">' + t('slip_q', par.F) + '</div></div></div>';
+    for (var k = 0; k <= N; k++) bars += '<div class="hist-bin"><div class="hist-track"><div style="height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (actualReady && k === a.exit2 ? 'var(--accent)' : '#d6cfc2') + ';min-height:' + (bins[k] ? 4 : 0) + 'px"></div></div><div class="' + (actualReady && k === a.exit2 ? 'sign' : 'muted') + '">' + k + (actualReady && k === a.exit2 ? ' ▲' : '') + '</div></div>';
+    return '<div class="q-cards"><div class="card"><div class="v">' + (pairedReady ? a.exitsAmongOpened : '—') + '</div><div class="k">' + t('s_open_then_exit') + '</div></div>' +
+      '<div class="card"><div class="v">' + (a.decided1 ? a.opened1 : '—') + '</div><div class="k">' + t('s_open') + '</div></div>' +
+      '<div class="card"><div class="v">' + (actualReady ? a.exit2 : '—') + '</div><div class="k">' + t('s_exit') + '</div></div></div>' +
+      '<div class="card accent big" style="font-weight:700">' + (pairedReady ? t('debrief_screen', names || t('none'), par.F) : t('forecast_pending', a.decided2, a.n)) + '</div>' +
+      '<div class="row gap" style="align-items:flex-start"><div class="card grow"><div style="font-weight:800;font-size:22px">' + t('pred_vs_actual') + '</div>' + (a.predicts.length ? '<div class="histogram">' + bars + '</div><div class="tiny muted">' + (actualReady ? t('pred_note') : t('forecast_pending', a.decided2, a.n)) + '</div>' : '<div class="muted">' + t('no_forecasts') + '</div>') + '</div>' +
+      '<div class="card" style="width:46%;flex:none">' + (par.show_lesson ? FL.lessonHTML() : '<div style="font-weight:800;font-size:22px">' + t('slip_h') + '</div><div class="big" style="margin-top:8px">' + t('slip_q', par.F) + '</div>') + '</div></div>';
   }
 
   /* ------------------------------------------------ main */
@@ -1775,11 +1897,11 @@ window.FL.dict = (function () {
     if (!snap) return '<div class="screenwrap"><div class="card big center">' + t('loading') + ' ' + esc(r.code) + '</div></div>';
     var ph = snap.session.phase;
     // arm the flip animation once when production starts
-    if (flip.from !== ph) { flip.armed = (ph === 'run1' && flip.from === 'decide1') || (ph === 'run2' && flip.from === 'decide2'); flip.from = ph; }
+    if (flip.from !== ph) { tilePage = 0; flip.armed = (ph === 'run1' && flip.from === 'decide1') || (ph === 'run2' && flip.from === 'decide2'); flip.from = ph; }
     var body = ({ lobby: lobbyScreen, trial: trialScreen, market: marketScreen, decide1: function (s) { return decideScreen(s, 1); }, run1: function (s) { return runScreen(s, 1); },
       ledger1: function (s) { return ledgerScreen(s, 1); }, decide2: function (s) { return decideScreen(s, 2); }, run2: function (s) { return runScreen(s, 2); },
       ledger2: function (s) { return ledgerScreen(s, 2); }, debrief: debriefScreen })[ph](snap);
-    return '<div class="screenwrap">' + head(snap) + body + '</div>';
+    return '<div class="screenwrap">' + head(snap) + '<div class="screenbody phase-' + ph + '">' + body + '</div></div>';
   };
   FL.views.screen.after = function () {
     if (flip.armed) { var armed = flip; setTimeout(function () { armed.armed = false; FL.$$('.tile.flip.pre').forEach(function (n, i) { setTimeout(function () { n.classList.remove('pre'); }, 120 * i); }); }, 700); }
@@ -1845,7 +1967,7 @@ window.FL.dict = (function () {
       var per2 = ph === 'run1' ? 1 : 2, kind = ph === 'run1' ? 'p1' : 'p2';
       act.forEach(function (tm) {
         var d = C.decisionOf(snap.decisions, tm.id, per2);
-        if (d && d.renew && d.L > 0 && !snap.runs.some(function (r) { return r.team_id === tm.id && r.kind === kind && (r.status === 'confirmed' || r.status === 'host'); })) out.push(tm);
+        if (!d || (d.renew && d.L > 0 && !snap.runs.some(function (r) { return r.team_id === tm.id && r.kind === kind && r.L === d.L && (r.status === 'confirmed' || r.status === 'host'); }))) out.push(tm);
       });
     }
     return out;
@@ -1928,7 +2050,7 @@ window.FL.dict = (function () {
       }).join('');
       out = tip + '<div class="card stack"><h3>' + t('feat_h') + '</h3><select data-change="hfeat">' + opts + '</select><div class="tiny muted">' + t('feat_note') + '</div></div>' + disputeCard(snap);
     } else {
-      out = tip + '<div class="card stack"><button class="btn primary" data-act="hexport">' + t('export_csv') + '</button></div>';
+      out = tip + '<div class="card stack"><button class="btn" data-act="hlesson">' + t(par.show_lesson ? 'lesson_hide' : 'lesson_show') + '</button><button class="btn primary" data-act="hexport">' + t('export_csv') + '</button></div>';
     }
     return out;
   }
@@ -1937,13 +2059,19 @@ window.FL.dict = (function () {
     return '<div class="row wrap">' + l.map(function (tm) { return '<span class="chip">' + tm.table_no + ' · ' + esc(tm.name) + ' · ' + tm.present + '</span>'; }).join('') + '</div>';
   }
   function pendingCard(snap, canDecide) {
-    var p = pending(snap), ph = snap.session.phase; if (!p.length) return '<div class="card"><span class="chip ok">✓</span> ' + t('all_in') + '</div>';
+    var p = pending(snap), ph = snap.session.phase;
+    if (ph === 'trial' && !FL.shiftOf(snap)) return '<div class="card muted">' + t('trial_wait_s') + '</div>';
+    if (!p.length) {
+      var count = FL.active(snap).filter(function (tm) { var d = C.decisionOf(snap.decisions, tm.id, ph === 'run1' ? 1 : 2); return d && d.renew && d.L > 0; }).length;
+      return '<div class="card"><span class="chip ok">✓</span> ' + t(/^run/.test(ph) ? (count ? 'all_verified' : 'no_producing') : 'all_in') + '</div>';
+    }
     var rows = p.map(function (tm) {
       var extra = '';
-      if (canDecide) {
-        var per = ph === 'decide1' ? 1 : 2, Lopts = ''; for (var l = 0; l <= tm.present; l++) Lopts += '<option value="' + l + '">' + l + '</option>';
+      if (canDecide || (/^run/.test(ph) && !C.decisionOf(snap.decisions, tm.id, ph === 'run1' ? 1 : 2))) {
+        var per = ph === 'decide1' || ph === 'run1' ? 1 : 2, Lopts = ''; for (var l = 0; l <= tm.present; l++) Lopts += '<option value="' + l + '">' + l + '</option>';
         extra = '<select class="inl" id="hd_L_' + tm.id + '">' + Lopts + '</select>' + (per === 2 ? '<select class="inl" style="width:110px" id="hd_R_' + tm.id + '"><option value="1">' + t('renew') + '</option><option value="0">' + t('exit') + '</option></select>' : '') +
           '<button class="btn sm" data-act="hdecide" data-team="' + tm.id + '" data-per="' + per + '">' + t('enter_for') + '</button>';
+        if (!canDecide) extra = '<span class="chip bad">' + t('no_dec_short') + '</span>' + extra;
       } else if (/^run/.test(ph)) {
         var per2 = ph === 'run1' ? 1 : 2, d = C.decisionOf(snap.decisions, tm.id, per2);
         extra = '<input class="inl" type="number" min="0" max="300" id="hq_' + tm.id + '" placeholder="q"><button class="btn sm" data-act="hq" data-team="' + tm.id + '" data-kind="' + (per2 === 1 ? 'p1' : 'p2') + '" data-lv="' + d.L + '">' + t('enter_for') + '</button>';
@@ -1957,13 +2085,14 @@ window.FL.dict = (function () {
   }
   FL.acts.hdecide = function (el) {
     var id = el.dataset.team, per = +el.dataset.per, L = +FL.$('#hd_L_' + id).value, rn = per === 1 ? true : FL.$('#hd_R_' + id).value === '1';
-    FL.run(FL.api.hostDecide(hc(), hk(), id, per, rn, L, null), t('toast_saved'));
+    return FL.run(FL.api.hostDecide(hc(), hk(), id, per, rn, L, null), t('toast_saved'));
   };
   FL.acts.hq = function (el) {
     var v = FL.$('#hq_' + el.dataset.team).value; if (v === '') return;
-    FL.run(FL.api.hostRun(hc(), hk(), el.dataset.team, el.dataset.kind, +el.dataset.lv, +v), t('toast_saved'));
+    return FL.run(FL.api.hostRun(hc(), hk(), el.dataset.team, el.dataset.kind, +el.dataset.lv, +v), t('toast_saved'));
   };
   FL.acts.hfeat = function (el) { patch({ params: { featured: el.value || null } }); };
+  FL.acts.hlesson = function () { return patch({ params: { show_lesson: !FL.snap().session.params.show_lesson } }); };
   FL.changes = FL.changes || {};
   FL.changes.hfeat = FL.acts.hfeat;
 
@@ -1992,7 +2121,7 @@ window.FL.dict = (function () {
     var recs = C.recommend(allPoints(snap)), par = snap.session.params;
     var rows = recs.length ? recs.map(function (r) {
       return '<div class="row wrap"><div class="grow"><b>p=' + r.p + ' · w=' + r.w + ' · F=' + r.F + '</b><div class="tiny muted">' + t('rec_line', r.aha, r.n, r.above, r.zero) + '</div></div>' +
-        '<button class="btn sm primary" data-act="hrec" data-p="' + r.p + '" data-w="' + r.w + '" data-f="' + r.F + '">' + t('apply') + '</button></div>';
+        '<button class="btn sm primary" data-act="hrec" data-p="' + r.p + '" data-w="' + r.w + '" data-f="' + r.F + '"' + (/^(decide|run|ledger|debrief)/.test(snap.session.phase) ? ' disabled' : '') + '>' + t('apply') + '</button></div>';
     }).join('') : '<div class="muted small">' + t('rec_need') + '</div>';
     return '<div class="card stack"><h3>' + t('rec_h') + '</h3><div class="tiny muted">' + t('rec_note') + '</div>' + rows + '</div>' + gTable(snap, par);
   }
@@ -2016,10 +2145,10 @@ window.FL.dict = (function () {
   }
   FL.acts.hnum = function (el) {
     var v = el.value === '' ? null : Math.max(0, Math.round(+el.value));
-    FL.run(FL.api.hostRun(hc(), hk(), el.dataset.team, el.dataset.kind, +el.dataset.lv, v), t('toast_saved'));
+    return FL.saveField(el, FL.api.hostRun(hc(), hk(), el.dataset.team, el.dataset.kind, +el.dataset.lv, v));
   };
   FL.changes.hnum = FL.acts.hnum;
-  FL.acts.hk = function (el) { FL.run(FL.api.hostTeam(hc(), hk(), el.dataset.team, { present: Math.max(0, Math.min(4, Math.round(+el.value || 0))) })); };
+  FL.acts.hk = function (el) { return FL.saveField(el, FL.api.hostTeam(hc(), hk(), el.dataset.team, { present: Math.max(0, Math.min(4, Math.round(+el.value || 0))) })); };
   FL.changes.hk = FL.acts.hk;
   FL.acts.hdel = function (el) { if (!twice(el, t('sure'))) return; FL.run(FL.api.hostTeam(hc(), hk(), el.dataset.team, {}, true)); };
 
@@ -2036,7 +2165,7 @@ window.FL.dict = (function () {
       return '<tr><td>' + tm.table_no + '</td><td><b>' + esc(tm.name) + '</b></td><td><input class="inl" type="number" min="0" max="4" value="' + tm.present + '" data-change="hk" data-team="' + tm.id + '" style="width:60px"></td>' + cells + prod(1) + prod(2) +
         '<td><button class="btn sm ghost" data-act="hdel" data-team="' + tm.id + '">' + t('del') + '</button></td></tr>';
     }).join('');
-    return '<div class="card" style="overflow-x:auto"><table class="t compact"><tr><th>#</th><th>' + t('team_name') + '</th><th>K</th><th>L=1</th><th>L=2</th><th>L=3</th><th>L=4</th><th>' + t('period1') + '</th><th>' + t('period2') + '</th><th></th></tr>' + (rows || '<tr><td colspan="10" class="muted">' + t('none_yet') + '</td></tr>') + '</table><div class="tiny muted" style="margin-top:8px">' + t('teams_note') + '</div></div>';
+    return '<div class="card" style="overflow-x:auto"><table class="t compact"><tr><th>#</th><th>' + t('team_name') + '</th><th>' + t('capacity') + '</th><th>L=1</th><th>L=2</th><th>L=3</th><th>L=4</th><th>' + t('period1') + '</th><th>' + t('period2') + '</th><th></th></tr>' + (rows || '<tr><td colspan="10" class="muted">' + t('none_yet') + '</td></tr>') + '</table><div class="tiny muted" style="margin-top:8px">' + t('teams_note') + '</div></div>';
   }
 
   /* ------------------------------------------------ tools */
@@ -2055,7 +2184,7 @@ window.FL.dict = (function () {
     var rows = snap.teams.map(function (tm) {
       var l = C.ledger(tm, snap), pts = l.points, P1 = l.periods[1], P2 = l.periods[2];
       return [tm.table_no, '"' + String(tm.name).replace(/"/g, '""') + '"', tm.present, pts[1] != null ? pts[1] : '', pts[2] != null ? pts[2] : '', pts[3] != null ? pts[3] : '', pts[4] != null ? pts[4] : '', par.p, par.w, par.F,
-        P1.decided ? P1.L : '', P1.q != null ? P1.q : '', P1.complete ? P1.profit : '', P2.decided ? (P2.renew ? 1 : 0) : '', P2.decided ? P2.L : '', P2.q != null ? P2.q : '', P2.complete ? P2.profit : '', l.total, P2.predict != null ? P2.predict : ''].join(',');
+        P1.decided ? P1.L : '', P1.q != null ? P1.q : '', P1.complete ? P1.profit : '', P2.decided ? (P2.renew ? 1 : 0) : '', P2.decided ? P2.L : '', P2.q != null ? P2.q : '', P2.complete ? P2.profit : '', l.total == null ? '' : l.total, P2.predict != null ? P2.predict : ''].join(',');
     });
     H.csv = '﻿' + head.join(',') + '\n' + rows.join('\n');
     try {
@@ -2193,10 +2322,10 @@ window.FL.dict = (function () {
     function step(ts) {
       if (t0 == null) t0 = ts;
       var k = Math.min(1, (ts - t0) / dur), v = Math.round(target * (1 - Math.pow(1 - k, 3)));
-      el.textContent = (neg ? '−' : plus ? '+' : '') + v;
+      el.textContent = (v ? (neg ? '−' : plus ? '+' : '') : '') + v;
       if (k < 1) requestAnimationFrame(step);
     }
-    el.textContent = (neg ? '−' : plus ? '+' : '') + '0';
+    el.textContent = '0';
     requestAnimationFrame(step);
   }
 
@@ -2212,9 +2341,9 @@ window.FL.dict = (function () {
     if (!app) return;
     app.classList.remove('phase-in'); void app.offsetWidth; app.classList.add('phase-in'); clearTimeout(fx._pi); fx._pi = setTimeout(function () { app.classList.remove('phase-in'); }, 700);
     if (first || reduced) return;
-    FL.$$('#app .huge, #app .num.big, #app .stat .n').forEach(countUp);
+    // Financial amounts stay exact; do not animate through misleading intermediate values.
     if (ph === 'ledger1' || ph === 'ledger2' || ph === 'debrief') {
-      if (r.role === 'screen') { fx.rain(); if (FL.soundOn && FL.beep) { FL.beep(660, 0.12); setTimeout(function () { FL.beep(880, 0.25); }, 140); } }
+      if (r.role === 'screen' && snap.decisions.length) { if (FL.soundOn && FL.beep) { FL.beep(660, 0.12); setTimeout(function () { FL.beep(880, 0.25); }, 140); } }
       else if (FL.me && FL.C) {
         try {
           var me = FL.team(snap, FL.me.team_id), P = window.FLCalc.ledger(me, snap).periods[ph === 'ledger2' ? 2 : 1];
@@ -2246,8 +2375,11 @@ window.FL.dict = (function () {
     var o = FL.acts[name]; if (!o) return;
     FL.acts[name] = function (el, e) {
       var res = o(el, e);
-      if (e && e.clientX != null) fx.confetti(e.clientX, e.clientY, n);
-      fx.buzz(ms);
+      if (res && typeof res.then === 'function') res.then(function (done) {
+        if (!done || !done.ok) return;
+        if (e && e.clientX != null) fx.confetti(e.clientX, e.clientY, n);
+        fx.buzz(ms);
+      });
       return res;
     };
   }
@@ -2291,7 +2423,13 @@ window.FL.dict = (function () {
     var b = e.target.closest ? e.target.closest('[data-act]') : null;
     if (!b || b.disabled) return;
     var f = FL.acts[b.dataset.act];
-    if (f) { f(b, e); }
+    if (f) {
+      var result = f(b, e);
+      if (result && typeof result.then === 'function') {
+        b.disabled = true; b.setAttribute('aria-busy', 'true');
+        result.finally(function () { b.disabled = false; b.removeAttribute('aria-busy'); });
+      }
+    }
   });
   document.addEventListener('change', function (e) {
     var el = e.target, name = el && el.dataset && el.dataset.change;

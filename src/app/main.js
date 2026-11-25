@@ -35,7 +35,13 @@
     var b = e.target.closest ? e.target.closest('[data-act]') : null;
     if (!b || b.disabled) return;
     var f = FL.acts[b.dataset.act];
-    if (f) { f(b, e); }
+    if (f) {
+      var result = f(b, e);
+      if (result && typeof result.then === 'function') {
+        b.disabled = true; b.setAttribute('aria-busy', 'true');
+        result.finally(function () { b.disabled = false; b.removeAttribute('aria-busy'); });
+      }
+    }
   });
   document.addEventListener('change', function (e) {
     var el = e.target, name = el && el.dataset && el.dataset.change;

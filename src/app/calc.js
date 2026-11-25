@@ -16,7 +16,7 @@
   function trialPoints(runs, teamId) {
     var pts = {};
     runs.forEach(function (r) {
-      if (r.team_id === teamId && r.kind === 'trial') pts[r.L] = r.q;
+      if (r.team_id === teamId && r.kind === 'trial' && (r.status === 'confirmed' || r.status === 'host')) pts[r.L] = r.q;
     });
     return pts;
   }
@@ -72,21 +72,23 @@
     var par = snap.session.params, p = par.p, w = par.w, F = par.F;
     var pts = trialPoints(snap.runs, team.id);
     var plan = bestPlan(pts, p, w);
+    var operating = plan.rows.filter(function (r) { return r.L > 0; }).sort(function (a, b) { return b.net - a.net || a.L - b.L; })[0];
     var out = { team: team, params: { p: p, w: w, F: F }, points: pts, plan: plan, periods: {} };
 
     [1, 2].forEach(function (k) {
       var d = decisionOf(snap.decisions, team.id, k);
-      var P = { period: k, decided: !!d, renew: d ? d.renew : null, L: d ? d.L : null, predict: d ? d.predict : null };
+      var P = { period: k, decided: !!d, renew: d ? d.renew : null, L: d ? d.L : null, predict: d ? d.predict : null,
+        rent: k === 1 ? F : (d ? (d.renew ? F : 0) : null), complete: false };
       if (d) {
         if (k === 2 && !d.renew) {
           P.q = null; P.rev = 0; P.wage = 0; P.rent = 0; P.profit = 0;
-          P.counterfactual = plan.G - F;               // estimate if they had renewed
+          P.counterfactual = Object.keys(pts).length ? plan.G - F : null;
           P.counterfactualKind = 'estimate';
           P.complete = true;
         } else if (d.L === 0) {
           P.q = 0; P.rev = 0; P.wage = 0; P.rent = F; P.profit = -F;
-          P.counterfactual = plan.G - F;               // had they worked the best plan (estimate)
-          P.counterfactualKind = 'estimate';
+          P.counterfactual = k === 2 ? 0 : (operating ? operating.net - F : null);
+          P.counterfactualKind = k === 2 ? 'exact' : 'estimate';
           P.complete = true;
         } else {
           var r = runOf(snap.runs, team.id, k === 1 ? 'p1' : 'p2', d.L);
@@ -104,7 +106,7 @@
     });
 
     var p1 = out.periods[1], p2 = out.periods[2];
-    out.total = (p1.complete ? p1.profit : 0) + (p2.complete ? p2.profit : 0);
+    out.total = p1.complete && p2.complete ? p1.profit + p2.profit : null;
     out.openThenExit = !!(p1.decided && p1.L > 0 && p2.decided && !p2.renew);
     return out;
   }
@@ -112,11 +114,13 @@
   // Aggregates for the projector and debrief
   function classAggregates(snap) {
     var teams = snap.teams.filter(function (t) { return t.present > 0; });
-    var res = { n: teams.length, opened1: 0, stopped1: 0, renew2: 0, exit2: 0, openThenExit: [], predicts: [], exitsAmongOpened: 0 };
+    var res = { n: teams.length, decided1: 0, decided2: 0, paired: 0, opened1: 0, stopped1: 0, renew2: 0, exit2: 0, openThenExit: [], predicts: [], exitsAmongOpened: 0 };
     teams.forEach(function (t) {
       var d1 = decisionOf(snap.decisions, t.id, 1), d2 = decisionOf(snap.decisions, t.id, 2);
-      if (d1) { if (d1.L > 0) res.opened1++; else res.stopped1++; }
+      if (d1) { res.decided1++; if (d1.L > 0) res.opened1++; else res.stopped1++; }
+      if (d1 && d2) res.paired++;
       if (d2) {
+        res.decided2++;
         if (d2.renew) res.renew2++; else res.exit2++;
         if (d2.predict != null) res.predicts.push(d2.predict);
         if (d1 && d1.L > 0 && !d2.renew) { res.exitsAmongOpened++; res.openThenExit.push(t.id); }
@@ -125,18 +129,14 @@
     return res;
   }
 
-  // Neighbour who verifies a table: odd ↔ next even; a lone odd table is verified by the one below.
+  // Pair the actual roster, not table-number parity. Last three form a cycle
+  // when the roster is odd, so every table counts and is counted exactly once.
   function verifierOf(team, teams) {
-    var nos = teams.filter(function (t) { return t.present > 0; }).map(function (t) { return t.table_no; });
-    var n = team.table_no, cand;
-    if (n % 2 === 1) cand = nos.indexOf(n + 1) >= 0 ? n + 1 : n - 1;
-    else cand = n - 1;
-    if (nos.indexOf(cand) < 0) {
-      // fall back to the nearest other table
-      var others = nos.filter(function (x) { return x !== n; }).sort(function (a, b) { return Math.abs(a - n) - Math.abs(b - n); });
-      cand = others.length ? others[0] : null;
-    }
-    return cand == null ? null : teams.filter(function (t) { return t.table_no === cand; })[0] || null;
+    var roster = teams.filter(function (t) { return t.present > 0; }).slice().sort(function (a, b) { return a.table_no - b.table_no; });
+    var i = roster.findIndex(function (t) { return t.id === team.id; }), n = roster.length;
+    if (i < 0 || n < 2) return null;
+    if (n % 2 && i >= n - 3) return roster[n - 3 + (i - (n - 3) + 1) % 3];
+    return roster[i % 2 ? i - 1 : i + 1];
   }
 
   // Which table does `team` verify? (inverse of verifierOf; may be several for an odd class)

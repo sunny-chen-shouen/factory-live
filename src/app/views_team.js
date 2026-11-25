@@ -127,6 +127,9 @@
   // Neighbour verification (I count them) + my own confirmation (they counted me)
   function verifyBlock(snap, me, kind, L) {
     var teams = snap.teams, out = '';
+    var assigned = C.verifierOf(me, teams), shift = FL.shiftOf(snap), context = shift ? shift.id : kind + ':' + L;
+    if (U.countContext !== context) { U.cnt = {}; U.countContext = context; }
+    out += '<div class="card small">' + (assigned ? t('your_verifier', esc(assigned.name), assigned.table_no) : t('need_teacher_verifier')) + '</div>';
     var targets = C.verifies(me, teams).filter(function (tg) {
       if (kind === 'trial') return tg.present >= L;
       var per = kind === 'p1' ? 1 : 2, d = C.decisionOf(snap.decisions, tg.id, per);
@@ -177,10 +180,10 @@
   FL.acts.report = function (el) {
     var id = el.dataset.target, cur = U.cnt[id];
     if (cur == null) { var tg = FL.snap().runs.filter(function (r) { return r.team_id === id && r.kind === el.dataset.kind; })[0]; cur = tg ? tg.q : 0; }
-    FL.run(FL.api.report(FL.me.team_id, FL.me.token, id, el.dataset.kind, +el.dataset.lv, cur), t('toast_sent'));
+    return FL.run(FL.api.report(FL.me.team_id, FL.me.token, id, el.dataset.kind, +el.dataset.lv, cur), t('toast_sent'));
   };
   FL.acts.confirm = function (el) {
-    FL.run(FL.api.confirm(FL.me.team_id, FL.me.token, el.dataset.kind, +el.dataset.lv, el.dataset.ok === '1'), el.dataset.ok === '1' ? t('toast_confirmed') : t('toast_disputed'));
+    return FL.run(FL.api.confirm(FL.me.team_id, FL.me.token, el.dataset.kind, +el.dataset.lv, el.dataset.ok === '1'), el.dataset.ok === '1' ? t('toast_confirmed') : t('toast_disputed'));
   };
 
   /* ------------------------------------------------ market */
@@ -212,7 +215,7 @@
     return FL.myDec.filter(function (x) { return x.period === per; }).map(function (x) { return { period: per, renew: x.renew, L: x.L, predict: x.predict, team_id: FL.me.team_id }; })[0] || null;
   }
   function openCount(snap) {
-    return snap.teams.filter(function (tm) { var d = C.decisionOf(snap.decisions, tm.id, 1); return d && d.L > 0; }).length;
+    return FL.active(snap).length;
   }
   function decide(snap, me, per) {
     var par = snap.session.params, K = me.present, mine = myDecision(snap, per), pts = C.trialPoints(snap.runs, me.id);
@@ -260,18 +263,18 @@
   FL.acts.sel1 = function (el) { U.sel1 = +el.dataset.lv; FL.render(true); };
   FL.acts.renew = function (el) { U.renew2 = el.dataset.v === '1'; if (!U.renew2) U.sel2 = 0; FL.render(true); };
   FL.acts.sel2 = function (el) { U.sel2 = +el.dataset.lv; FL.render(true); };
-  function afterLock(p) { return FL.run(p, t('toast_locked')).then(function () { return FL.api.myDecisions(FL.me.team_id, FL.me.token).then(function (d) { FL.myDec = d; FL.render(true); }); }); }
+  function afterLock(p) { return FL.run(p, t('toast_locked')).then(function (res) { if (!res.ok) return res; return FL.api.myDecisions(FL.me.team_id, FL.me.token).then(function (d) { FL.myDec = d; FL.render(true); return res; }); }); }
   FL.acts.lock1 = function () {
     var snap = FL.snap(), mine = myDecision(snap, 1), L = U.sel1 != null ? U.sel1 : (mine ? mine.L : null);
     if (L == null) return;
-    afterLock(FL.api.submit(FL.me.team_id, FL.me.token, 1, true, L, null));
+    return afterLock(FL.api.submit(FL.me.team_id, FL.me.token, 1, true, L, null));
   };
   FL.acts.lock2 = function () {
     var snap = FL.snap(), mine = myDecision(snap, 2);
     var renew = U.renew2 != null ? U.renew2 : (mine ? mine.renew : null), L = U.sel2 != null ? U.sel2 : (mine ? mine.L : 0);
     if (renew == null) return;
     var pred = U.pred != null ? U.pred : (mine && mine.predict != null ? mine.predict : 0);
-    afterLock(FL.api.submit(FL.me.team_id, FL.me.token, 2, renew, renew ? L : 0, pred));
+    return afterLock(FL.api.submit(FL.me.team_id, FL.me.token, 2, renew, renew ? L : 0, pred));
   };
 
   /* ------------------------------------------------ production */
@@ -311,26 +314,35 @@
     if (per === 2) {
       out += '<div class="card"><div class="row"><div class="grow muted">' + t('total_h') + '</div><div class="huge num">' + sg(L.total) + '</div></div></div>';
       var agg = C.classAggregates(snap), p2 = P;
-      if (p2.predict != null) out += '<div class="card small">' + t('pred_result', p2.predict, agg.exitsAmongOpened) + '</div>';
+      if (p2.predict != null) out += '<div class="card small">' + (agg.decided2 === agg.n ? t('pred_result', p2.predict, agg.exit2) : t('forecast_pending', agg.decided2, agg.n)) + '</div>';
     }
     return out;
   }
 
   function debrief(snap, me) {
     var L = C.ledger(me, snap), par = snap.session.params, p1 = L.periods[1], p2 = L.periods[2];
+    var key = 'fl_slip_' + snap.session.code + '_' + me.id;
+    if (U.slipKey !== key) {
+      U.slipKey = key; var saved = {}; try { saved = JSON.parse(FL.ls.get(key) || '{}'); } catch (e) { /* empty draft */ }
+      U.slip1 = saved.slip1 || ''; U.slip2 = saved.slip2 || '';
+    }
     return '<div class="card accent stack"><h2>' + t('debrief_h') + '</h2><div>' + t('slip_q', par.F) + '</div></div>' +
-      '<div class="card stack"><h3>' + t('slip_h') + '</h3><label class="field"><span>' + t('slip_1') + '</span><input type="text" id="slip1" value="' + esc(U.slip1) + '"></label>' +
-      '<label class="field"><span>' + t('slip_2') + '</span><input type="text" id="slip2" value="' + esc(U.slip2) + '"></label></div>' +
+      '<div class="card stack"><h3>' + t('slip_h') + '</h3><div class="tiny muted">' + t('draft_note') + '</div><label class="field"><span>' + t('slip_1') + '</span><textarea id="slip1">' + esc(U.slip1) + '</textarea></label>' +
+      '<label class="field"><span>' + t('slip_2') + '</span><textarea id="slip2">' + esc(U.slip2) + '</textarea></label><div id="draft_status" class="tiny muted" role="status">' + t('draft_ready') + '</div></div>' +
       '<div class="card"><table class="t"><tr><th></th><th>' + t('period1') + '</th><th>' + t('period2') + '</th></tr>' +
       '<tr><td>' + t('l_decision') + '</td><td>' + (p1.decided ? (p1.L === 0 ? t('stop') : t('hire_n', p1.L)) : '—') + '</td><td>' + (p2.decided ? (p2.renew ? t('renew') + ' · ' + t('hire_n', p2.L) : t('exit')) : '—') + '</td></tr>' +
       '<tr><td>' + t('l_profit') + '</td><td class="sign">' + (p1.complete ? sg(p1.profit) : '—') + '</td><td class="sign">' + (p2.complete ? sg(p2.profit) : '—') + '</td></tr>' +
       '<tr><td>' + t('l_alt') + '</td><td>' + (p1.complete ? sg(p1.counterfactual) : '—') + '</td><td>' + (p2.complete ? sg(p2.counterfactual) : '—') + '</td></tr></table>' +
-      '<div class="tiny muted" style="margin-top:6px">' + t('est_note') + '</div></div>';
+      '<div class="tiny muted" style="margin-top:6px">' + t('est_note') + '</div></div>' + (par.show_lesson ? FL.lessonHTML() : '');
   }
   FL.afterTeam = function () {
     var a = FL.$('#slip1'), b = FL.$('#slip2');
-    if (a) a.oninput = function () { U.slip1 = a.value; };
-    if (b) b.oninput = function () { U.slip2 = b.value; };
+    function save() {
+      U.slip1 = a.value; U.slip2 = b.value;
+      var saved = FL.ls.set(U.slipKey, JSON.stringify({ slip1: U.slip1, slip2: U.slip2 }));
+      FL.$('#draft_status').textContent = t(saved ? 'draft_saved' : 'draft_memory');
+    }
+    if (a && b) { a.oninput = save; b.oninput = save; }
   };
   FL.views.team.after = FL.afterTeam;
 

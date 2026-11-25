@@ -55,7 +55,7 @@
       var per2 = ph === 'run1' ? 1 : 2, kind = ph === 'run1' ? 'p1' : 'p2';
       act.forEach(function (tm) {
         var d = C.decisionOf(snap.decisions, tm.id, per2);
-        if (d && d.renew && d.L > 0 && !snap.runs.some(function (r) { return r.team_id === tm.id && r.kind === kind && (r.status === 'confirmed' || r.status === 'host'); })) out.push(tm);
+        if (!d || (d.renew && d.L > 0 && !snap.runs.some(function (r) { return r.team_id === tm.id && r.kind === kind && r.L === d.L && (r.status === 'confirmed' || r.status === 'host'); }))) out.push(tm);
       });
     }
     return out;
@@ -138,7 +138,7 @@
       }).join('');
       out = tip + '<div class="card stack"><h3>' + t('feat_h') + '</h3><select data-change="hfeat">' + opts + '</select><div class="tiny muted">' + t('feat_note') + '</div></div>' + disputeCard(snap);
     } else {
-      out = tip + '<div class="card stack"><button class="btn primary" data-act="hexport">' + t('export_csv') + '</button></div>';
+      out = tip + '<div class="card stack"><button class="btn" data-act="hlesson">' + t(par.show_lesson ? 'lesson_hide' : 'lesson_show') + '</button><button class="btn primary" data-act="hexport">' + t('export_csv') + '</button></div>';
     }
     return out;
   }
@@ -147,13 +147,19 @@
     return '<div class="row wrap">' + l.map(function (tm) { return '<span class="chip">' + tm.table_no + ' · ' + esc(tm.name) + ' · ' + tm.present + '</span>'; }).join('') + '</div>';
   }
   function pendingCard(snap, canDecide) {
-    var p = pending(snap), ph = snap.session.phase; if (!p.length) return '<div class="card"><span class="chip ok">✓</span> ' + t('all_in') + '</div>';
+    var p = pending(snap), ph = snap.session.phase;
+    if (ph === 'trial' && !FL.shiftOf(snap)) return '<div class="card muted">' + t('trial_wait_s') + '</div>';
+    if (!p.length) {
+      var count = FL.active(snap).filter(function (tm) { var d = C.decisionOf(snap.decisions, tm.id, ph === 'run1' ? 1 : 2); return d && d.renew && d.L > 0; }).length;
+      return '<div class="card"><span class="chip ok">✓</span> ' + t(/^run/.test(ph) ? (count ? 'all_verified' : 'no_producing') : 'all_in') + '</div>';
+    }
     var rows = p.map(function (tm) {
       var extra = '';
-      if (canDecide) {
-        var per = ph === 'decide1' ? 1 : 2, Lopts = ''; for (var l = 0; l <= tm.present; l++) Lopts += '<option value="' + l + '">' + l + '</option>';
+      if (canDecide || (/^run/.test(ph) && !C.decisionOf(snap.decisions, tm.id, ph === 'run1' ? 1 : 2))) {
+        var per = ph === 'decide1' || ph === 'run1' ? 1 : 2, Lopts = ''; for (var l = 0; l <= tm.present; l++) Lopts += '<option value="' + l + '">' + l + '</option>';
         extra = '<select class="inl" id="hd_L_' + tm.id + '">' + Lopts + '</select>' + (per === 2 ? '<select class="inl" style="width:110px" id="hd_R_' + tm.id + '"><option value="1">' + t('renew') + '</option><option value="0">' + t('exit') + '</option></select>' : '') +
           '<button class="btn sm" data-act="hdecide" data-team="' + tm.id + '" data-per="' + per + '">' + t('enter_for') + '</button>';
+        if (!canDecide) extra = '<span class="chip bad">' + t('no_dec_short') + '</span>' + extra;
       } else if (/^run/.test(ph)) {
         var per2 = ph === 'run1' ? 1 : 2, d = C.decisionOf(snap.decisions, tm.id, per2);
         extra = '<input class="inl" type="number" min="0" max="300" id="hq_' + tm.id + '" placeholder="q"><button class="btn sm" data-act="hq" data-team="' + tm.id + '" data-kind="' + (per2 === 1 ? 'p1' : 'p2') + '" data-lv="' + d.L + '">' + t('enter_for') + '</button>';
@@ -167,13 +173,14 @@
   }
   FL.acts.hdecide = function (el) {
     var id = el.dataset.team, per = +el.dataset.per, L = +FL.$('#hd_L_' + id).value, rn = per === 1 ? true : FL.$('#hd_R_' + id).value === '1';
-    FL.run(FL.api.hostDecide(hc(), hk(), id, per, rn, L, null), t('toast_saved'));
+    return FL.run(FL.api.hostDecide(hc(), hk(), id, per, rn, L, null), t('toast_saved'));
   };
   FL.acts.hq = function (el) {
     var v = FL.$('#hq_' + el.dataset.team).value; if (v === '') return;
-    FL.run(FL.api.hostRun(hc(), hk(), el.dataset.team, el.dataset.kind, +el.dataset.lv, +v), t('toast_saved'));
+    return FL.run(FL.api.hostRun(hc(), hk(), el.dataset.team, el.dataset.kind, +el.dataset.lv, +v), t('toast_saved'));
   };
   FL.acts.hfeat = function (el) { patch({ params: { featured: el.value || null } }); };
+  FL.acts.hlesson = function () { return patch({ params: { show_lesson: !FL.snap().session.params.show_lesson } }); };
   FL.changes = FL.changes || {};
   FL.changes.hfeat = FL.acts.hfeat;
 
@@ -202,7 +209,7 @@
     var recs = C.recommend(allPoints(snap)), par = snap.session.params;
     var rows = recs.length ? recs.map(function (r) {
       return '<div class="row wrap"><div class="grow"><b>p=' + r.p + ' · w=' + r.w + ' · F=' + r.F + '</b><div class="tiny muted">' + t('rec_line', r.aha, r.n, r.above, r.zero) + '</div></div>' +
-        '<button class="btn sm primary" data-act="hrec" data-p="' + r.p + '" data-w="' + r.w + '" data-f="' + r.F + '">' + t('apply') + '</button></div>';
+        '<button class="btn sm primary" data-act="hrec" data-p="' + r.p + '" data-w="' + r.w + '" data-f="' + r.F + '"' + (/^(decide|run|ledger|debrief)/.test(snap.session.phase) ? ' disabled' : '') + '>' + t('apply') + '</button></div>';
     }).join('') : '<div class="muted small">' + t('rec_need') + '</div>';
     return '<div class="card stack"><h3>' + t('rec_h') + '</h3><div class="tiny muted">' + t('rec_note') + '</div>' + rows + '</div>' + gTable(snap, par);
   }
@@ -226,10 +233,10 @@
   }
   FL.acts.hnum = function (el) {
     var v = el.value === '' ? null : Math.max(0, Math.round(+el.value));
-    FL.run(FL.api.hostRun(hc(), hk(), el.dataset.team, el.dataset.kind, +el.dataset.lv, v), t('toast_saved'));
+    return FL.saveField(el, FL.api.hostRun(hc(), hk(), el.dataset.team, el.dataset.kind, +el.dataset.lv, v));
   };
   FL.changes.hnum = FL.acts.hnum;
-  FL.acts.hk = function (el) { FL.run(FL.api.hostTeam(hc(), hk(), el.dataset.team, { present: Math.max(0, Math.min(4, Math.round(+el.value || 0))) })); };
+  FL.acts.hk = function (el) { return FL.saveField(el, FL.api.hostTeam(hc(), hk(), el.dataset.team, { present: Math.max(0, Math.min(4, Math.round(+el.value || 0))) })); };
   FL.changes.hk = FL.acts.hk;
   FL.acts.hdel = function (el) { if (!twice(el, t('sure'))) return; FL.run(FL.api.hostTeam(hc(), hk(), el.dataset.team, {}, true)); };
 
@@ -246,7 +253,7 @@
       return '<tr><td>' + tm.table_no + '</td><td><b>' + esc(tm.name) + '</b></td><td><input class="inl" type="number" min="0" max="4" value="' + tm.present + '" data-change="hk" data-team="' + tm.id + '" style="width:60px"></td>' + cells + prod(1) + prod(2) +
         '<td><button class="btn sm ghost" data-act="hdel" data-team="' + tm.id + '">' + t('del') + '</button></td></tr>';
     }).join('');
-    return '<div class="card" style="overflow-x:auto"><table class="t compact"><tr><th>#</th><th>' + t('team_name') + '</th><th>K</th><th>L=1</th><th>L=2</th><th>L=3</th><th>L=4</th><th>' + t('period1') + '</th><th>' + t('period2') + '</th><th></th></tr>' + (rows || '<tr><td colspan="10" class="muted">' + t('none_yet') + '</td></tr>') + '</table><div class="tiny muted" style="margin-top:8px">' + t('teams_note') + '</div></div>';
+    return '<div class="card" style="overflow-x:auto"><table class="t compact"><tr><th>#</th><th>' + t('team_name') + '</th><th>' + t('capacity') + '</th><th>L=1</th><th>L=2</th><th>L=3</th><th>L=4</th><th>' + t('period1') + '</th><th>' + t('period2') + '</th><th></th></tr>' + (rows || '<tr><td colspan="10" class="muted">' + t('none_yet') + '</td></tr>') + '</table><div class="tiny muted" style="margin-top:8px">' + t('teams_note') + '</div></div>';
   }
 
   /* ------------------------------------------------ tools */
@@ -265,7 +272,7 @@
     var rows = snap.teams.map(function (tm) {
       var l = C.ledger(tm, snap), pts = l.points, P1 = l.periods[1], P2 = l.periods[2];
       return [tm.table_no, '"' + String(tm.name).replace(/"/g, '""') + '"', tm.present, pts[1] != null ? pts[1] : '', pts[2] != null ? pts[2] : '', pts[3] != null ? pts[3] : '', pts[4] != null ? pts[4] : '', par.p, par.w, par.F,
-        P1.decided ? P1.L : '', P1.q != null ? P1.q : '', P1.complete ? P1.profit : '', P2.decided ? (P2.renew ? 1 : 0) : '', P2.decided ? P2.L : '', P2.q != null ? P2.q : '', P2.complete ? P2.profit : '', l.total, P2.predict != null ? P2.predict : ''].join(',');
+        P1.decided ? P1.L : '', P1.q != null ? P1.q : '', P1.complete ? P1.profit : '', P2.decided ? (P2.renew ? 1 : 0) : '', P2.decided ? P2.L : '', P2.q != null ? P2.q : '', P2.complete ? P2.profit : '', l.total == null ? '' : l.total, P2.predict != null ? P2.predict : ''].join(',');
     });
     H.csv = '﻿' + head.join(',') + '\n' + rows.join('\n');
     try {

@@ -1,0 +1,5 @@
+src/dist/
+src/test/node_modules/
+src/test/.live*.json
+src/test/output/
+__pycache__/

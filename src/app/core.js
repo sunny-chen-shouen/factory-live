@@ -14,7 +14,7 @@
   var memStore = {};
   FL.ls = {
     get: function (k) { try { var v = localStorage.getItem(k); return v == null ? (memStore[k] == null ? null : memStore[k]) : v; } catch (e) { return memStore[k] == null ? null : memStore[k]; } },
-    set: function (k, v) { memStore[k] = String(v); try { localStorage.setItem(k, v); } catch (e) { /* memory only */ } },
+    set: function (k, v) { memStore[k] = String(v); try { localStorage.setItem(k, v); return true; } catch (e) { return false; } },
     del: function (k) { delete memStore[k]; try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }
   };
 
@@ -49,11 +49,44 @@
   FL.errText = function (e) {
     var m = (e && e.message) || String(e);
     var k = 'err_' + m.replace(/[^a-zA-Z_]/g, '').toLowerCase().slice(0, 24);
-    return FL.dict[k] ? FL.t(k) : FL.t('err_generic') + ' (' + m + ')';
+    return FL.dict[k] ? FL.t(k) : FL.t('err_retry');
+  };
+  FL.showError = function (e) {
+    var old = FL.$('.action-error'); if (old) old.remove();
+    var box = document.createElement('div'); box.className = 'action-error'; box.setAttribute('role', 'alert');
+    box.innerHTML = '<button class="btn sm ghost error-close" aria-label="' + FL.t('dismiss') + '">×</button><b>' + FL.esc(FL.errText(e)) + '</b><details><summary>' + FL.t('error_details') + '</summary><pre></pre></details>';
+    box.querySelector('pre').textContent = (e && e.message) || String(e);
+    box.querySelector('button').onclick = function () { box.remove(); };
+    document.body.appendChild(box);
   };
   FL.run = function (promise, okMsg) { // run an action, show friendly errors, then refresh
-    return promise.then(function (r) { if (okMsg) FL.toast(okMsg); return FL.store.refresh().then(function () { return r; }); })
-      .catch(function (e) { FL.toast(FL.errText(e)); return FL.store.refresh().then(function () { return undefined; }); });
+    return promise.then(function (r) { if (okMsg) FL.toast(okMsg); return FL.store.refresh().then(function () { return { ok: true, value: r }; }); })
+      .catch(function (e) { FL.showError(e); return { ok: false, error: e }; });
+  };
+  FL.saveField = function (el, promise) {
+    el.setAttribute('aria-busy', 'true'); el.classList.add('saving');
+    var status = document.createElement('span'); status.className = 'save-state tiny'; status.setAttribute('role', 'status');
+    status.textContent = FL.t('saving'); el.insertAdjacentElement('afterend', status);
+    return FL.run(promise).then(function (res) {
+      el.removeAttribute('aria-busy'); el.classList.remove('saving');
+      el.setAttribute('aria-invalid', res.ok ? 'false' : 'true');
+      status.textContent = FL.t(res.ok ? 'toast_saved' : 'save_failed'); status.classList.toggle('save-failed', !res.ok);
+      if (res.ok) FL.toast(FL.t('toast_saved'));
+      return res;
+    });
+  };
+  FL.lessonHTML = function () {
+    var snap = FL.snap(), par = snap.session.params, sample = null;
+    FL.active(snap).some(function (tm) {
+      var plan = C.bestPlan(C.trialPoints(snap.runs, tm.id), par.p, par.w);
+      if (plan.G > 0 && plan.G < par.F) { sample = { team: tm, plan: plan }; return true; }
+      return false;
+    });
+    return '<div class="lesson stack"><h3>' + FL.t('lesson_title') + '</h3><div class="small">' + FL.t('lesson_rule') + '</div>' +
+      '<div class="banner">0 &lt; G &lt; F → ' + FL.t('s_open_then_exit') + '</div>' +
+      '<div class="small">' + FL.t('lesson_explain') + '</div>' +
+      (sample ? '<div class="small"><b>' + FL.esc(sample.team.name) + '</b> · G=' + FL.n2(sample.plan.G) + ', F=' + par.F + '<br>' + FL.t('lesson_example', FL.sg(sample.plan.G - par.F), FL.sg(-par.F)) + '</div>' : '') +
+      '<div class="tiny muted">' + FL.t('lesson_boundary') + '</div></div>';
   };
 
   /* ------------------------------------------------ factory icon (shape + text carry meaning, not colour) */

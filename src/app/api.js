@@ -32,13 +32,13 @@
       updateTeam: function (team, token, present) { return rpc('fl_update_team', { p_team: team, p_token: token, p_present: present }); },
       snapshot: function (code) { return rpc('fl_snapshot', { p_code: code }); },
       myDecisions: function (team, token) { return rpc('fl_my_decisions', { p_team: team, p_token: token }); },
-      submit: function (team, token, period, renew, L, predict) { return rpc('fl_submit', { p_team: team, p_token: token, p_period: period, p_renew: renew, p_L: L, p_predict: predict == null ? null : predict }); },
-      report: function (team, token, target, kind, L, q) { return rpc('fl_report', { p_team: team, p_token: token, p_target: target, p_kind: kind, p_L: L, p_q: q }); },
-      confirm: function (team, token, kind, L, ok) { return rpc('fl_confirm', { p_team: team, p_token: token, p_kind: kind, p_L: L, p_ok: ok }); },
+      submit: function (team, token, period, renew, L, predict) { return rpc('fl_submit', { p_team: team, p_token: token, p_period: period, p_renew: renew, p_l: L, p_predict: predict == null ? null : predict }); },
+      report: function (team, token, target, kind, L, q) { return rpc('fl_report', { p_team: team, p_token: token, p_target: target, p_kind: kind, p_l: L, p_q: q }); },
+      confirm: function (team, token, kind, L, ok) { return rpc('fl_confirm', { p_team: team, p_token: token, p_kind: kind, p_l: L, p_ok: ok }); },
       hostSet: function (code, key, patch) { return rpc('fl_host_set', { p_code: code, p_key: key, p_patch: patch }); },
-      hostRun: function (code, key, team, kind, L, q) { return rpc('fl_host_run', { p_code: code, p_key: key, p_team: team, p_kind: kind, p_L: L, p_q: q == null ? null : q }); },
+      hostRun: function (code, key, team, kind, L, q) { return rpc('fl_host_run', { p_code: code, p_key: key, p_team: team, p_kind: kind, p_l: L, p_q: q == null ? null : q }); },
       hostTeam: function (code, key, team, patch, del) { return rpc('fl_host_team', { p_code: code, p_key: key, p_team: team, p_patch: patch || {}, p_delete: !!del }); },
-      hostDecide: function (code, key, team, period, renew, L, predict) { return rpc('fl_host_decide', { p_code: code, p_key: key, p_team: team, p_period: period, p_renew: renew, p_L: L, p_predict: predict == null ? null : predict }); },
+      hostDecide: function (code, key, team, period, renew, L, predict) { return rpc('fl_host_decide', { p_code: code, p_key: key, p_team: team, p_period: period, p_renew: renew, p_l: L, p_predict: predict == null ? null : predict }); },
       hostReset: function (code, key, scope) { return rpc('fl_host_reset', { p_code: code, p_key: key, p_scope: scope }); }
     };
   }

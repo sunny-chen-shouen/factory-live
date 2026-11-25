@@ -4,6 +4,7 @@
   var FL = window.FL, C = window.FLCalc, t = FL.t, esc = FL.esc, sg = FL.sg;
   var PH = C.PHASES;
   var flip = { from: null, armed: false };
+  var tilePage = 0, PAGE_SIZE = 12;
 
   function head(snap) {
     var cur = PH.indexOf(snap.session.phase);
@@ -59,25 +60,29 @@
 
   function tiles(snap, mini) {
     var list = FL.active(snap);
+    var pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE)); tilePage = Math.min(tilePage, pages - 1);
+    var visible = list.slice(tilePage * PAGE_SIZE, (tilePage + 1) * PAGE_SIZE);
     var tilesz = list.length > 12 ? 140 : list.length > 6 ? 165 : 220;
-    return '<div class="tiles' + (list.length > 6 ? ' many' : '') + '" style="--tile:' + tilesz + 'px">' + list.map(function (tm) {
+    return '<div class="tile-panel"><div class="tiles' + (list.length > 6 ? ' many' : '') + '" style="--tile:' + tilesz + 'px;--cols:' + (visible.length > 6 ? 4 : visible.length > 3 ? 3 : Math.max(visible.length, 1)) + '">' + visible.map(function (tm) {
       var o = tileInfo(snap, tm), pre = flip.armed && /^run/.test(snap.session.phase);
       return '<div class="tile ' + o.state + ' flip ' + (pre ? 'pre' : '') + '"><div class="in">' +
         (o.badge ? '<div class="badge ' + (o.off ? 'off' : '') + '">' + o.badge + '</div>' : '') +
         FL.factory(o.state, o.L, { label: tm.name }) +
-        '<div class="nm">' + esc(tm.name) + '</div><div class="sub">' + o.sub + '</div><div class="tag' + (/^−/.test(o.tag) ? ' neg' : '') + '">' + esc(o.tag) + '</div></div></div>';
-    }).join('') + '</div>';
+        '<div class="nm" title="' + esc(tm.name) + '">' + esc(tm.name) + '</div><div class="sub">' + o.sub + '</div><div class="tag' + (/^−/.test(o.tag) ? ' neg' : '') + '">' + esc(o.tag) + '</div></div></div>';
+    }).join('') + '</div>' + (pages > 1 ? '<div class="tile-pagination"><button class="btn sm" data-act="tilepage" data-d="-1"' + (!tilePage ? ' disabled' : '') + '>←</button><span>' + t('tile_page', tilePage + 1, pages) + '</span><button class="btn sm" data-act="tilepage" data-d="1"' + (tilePage === pages - 1 ? ' disabled' : '') + '>→</button></div>' : '') + '</div>';
   }
+  FL.acts.tilepage = function (el) { tilePage = Math.max(0, tilePage + Number(el.dataset.d)); FL.render(true); };
 
   /* ------------------------------------------------ chart: trial points + class mean */
   function trialChart(snap) {
-    var act = FL.active(snap), W = 640, H = 380, m = { l: 56, r: 20, t: 20, b: 48 };
+    var act = FL.active(snap), W = 640, H = 380, m = { l: 56, r: 20, t: 42, b: 48 };
     var byL = { 1: [], 2: [], 3: [], 4: [] }, series = [];
     act.forEach(function (tm) { var pts = C.trialPoints(snap.runs, tm.id); series.push(pts); for (var L = 1; L <= 4; L++) if (pts[L] != null) byL[L].push(pts[L]); });
     var maxQ = 1; for (var L0 = 1; L0 <= 4; L0++) byL[L0].forEach(function (q) { if (q > maxQ) maxQ = q; });
     maxQ = Math.ceil((maxQ + 1) / 2) * 2;
     var x = function (L) { return m.l + (W - m.l - m.r) * (L / 4); }, y = function (q) { return H - m.b - (H - m.t - m.b) * (q / maxQ); };
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="' + t('chart_alt') + '">';
+    s += '<text x="' + m.l + '" y="22" font-size="18" fill="#5b564e">' + t('chart_y', snap.session.params.secs) + '</text>';
     for (var g = 0; g <= maxQ; g += maxQ <= 10 ? 2 : 4) s += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(g) + '" y2="' + y(g) + '" stroke="#e3dccd" stroke-width="2"/><text x="' + (m.l - 10) + '" y="' + (y(g) + 6) + '" text-anchor="end" font-size="18" fill="#5b564e">' + g + '</text>';
     for (var L = 0; L <= 4; L++) s += '<text x="' + x(L) + '" y="' + (H - 18) + '" text-anchor="middle" font-size="20" fill="#1c1b1a" font-weight="700">' + L + '</text>';
     s += '<text x="' + (W / 2) + '" y="' + (H - 0) + '" text-anchor="middle" font-size="16" fill="#5b564e">' + t('c_workers') + '</text>';
@@ -90,6 +95,7 @@
     var mean = [], mp = 'M' + x(0) + ' ' + y(0);
     for (var L3 = 1; L3 <= 4; L3++) { var a = byL[L3]; if (a.length) { var mu = a.reduce(function (p, c) { return p + c; }, 0) / a.length; mean[L3] = mu; mp += ' L' + x(L3) + ' ' + y(mu); } }
     if (mean.length) { s += '<path d="' + mp + '" fill="none" stroke="#c2410c" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>'; for (var L4 = 1; L4 <= 4; L4++) if (mean[L4] != null) s += '<circle cx="' + x(L4) + '" cy="' + y(mean[L4]) + '" r="8" fill="#c2410c"/>'; }
+    if (!mean.length) s += '<text x="350" y="185" text-anchor="middle" font-size="22" fill="#5b564e">' + t('chart_waiting') + '</text>';
     return { svg: s + '</svg>', mean: mean };
   }
 
@@ -101,6 +107,7 @@
 
   /* ------------------------------------------------ phases */
   function progress(n, total) {
+    if (!total) return '<div class="small muted">' + t('no_eligible') + '</div>';
     return '<div class="row" style="gap:16px"><div class="bar grow" style="height:26px"><i style="width:' + (total ? Math.round(100 * n / total) : 0) + '%"></i></div><div class="big num" style="font-weight:800">' + n + ' / ' + total + '</div></div>';
   }
 
@@ -124,7 +131,7 @@
       '<div style="width:300px">' + FL.cdHTML(snap) + '</div></div>' +
       (L ? '<div class="card stack"><div class="big" style="font-weight:800">' + t('verified_progress') + '</div>' + progress(done, producing.length) + '</div>' : '') +
       tiles(snap) + '</div>' +
-      '<div class="stack" style="width:520px;flex:none"><div class="chartbox"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div>' + '<div class="card">' + meanTable(ch.mean) + '</div></div></div>';
+      '<div class="stack" style="width:520px;flex:none"><div class="chartbox"><div style="font-weight:800;font-size:20px;margin:0 6px 6px">' + t('chart_h') + '</div>' + ch.svg + '</div>' + (meanTable(ch.mean) ? '<div class="card">' + meanTable(ch.mean) + '</div>' : '') + '</div></div>';
   }
 
   function marketScreen(snap) {
@@ -152,8 +159,9 @@
 
   function summaryCards(snap, per) {
     var a = C.classAggregates(snap);
+    var submitted = per === 1 ? a.decided1 : a.decided2;
     var cells = per === 1 ? [[a.opened1, t('s_open')], [a.stopped1, t('s_stop')]] : [[a.renew2, t('s_renew')], [a.exit2, t('s_exit')]];
-    return '<div class="q-cards" style="grid-template-columns:repeat(2,1fr)">' + cells.map(function (c) { return '<div class="card"><div class="v">' + c[0] + '</div><div class="k">' + c[1] + '</div></div>'; }).join('') + '</div>';
+    return '<div class="q-cards" style="grid-template-columns:repeat(2,1fr)">' + cells.map(function (c) { return '<div class="card"><div class="v">' + (submitted ? c[0] : '—') + '</div><div class="k">' + c[1] + '</div></div>'; }).join('') + '</div>' + (submitted < a.n ? '<div class="banner warn small">' + t('missing_decisions', a.n - submitted) + '</div>' : '');
   }
 
   function runScreen(snap, per) {
@@ -188,7 +196,7 @@
       var rows = '';
       [1, 2].forEach(function (k) {
         var Q = L.periods[k]; if (!Q.complete && k === 2 && per === 1) return;
-        rows += '<tr class="' + (k === per ? 'hl' : '') + '"><td>' + t('period' + k) + '</td><td>' + (!Q.decided ? '—' : k === 2 && !Q.renew ? t('exit') : Q.L === 0 ? t('stop') : t('hire_n', Q.L)) + '</td><td>' + (Q.complete ? FL.n2(Q.rev) : '—') + '</td><td>' + (Q.complete ? (Q.wage ? '−' + FL.n2(Q.wage) : '0') : '—') + '</td><td>' + (Q.decided && !(k === 2 && !Q.renew) ? '−' + par.F : '0') + '</td><td class="sign">' + (Q.complete ? sg(Q.profit) : '—') + '</td><td>' + (Q.complete ? sg(Q.counterfactual) + (Q.counterfactualKind === 'estimate' ? '*' : '') : '—') + '</td></tr>';
+        rows += '<tr class="' + (k === per ? 'hl' : '') + '"><td>' + t('period' + k) + '</td><td>' + (!Q.decided ? t('no_dec_short') : k === 2 && !Q.renew ? t('exit') : Q.L === 0 ? t('stop') : t('hire_n', Q.L)) + '</td><td>' + (Q.complete ? FL.n2(Q.rev) : '—') + '</td><td>' + (Q.complete ? (Q.wage ? '−' + FL.n2(Q.wage) : '0') : '—') + '</td><td>' + (Q.rent == null ? '—' : Q.rent ? '−' + FL.n2(Q.rent) : '0') + '</td><td class="sign">' + (Q.complete ? sg(Q.profit) : '—') + '</td><td>' + (Q.complete && Q.counterfactual != null ? sg(Q.counterfactual) + (Q.counterfactualKind === 'estimate' ? '*' : '') : '—') + '</td></tr>';
       });
       body = '<div class="card stack"><div class="row"><div style="width:120px">' + FL.factory(P.renew === false ? 'exit' : (P.L > 0 ? 'open' : 'stop'), P.L || 0, { label: tm.name }) + '</div><div class="grow"><div class="huge">' + esc(tm.name) + '</div><div class="muted big">' + t('table_n', tm.table_no) + '</div></div></div>' +
         '<div class="big" style="font-weight:700">' + line + '</div>' +
@@ -201,16 +209,16 @@
     var par = snap.session.params, a = C.classAggregates(snap), ch = trialChart(snap);
     var names = a.openThenExit.map(function (id) { var tm = FL.team(snap, id); return tm ? esc(tm.name) : ''; }).join('、');
     // prediction histogram
-    var N = a.opened1, bins = {}, maxc = 1;
+    var N = a.n, actualReady = a.n > 0 && a.decided2 === a.n, pairedReady = a.n > 0 && a.paired === a.n, bins = {}, maxc = 1;
     a.predicts.forEach(function (p) { bins[p] = (bins[p] || 0) + 1; if (bins[p] > maxc) maxc = bins[p]; });
     var bars = '';
-    for (var k = 0; k <= Math.max(N, 1); k++) bars += '<div style="flex:1;text-align:center"><div style="height:120px;display:flex;align-items:flex-end;justify-content:center"><div style="width:70%;height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (k === a.exitsAmongOpened ? 'var(--accent)' : '#d6cfc2') + ';border:2px solid var(--ink);min-height:' + (bins[k] ? 6 : 0) + 'px"></div></div><div class="' + (k === a.exitsAmongOpened ? 'sign' : 'muted') + '" style="font-size:20px">' + k + (k === a.exitsAmongOpened ? ' ▲' : '') + '</div></div>';
-    return '<div class="q-cards"><div class="card"><div class="v">' + a.exitsAmongOpened + '</div><div class="k">' + t('s_open_then_exit') + '</div></div>' +
-      '<div class="card"><div class="v">' + a.opened1 + '</div><div class="k">' + t('s_open') + '</div></div>' +
-      '<div class="card"><div class="v">' + a.exit2 + '</div><div class="k">' + t('s_exit') + '</div></div></div>' +
-      '<div class="card accent big" style="font-weight:700">' + t('debrief_screen', names || t('none'), par.F) + '</div>' +
-      '<div class="row gap" style="align-items:flex-start"><div class="card grow"><div style="font-weight:800;font-size:22px">' + t('pred_vs_actual') + '</div><div style="display:flex;gap:6px;margin-top:10px">' + bars + '</div><div class="tiny muted">' + t('pred_note') + '</div></div>' +
-      '<div class="card" style="width:46%;flex:none"><div style="font-weight:800;font-size:22px">' + t('slip_h') + '</div><div class="big" style="margin-top:8px">' + t('slip_q', par.F) + '</div></div></div>';
+    for (var k = 0; k <= N; k++) bars += '<div class="hist-bin"><div class="hist-track"><div style="height:' + Math.round(100 * (bins[k] || 0) / maxc) + '%;background:' + (actualReady && k === a.exit2 ? 'var(--accent)' : '#d6cfc2') + ';min-height:' + (bins[k] ? 4 : 0) + 'px"></div></div><div class="' + (actualReady && k === a.exit2 ? 'sign' : 'muted') + '">' + k + (actualReady && k === a.exit2 ? ' ▲' : '') + '</div></div>';
+    return '<div class="q-cards"><div class="card"><div class="v">' + (pairedReady ? a.exitsAmongOpened : '—') + '</div><div class="k">' + t('s_open_then_exit') + '</div></div>' +
+      '<div class="card"><div class="v">' + (a.decided1 ? a.opened1 : '—') + '</div><div class="k">' + t('s_open') + '</div></div>' +
+      '<div class="card"><div class="v">' + (actualReady ? a.exit2 : '—') + '</div><div class="k">' + t('s_exit') + '</div></div></div>' +
+      '<div class="card accent big" style="font-weight:700">' + (pairedReady ? t('debrief_screen', names || t('none'), par.F) : t('forecast_pending', a.decided2, a.n)) + '</div>' +
+      '<div class="row gap" style="align-items:flex-start"><div class="card grow"><div style="font-weight:800;font-size:22px">' + t('pred_vs_actual') + '</div>' + (a.predicts.length ? '<div class="histogram">' + bars + '</div><div class="tiny muted">' + (actualReady ? t('pred_note') : t('forecast_pending', a.decided2, a.n)) + '</div>' : '<div class="muted">' + t('no_forecasts') + '</div>') + '</div>' +
+      '<div class="card" style="width:46%;flex:none">' + (par.show_lesson ? FL.lessonHTML() : '<div style="font-weight:800;font-size:22px">' + t('slip_h') + '</div><div class="big" style="margin-top:8px">' + t('slip_q', par.F) + '</div>') + '</div></div>';
   }
 
   /* ------------------------------------------------ main */
@@ -220,11 +228,11 @@
     if (!snap) return '<div class="screenwrap"><div class="card big center">' + t('loading') + ' ' + esc(r.code) + '</div></div>';
     var ph = snap.session.phase;
     // arm the flip animation once when production starts
-    if (flip.from !== ph) { flip.armed = (ph === 'run1' && flip.from === 'decide1') || (ph === 'run2' && flip.from === 'decide2'); flip.from = ph; }
+    if (flip.from !== ph) { tilePage = 0; flip.armed = (ph === 'run1' && flip.from === 'decide1') || (ph === 'run2' && flip.from === 'decide2'); flip.from = ph; }
     var body = ({ lobby: lobbyScreen, trial: trialScreen, market: marketScreen, decide1: function (s) { return decideScreen(s, 1); }, run1: function (s) { return runScreen(s, 1); },
       ledger1: function (s) { return ledgerScreen(s, 1); }, decide2: function (s) { return decideScreen(s, 2); }, run2: function (s) { return runScreen(s, 2); },
       ledger2: function (s) { return ledgerScreen(s, 2); }, debrief: debriefScreen })[ph](snap);
-    return '<div class="screenwrap">' + head(snap) + body + '</div>';
+    return '<div class="screenwrap">' + head(snap) + '<div class="screenbody phase-' + ph + '">' + body + '</div></div>';
   };
   FL.views.screen.after = function () {
     if (flip.armed) { var armed = flip; setTimeout(function () { armed.armed = false; FL.$$('.tile.flip.pre').forEach(function (n, i) { setTimeout(function () { n.classList.remove('pre'); }, 120 * i); }); }, 700); }

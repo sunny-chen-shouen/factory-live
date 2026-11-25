@@ -65,7 +65,7 @@ window.FL.dict = (function () {
   a('trial_wait', '等老師宣布下一班。每一班會指定上工人數 1、2、3、4。', 'Wait for the next shift. Shifts are run with 1, 2, 3, then 4 workers.');
   a('trial_wait_s', '等待下一班試產', 'Waiting for the next trial shift');
   a('trial_shift', '試產：{0} 人上工', 'Trial: {0} on the line');
-  a('you_work', '請 {0} 位同學上工', 'Put {0} workers on the line');
+  a('you_work', '請 {0} 位同學上工', 'Workers to put on the line: {0}');
   a('you_verify_only', '這班要 {1} 人，你們只有 {0} 人，這班只負責驗收。', 'This shift needs {1}; you only have {0}. You verify this time.');
   a('my_trial', '我們的試產紀錄', 'Our trial results');
   a('no_trial_yet', '還沒有試產紀錄。', 'No trial results yet.');
@@ -85,7 +85,7 @@ window.FL.dict = (function () {
 
   // verification
   a('verify_h', '驗收：{0}（桌 {1}）', 'Verify: {0} (table {1})');
-  a('verify_p', '他們這班 {0} 人上工。響鈴放手後，輕提起始環，數還連在主繩上的合格單環。', '{0} of them worked. After the bell, lift the start ring and count valid single rings still on the main chain.');
+  a('verify_p', '他們這班 {0} 人上工。響鈴放手後，輕提起始環，數還連在主繩上的合格單環。', 'Their headcount this shift: {0}. After the bell, lift the start ring and count valid single rings still on the main chain.');
   a('verify_after', '響鈴放手後才能回報。', 'You can report after the bell.');
   a('report_btn', '送出回報', 'Send count');
   a('report_again', '更正回報', 'Send a correction');
@@ -137,7 +137,7 @@ window.FL.dict = (function () {
   a('profit_0', '利潤 0', 'profit 0');
   a('d2_hire', '續租後要請幾位工人？', 'If you renew, how many workers?');
   a('pred_h', '全班預測', 'Class forecast');
-  a('pred_p', '今天開工的 {0} 家工廠中，下期有幾家會退出？', 'Of the {0} factories that opened today, how many will exit next period?');
+  a('pred_p', '全班 {0} 家工廠中，下期有幾家會退出？', 'Of all {0} factories, how many will exit next period?');
   a('thinking', '思考中', 'Thinking');
 
   // run
@@ -267,7 +267,7 @@ window.FL.dict = (function () {
   a('cls_renew', '值得續租', 'Renew');
   a('cls_stop', '停工', 'Shut');
   a('del', '移除', 'Remove');
-  a('teams_note', '改任何格子都會立即更新所有人。橘色？表示待確認，！表示有爭議。', 'Edits update everyone immediately. ? = awaiting confirmation, ! = disputed.');
+  a('teams_note', '修改欄位後移開焦點即儲存；請確認「已儲存」提示。L=1–4 為各人數試產環數；？待確認，！有爭議。', 'Edits save when you leave the field; check the saved message. L=1–4 are trial ring counts. ? = awaiting confirmation; ! = disputed.');
   a('bots_h', '模擬隊伍（彩排用）', 'Rehearsal bots');
   a('bots_p', '新增會自己試產、決策、驗收的假隊伍，讓你一個人也能完整跑一遍。', 'Adds fake teams that trial, decide and verify on their own so you can rehearse alone.');
   a('bots_added', '已新增 {0} 組', 'Added {0}');
@@ -285,10 +285,10 @@ window.FL.dict = (function () {
   a('tip_decide1', '學生密選今天要請幾人。全部鎖定後再進入生產，系統會同時翻牌。', 'Students privately pick today\'s headcount. Once all are locked, move on: the cards flip together.');
   a('tip_run1', '已翻牌。開始班次，響鈴後鄰桌驗收、本桌確認。', 'Cards are revealed. Start the shift; neighbours count and tables confirm.');
   a('tip_ledger1', '挑一家「開工但仍虧損」的工廠，請他比較開工與停工。', 'Pick a factory that opened and still lost money; compare open vs closed.');
-  a('tip_decide2', '學生密選續租或退出，並預測「今天開工的工廠有幾家會退出」。', 'Students privately pick renew or exit and forecast how many open factories will exit.');
+  a('tip_decide2', '學生密選續租或退出，並預測「全班有幾家工廠會退出」。', 'Students privately pick renew or exit and forecast how many factories in the class will exit.');
   a('tip_run2', '續租的工廠生產，退出的工廠協助驗收。', 'Renewing factories produce; exited ones help verify.');
   a('tip_ledger2', '挑一家★工廠（今天開工、下期退出）請他說兩句話。', 'Pick a ★ factory (opened today, exits next) and ask for the two-sentence explanation.');
-  a('tip_debrief', '收離場單。可匯出 CSV 留作課後講解。', 'Collect the exit slips. Export the CSV for follow-up.');
+  a('tip_debrief', '請學生寫下理由，再顯示教學重點。離場單草稿只在學生手機；CSV 匯出包含遊戲數據，不含草稿。', 'Ask students to write their reasons, then reveal the lesson. Drafts stay on student devices; CSV exports game data only.');
 
   // errors
   a('err_generic', '發生錯誤', 'Something went wrong');
@@ -319,5 +319,33 @@ window.FL.dict = (function () {
   a('peek_back', '回到目前階段', 'Back to now');
   a('peek_note', '這是上一階段「{0}」的內容（唯讀），目前進行的階段不受影響。', 'Read-only view of the earlier step “{0}”. The live step is unchanged.');
   a('back_home', '回首頁', 'Home');
+  a("dismiss", "關閉", "Dismiss");
+  a("error_details", "技術細節", "Technical details");
+  a("err_retry", "未能儲存，請檢查連線後再試；輸入仍保留。", "Could not save. Check your connection and try again; your input is retained.");
+  a("saving", "儲存中…", "Saving…");
+  a("save_failed", "未儲存，請重試", "Not saved; retry");
+  a("capacity", "實到人數", "Headcount");
+  a("your_verifier", "由 {0}（桌 {1}）驗收你們；下方是你們要驗收的工廠。", "{0} (table {1}) counts your rings. The factory you count is shown below.");
+  a("need_teacher_verifier", "目前只有一家工廠，請助教驗收並在教師台代登。", "Only one factory is present. Ask a TA to verify and enter the count in the teacher console.");
+  a("all_verified", "所有應生產工廠已驗收。", "All producing factories are verified.");
+  a("no_producing", "本期沒有需要生產的工廠。", "No factory needs to produce this period.");
+  a("no_eligible", "尚無可驗收工廠。請確認班次與決策。", "No eligible factory yet. Check the shift and decisions.");
+  a("missing_decisions", "尚有 {0} 家未交決策，請補交或由老師代登。", "{0} factories have not submitted. Ask them to submit or enter decisions for them.");
+  a("forecast_pending", "第二期有效決策 {0}/{1} 家；資料未齊，實際退出數尚未定案。", "Period 2 decisions: {0}/{1}. Actual exits remain unconfirmed until all submit.");
+  a("no_forecasts", "尚無有效預測。", "No forecasts have been submitted.");
+  a("chart_y", "合格環數／{0}秒", "Valid rings / {0} sec");
+  a("chart_waiting", "等待已確認試產資料", "Waiting for verified trial data");
+  a("tile_page", "第 {0}/{1} 頁", "Page {0}/{1}");
+  a("draft_note", "理由只存在這支手機的瀏覽器，不會送給老師。請依老師指示分享或繳交。", "Reasons stay in this browser on this device and are not sent to the teacher. Share or submit them as instructed.");
+  a("draft_ready", "輸入時會自動保存草稿。", "Drafts save as you type.");
+  a("draft_saved", "草稿已保存在這支手機。", "Draft saved on this device.");
+  a("draft_memory", "瀏覽器無法保存；請先複製文字，重新整理可能遺失。", "Browser storage is unavailable. Copy your text before refreshing.");
+  a("lesson_show", "顯示教學重點", "Reveal the lesson");
+  a("lesson_hide", "隱藏教學重點", "Hide the lesson");
+  a("lesson_title", "短期與長期：租金能否避免？", "Short run vs long run: is rent avoidable?");
+  a("lesson_rule", "G = 最佳可行人數的「營收 − 工資」。先用已確認的試產資料估計。", "G = revenue minus wages at the best feasible headcount, estimated from verified trial data.");
+  a("lesson_explain", "短期：今天租金已付，是沉沒成本；G>0 時開工能減少損失。長期：下期可不續租；只有 G 能補回租金，續租才不比退出差。", "Short run: today’s rent is sunk; opening reduces losses when G>0. Long run: rent is avoidable; renewing is no worse than exit only if G covers rent.");
+  a("lesson_boundary", "邊界：G=0 時今天開工與停工無差異；G=F 時下期續租與退出無差異。", "At G=0, opening and closing today tie. At G=F, renewing and exiting next period tie.");
+  a("lesson_example", "依試產估計：今天開工 {0}，停工 {1}；下期續租 {0}，退出 0。", "From trials: open today {0} vs close {1}; renew next period {0} vs exit 0.");
   return D;
 })();

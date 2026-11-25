@@ -38,10 +38,10 @@
     function step(ts) {
       if (t0 == null) t0 = ts;
       var k = Math.min(1, (ts - t0) / dur), v = Math.round(target * (1 - Math.pow(1 - k, 3)));
-      el.textContent = (neg ? '−' : plus ? '+' : '') + v;
+      el.textContent = (v ? (neg ? '−' : plus ? '+' : '') : '') + v;
       if (k < 1) requestAnimationFrame(step);
     }
-    el.textContent = (neg ? '−' : plus ? '+' : '') + '0';
+    el.textContent = '0';
     requestAnimationFrame(step);
   }
 
@@ -57,9 +57,9 @@
     if (!app) return;
     app.classList.remove('phase-in'); void app.offsetWidth; app.classList.add('phase-in'); clearTimeout(fx._pi); fx._pi = setTimeout(function () { app.classList.remove('phase-in'); }, 700);
     if (first || reduced) return;
-    FL.$$('#app .huge, #app .num.big, #app .stat .n').forEach(countUp);
+    // Financial amounts stay exact; do not animate through misleading intermediate values.
     if (ph === 'ledger1' || ph === 'ledger2' || ph === 'debrief') {
-      if (r.role === 'screen') { fx.rain(); if (FL.soundOn && FL.beep) { FL.beep(660, 0.12); setTimeout(function () { FL.beep(880, 0.25); }, 140); } }
+      if (r.role === 'screen' && snap.decisions.length) { if (FL.soundOn && FL.beep) { FL.beep(660, 0.12); setTimeout(function () { FL.beep(880, 0.25); }, 140); } }
       else if (FL.me && FL.C) {
         try {
           var me = FL.team(snap, FL.me.team_id), P = window.FLCalc.ledger(me, snap).periods[ph === 'ledger2' ? 2 : 1];
@@ -91,8 +91,11 @@
     var o = FL.acts[name]; if (!o) return;
     FL.acts[name] = function (el, e) {
       var res = o(el, e);
-      if (e && e.clientX != null) fx.confetti(e.clientX, e.clientY, n);
-      fx.buzz(ms);
+      if (res && typeof res.then === 'function') res.then(function (done) {
+        if (!done || !done.ok) return;
+        if (e && e.clientX != null) fx.confetti(e.clientX, e.clientY, n);
+        fx.buzz(ms);
+      });
       return res;
     };
   }
