@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "cd .. && node test/keys_test.js && node test/calc_test.js && node test/api_contract_test.js && node test/store_route_test.mjs && node test/ui_regression_test.mjs && cd test && node sql_test.mjs",
+    "test": "cd .. && node test/keys_test.js && node test/calc_test.js && node test/api_contract_test.js && node test/store_route_test.mjs && node test/ui_regression_test.mjs && node test/juice_receipt_test.mjs && cd test && node sql_test.mjs",
     "test:live": "cd .. && python3 test/live_rpc_test.py && node test/live_math_check.js"
   },
   "keywords": [],

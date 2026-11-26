@@ -119,14 +119,22 @@
     var final = el.textContent.trim();
     if (!/^\d+$/.test(final) || reduced) return;
     var width = final.length, steps = 8 + Math.round(Math.random() * 3), n = 0;
-    el.classList.add('flapping'); el.textContent = '';
+    // Animate an inline tile that hugs the digits; the card element itself keeps its layout.
+    var tile = document.createElement('span');
+    tile.className = 'flapnum flapping'; tile.textContent = '-'.repeat(width);
+    el.textContent = ''; el.appendChild(tile);
     setTimeout(function () {
       var timer = setInterval(function () {
         n++;
+        if (!tile.isConnected) { clearInterval(timer); return; }
         var v = n >= steps ? final : String(Math.floor(Math.random() * Math.pow(10, width))).padStart(width, '0');
-        el.textContent = v; el.classList.remove('flip-tick'); void el.offsetWidth; el.classList.add('flip-tick');
+        tile.textContent = v; tile.classList.remove('flip-tick'); void tile.offsetWidth; tile.classList.add('flip-tick');
         if (role() === 'screen') sfx.flap();
-        if (n >= steps) { clearInterval(timer); el.classList.remove('flapping'); el.classList.add('landed'); if (role() === 'screen') sfx.pop(); }
+        if (n >= steps) {
+          clearInterval(timer); tile.classList.remove('flapping', 'flip-tick'); tile.classList.add('landed');
+          if (role() === 'screen') sfx.pop();
+          setTimeout(function () { if (tile.isConnected) el.textContent = final; }, 600);
+        }
       }, 70);
     }, delay);
   }

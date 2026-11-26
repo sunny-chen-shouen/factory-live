@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="application-version" content="2026-11-26-juice1">
+<meta name="application-version" content="2026-11-27-juice2">
 <title>工廠 LIVE · Factory LIVE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;800;900&family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -410,11 +410,11 @@ body[data-shift="done"] .shift-stage::after{background:var(--accent)}
 .g-vs-f{margin-top:6px;padding:10px 12px;border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:0 10px 10px 0;font-weight:600}
 
 /* ---------- split-flap numbers */
-.flapping,.landed{display:inline-block;min-width:1.2ch}
-.flapping{color:var(--ink);background:linear-gradient(180deg,#2a2723 0 49%,#141210 51%);color:#fff;border-radius:10px;padding:0 .12em}
-.flip-tick{animation:fliptick .07s linear}
+.flapnum{display:inline-block;width:auto;max-width:100%;min-width:1.2ch;line-height:1.05;vertical-align:baseline;transform-origin:50% 55%}
+.flapnum.flapping{background:linear-gradient(180deg,#2a2723 0 49%,#141210 51%);color:#fff;border-radius:.14em;padding:0 .14em;box-shadow:0 .06em 0 #000}
+.flapnum.flip-tick{animation:fliptick .07s linear}
 @keyframes fliptick{0%{transform:perspective(300px) rotateX(-70deg)}100%{transform:none}}
-.landed{animation:land .45s var(--ease-out)}
+.flapnum.landed{animation:land .45s var(--ease-out)}
 @keyframes land{0%{transform:scale(1.18);color:var(--accent)}100%{transform:none}}
 
 /* ---------- sequential reveal on the projector */
@@ -444,6 +444,9 @@ body[data-shift="done"] .shift-stage::after{background:var(--accent)}
   .fac *,.tile .fac,.shift-stage,.stamp,.receipt *,.chart-comparison *,.histogram *{animation:none!important;transition:none!important}
   .stamp.slam-wait,.class-aha.slam-wait{opacity:1}
 }
+
+.receipt-vs{font-family:var(--font);font-size:15px;font-weight:700;margin-top:10px;padding:8px 10px;background:var(--soft);border-radius:8px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.receipt-stamp .stamp{max-width:100%;white-space:normal;text-align:center}
 
 </style>
 </head>
@@ -1325,6 +1328,9 @@ window.FL.dict = (function () {
   a('receipt_title', '第 {0} 期收據', 'Period {0} receipt');
   a('receipt_meta', '桌 {0} · 房號 {1}', 'Table {0} · Room {1}');
   a('g_vs_f', '你們最好的「營收−工資」是 {0}；下期租金是 {1}。', 'Your best "revenue − wages" is {0}; next period\'s rent is {1}.');
+  a('open_word', '開工', 'Open');
+  a('best_open', '最佳開工估計', 'best open plan');
+  a('vs_pair', '{0} {1}；{2} {3}；差額 {4}', '{0} {1}; {2} {3}; difference {4}');
   a('or_type_code', '或輸入房號', 'or enter the room code');
   a('lobby_wait', '等第一組工廠報到…', 'Waiting for the first factory…');
   a('peek_prev', '看上一階段：{0}', 'Look back: {0}');
@@ -1994,12 +2000,19 @@ window.FL.dict = (function () {
     }
     var delta = P.counterfactual == null ? null : P.profit - P.counterfactual;
     var compare = delta == null ? '' : t('profit_delta', sg(delta), per === 1 ? t('stop') : P.renew ? t('exit') : t('renew')) + (P.counterfactualKind === 'estimate' ? '*' : '');
-    var otherName = per === 1 ? t('stop') : P.renew ? t('exit') : t('renew'), est = P.counterfactualKind === 'estimate' ? '*' : '';
-    var stampTxt = delta == null ? '' : delta > 0 ? t('stamp_better', otherName, sg(delta) + est) : delta < 0 ? t('stamp_worse', otherName, sg(delta) + est) : t('stamp_same', otherName);
+    // Name what each side of the comparison actually is: an open factory is compared with stopping,
+    // a stopped factory with its best open plan (estimated from confirmed trials); period 2 mirrors renew/exit.
+    var opened = per === 1 ? P.L > 0 : P.renew;
+    var selfName = per === 1 ? (opened ? t('open_word') : t('stop')) : (opened ? t('renew') : t('exit'));
+    var otherName = per === 1 ? (opened ? t('stop') : t('best_open')) : (opened ? t('exit') : t('renew'));
+    var est = P.counterfactualKind === 'estimate' ? '*' : '';
+    var pairLine = delta == null ? '' : '<div class="receipt-vs">' + t('vs_pair', selfName, sg(P.profit), otherName, sg(P.counterfactual) + est, sg(delta) + est) + '</div>';
+    var stampOther = per === 1 && !opened ? t('open_word') : otherName;
+    var stampTxt = delta == null ? '' : delta > 0 ? t('stamp_better', stampOther, sg(delta) + est) : delta < 0 ? t('stamp_worse', stampOther, sg(delta) + est) : t('stamp_same', stampOther);
     out += '<div class="receipt' + (delta > 0 ? ' good' : delta < 0 ? ' bad' : '') + '"><div class="receipt-head"><b>' + t('app_title') + '</b><span>' + t('receipt_title', per) + '</span><small>' + t('receipt_meta', me.table_no, esc(snap.session.code)) + '</small></div>' +
       '<table class="t receipt-lines">' + ledgerRows(P, par) + '</table>' +
       '<div class="receipt-total"><span>' + t('l_profit') + '</span><b class="profit-value num">' + sg(P.profit) + '</b></div>' +
-      (stampTxt ? '<div class="receipt-stamp"><span class="stamp big' + (delta < 0 ? ' ink' : '') + '" data-sk="led' + per + ':' + P.profit + '">' + stampTxt + '</span></div>' : '') +
+      pairLine + (stampTxt ? '<div class="receipt-stamp"><span class="stamp big' + (delta < 0 ? ' ink' : '') + '" data-sk="led' + per + ':' + P.profit + '">' + stampTxt + '</span></div>' : '') +
       (per === 2 || P.counterfactual == null ? '<div class="receipt-note">' + cmp + '</div>' : '') + (est ? '<div class="tiny muted receipt-note">' + t('est_note') + '</div>' : '') + '</div>';
     if (per === 2) {
       out += '<div class="card"><div class="row"><div class="grow muted">' + t('total_h') + '</div><div class="huge num">' + sg(L.total) + '</div></div></div>';
@@ -2920,14 +2933,22 @@ window.FL.dict = (function () {
     var final = el.textContent.trim();
     if (!/^\d+$/.test(final) || reduced) return;
     var width = final.length, steps = 8 + Math.round(Math.random() * 3), n = 0;
-    el.classList.add('flapping'); el.textContent = '';
+    // Animate an inline tile that hugs the digits; the card element itself keeps its layout.
+    var tile = document.createElement('span');
+    tile.className = 'flapnum flapping'; tile.textContent = '-'.repeat(width);
+    el.textContent = ''; el.appendChild(tile);
     setTimeout(function () {
       var timer = setInterval(function () {
         n++;
+        if (!tile.isConnected) { clearInterval(timer); return; }
         var v = n >= steps ? final : String(Math.floor(Math.random() * Math.pow(10, width))).padStart(width, '0');
-        el.textContent = v; el.classList.remove('flip-tick'); void el.offsetWidth; el.classList.add('flip-tick');
+        tile.textContent = v; tile.classList.remove('flip-tick'); void tile.offsetWidth; tile.classList.add('flip-tick');
         if (role() === 'screen') sfx.flap();
-        if (n >= steps) { clearInterval(timer); el.classList.remove('flapping'); el.classList.add('landed'); if (role() === 'screen') sfx.pop(); }
+        if (n >= steps) {
+          clearInterval(timer); tile.classList.remove('flapping', 'flip-tick'); tile.classList.add('landed');
+          if (role() === 'screen') sfx.pop();
+          setTimeout(function () { if (tile.isConnected) el.textContent = final; }, 600);
+        }
       }, 70);
     }, delay);
   }

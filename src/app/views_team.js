@@ -326,12 +326,19 @@
     }
     var delta = P.counterfactual == null ? null : P.profit - P.counterfactual;
     var compare = delta == null ? '' : t('profit_delta', sg(delta), per === 1 ? t('stop') : P.renew ? t('exit') : t('renew')) + (P.counterfactualKind === 'estimate' ? '*' : '');
-    var otherName = per === 1 ? t('stop') : P.renew ? t('exit') : t('renew'), est = P.counterfactualKind === 'estimate' ? '*' : '';
-    var stampTxt = delta == null ? '' : delta > 0 ? t('stamp_better', otherName, sg(delta) + est) : delta < 0 ? t('stamp_worse', otherName, sg(delta) + est) : t('stamp_same', otherName);
+    // Name what each side of the comparison actually is: an open factory is compared with stopping,
+    // a stopped factory with its best open plan (estimated from confirmed trials); period 2 mirrors renew/exit.
+    var opened = per === 1 ? P.L > 0 : P.renew;
+    var selfName = per === 1 ? (opened ? t('open_word') : t('stop')) : (opened ? t('renew') : t('exit'));
+    var otherName = per === 1 ? (opened ? t('stop') : t('best_open')) : (opened ? t('exit') : t('renew'));
+    var est = P.counterfactualKind === 'estimate' ? '*' : '';
+    var pairLine = delta == null ? '' : '<div class="receipt-vs">' + t('vs_pair', selfName, sg(P.profit), otherName, sg(P.counterfactual) + est, sg(delta) + est) + '</div>';
+    var stampOther = per === 1 && !opened ? t('open_word') : otherName;
+    var stampTxt = delta == null ? '' : delta > 0 ? t('stamp_better', stampOther, sg(delta) + est) : delta < 0 ? t('stamp_worse', stampOther, sg(delta) + est) : t('stamp_same', stampOther);
     out += '<div class="receipt' + (delta > 0 ? ' good' : delta < 0 ? ' bad' : '') + '"><div class="receipt-head"><b>' + t('app_title') + '</b><span>' + t('receipt_title', per) + '</span><small>' + t('receipt_meta', me.table_no, esc(snap.session.code)) + '</small></div>' +
       '<table class="t receipt-lines">' + ledgerRows(P, par) + '</table>' +
       '<div class="receipt-total"><span>' + t('l_profit') + '</span><b class="profit-value num">' + sg(P.profit) + '</b></div>' +
-      (stampTxt ? '<div class="receipt-stamp"><span class="stamp big' + (delta < 0 ? ' ink' : '') + '" data-sk="led' + per + ':' + P.profit + '">' + stampTxt + '</span></div>' : '') +
+      pairLine + (stampTxt ? '<div class="receipt-stamp"><span class="stamp big' + (delta < 0 ? ' ink' : '') + '" data-sk="led' + per + ':' + P.profit + '">' + stampTxt + '</span></div>' : '') +
       (per === 2 || P.counterfactual == null ? '<div class="receipt-note">' + cmp + '</div>' : '') + (est ? '<div class="tiny muted receipt-note">' + t('est_note') + '</div>' : '') + '</div>';
     if (per === 2) {
       out += '<div class="card"><div class="row"><div class="grow muted">' + t('total_h') + '</div><div class="huge num">' + sg(L.total) + '</div></div></div>';

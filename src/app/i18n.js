@@ -329,6 +329,9 @@ window.FL.dict = (function () {
   a('receipt_title', '第 {0} 期收據', 'Period {0} receipt');
   a('receipt_meta', '桌 {0} · 房號 {1}', 'Table {0} · Room {1}');
   a('g_vs_f', '你們最好的「營收−工資」是 {0}；下期租金是 {1}。', 'Your best "revenue − wages" is {0}; next period\'s rent is {1}.');
+  a('open_word', '開工', 'Open');
+  a('best_open', '最佳開工估計', 'best open plan');
+  a('vs_pair', '{0} {1}；{2} {3}；差額 {4}', '{0} {1}; {2} {3}; difference {4}');
   a('or_type_code', '或輸入房號', 'or enter the room code');
   a('lobby_wait', '等第一組工廠報到…', 'Waiting for the first factory…');
   a('peek_prev', '看上一階段：{0}', 'Look back: {0}');
