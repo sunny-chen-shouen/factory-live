@@ -59,6 +59,8 @@ assert.deepEqual([...w.document.querySelectorAll('[data-group=exit] .profit-plot
 assert.ok([...w.document.querySelectorAll('[data-group=exit] .plot-decision')].every(e=>e.textContent==='退'));
 snap.teams=kept.teams;snap.runs=kept.runs;snap.decisions=kept.decisions;
 snap.session.phase='ledger1'; text=render('screen'); assert.match(text,/利潤0/); assert.match(text,/停工 −12/); assert.ok(w.document.querySelector('.income-zero-guide'));
+text=render('host'); assert.doesNotMatch(text,/★ 表示/);
+snap.session.phase='ledger2'; text=render('host'); assert.match(text,/★ 表示/);
 snap.session.phase = 'debrief'; snap.session.params.show_lesson = true; text = render('screen'); assert.match(text, /短期與長期/); assert.match(text, /0 < G < F/);
 text = render('team'); assert.match(text, /−6\*/); assert.doesNotMatch(text, /−12\*/);
 // A teacher may feature any factory, including one that stayed shut or made a
@@ -85,9 +87,54 @@ let writes = []; FL.api.hostSet = async (code,key,p) => { writes.push(p); Object
 render('host'); await FL.acts.hnext({dataset:{}}); assert.equal(writes.length,0);
 await FL.acts.hrec({dataset:{p:'3',w:'4',f:'10'}}); assert.equal(snap.session.params.market_published,false);
 render('host'); await FL.acts.hpublish(); assert.equal(snap.session.params.market_published,true);
+render('host');
+const focusedParam = w.document.querySelector('[data-k="w"]');
+focusedParam.focus(); focusedParam.value='17';
+snap.session.params.market_published=false; FL.render(false);
+assert.equal(w.document.activeElement,focusedParam); assert.equal(focusedParam.value,'17');
+assert.match(w.document.querySelector('[data-market-status]').textContent,/等公布/);
+assert.equal(w.document.querySelector('[data-act="hpublish"]').textContent,FL.t('market_publish'));
+snap.session.params.market_published=true; FL.render(false);
+assert.equal(w.document.activeElement,focusedParam);
+assert.equal(w.document.querySelector('[data-act="hpublish"]').textContent,FL.t('market_republish'));
+focusedParam.blur();
 text = render('screen'); assert.doesNotMatch(text,/正在設定市場/); assert.equal(w.document.querySelectorAll('.q-cards').length,1);
 const lastWrite = writes.at(-1).params; assert.deepEqual([lastWrite.p,lastWrite.w,lastWrite.F],[3,4,10]);
 render('host'); await FL.acts.hnext({dataset:{}}); assert.equal(snap.session.phase,'decide1');
+// Reload renders before the private decision request completes. A temporary 0
+// must not become a draft and mask the saved prediction when it arrives.
+const beforeReload={teams:snap.teams,decisions:snap.decisions,shift:snap.session.shift};
+snap.teams=[team,...Array.from({length:8},(_,i)=>({...team,id:'reload'+i,table_no:i+1}))];
+snap.decisions=[]; snap.session.phase='decide2'; FL.myDec=[];
+FL.U.pred=FL.U.renew2=FL.U.sel2=null; render('team');
+assert.equal(w.document.getElementById('sv_pred').textContent,'0'); assert.equal(FL.U.pred,null);
+let resolveMine;
+FL.api.myDecisions=()=>new Promise(resolve=>resolveMine=resolve);
+FL.refreshMine(); resolveMine([{period:2,renew:false,L:0,predict:6}]);
+await new Promise(resolve=>setImmediate(resolve));
+assert.equal(w.document.getElementById('sv_pred').textContent,'6'); assert.equal(FL.U.pred,null);
+FL.acts.step({dataset:{k:'pred',lo:'0',hi:'9',d:'1'}});
+assert.equal(w.document.getElementById('sv_pred').textContent,'7'); assert.equal(FL.U.pred,7);
+FL.refreshMine(); resolveMine([{period:2,renew:false,L:0,predict:4}]);
+await new Promise(resolve=>setImmediate(resolve)); assert.equal(w.document.getElementById('sv_pred').textContent,'7');
+FL.refreshMine(); const oldMe=FL.me; FL.me={team_id:'other',code:'NEXT',token:'other'};
+resolveMine([{period:2,renew:true,L:4,predict:0}]);
+await new Promise(resolve=>setImmediate(resolve)); assert.equal(FL.myDec[0].predict,4); FL.me=oldMe;
+// Exited/stopped factories only count others. Teacher-entered production is
+// already final and must not leave a phantom wait for a neighbour report.
+snap.teams=beforeReload.teams; snap.decisions=[{team_id:'a',period:2,renew:false,L:0}];
+snap.session.phase='run2'; snap.session.shift={phase:'run2',id:1,starts_at:0,ends_at:1,secs:1};
+text=render('team'); assert.match(text,/只需驗收下方工廠/); assert.doesNotMatch(text,/等鄰桌數你們/);
+snap.session.phase='run1'; snap.session.shift={...snap.session.shift,phase:'run1'};
+snap.decisions=[{team_id:'a',period:1,renew:true,L:2}];
+const oldRuns=snap.runs; snap.runs=[{team_id:'a',kind:'p1',L:2,q:9,status:'host'}];
+text=render('team'); assert.match(text,/你們確認了/); assert.doesNotMatch(text,/等鄰桌數你們/);
+snap.runs=oldRuns; snap.session.phase='trial'; snap.session.shift={...snap.session.shift,phase:'trial',L:1};
+FL.H.trialL=2; text=render('host'); assert.match(text,/已選下一班 2 人，尚未開始/); assert.match(text,/目前的 1 人班次/);
+snap.session.shift=beforeReload.shift; snap.decisions=beforeReload.decisions;
+snap.session.phase='decide1'; FL.lang='en'; text=render('team');
+assert.match(w.document.querySelector('[data-act=sel1][data-lv="1"]').textContent,/1person/);
+assert.doesNotMatch(text,/1people/); FL.lang='zh';
 // Switching rooms clears the previous room's CSV preview and selected tab.
 FL.host = null; FL.H.csv = 'old room export'; FL.H.tab = 'tools'; render('host');
 w.document.getElementById('h_code').value = 'NEXT'; w.document.getElementById('h_key2').value = 'test-key';

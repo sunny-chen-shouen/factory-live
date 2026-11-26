@@ -202,9 +202,12 @@
   FL.render = function (force) {
     var ae = document.activeElement;
     var typing = ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName) && FL.$('#app') && FL.$('#app').contains(ae);
-    if (typing && !force) { clearTimeout(pending); pending = setTimeout(function () { FL.render(false); }, 900); return; }
     var r = FL.route();
     var view = FL.views && FL.views[r.role] || FL.views.home;
+    if (typing && !force) {
+      if (view.update) view.update(r);
+      clearTimeout(pending); pending = setTimeout(function () { FL.render(false); }, 900); return;
+    }
     document.body.className = r.role === 'screen' ? 'screen' : '';
     var app = FL.$('#app');
     var y = window.scrollY;

@@ -115,7 +115,7 @@
   /* ------------------------------------------------ control tab */
   function startShiftBtn(snap, L) {
     var sh = FL.shiftOf(snap), st = FL.shiftState(sh), secs = snap.session.params.secs;
-    return '<div class="row wrap"><button class="btn primary" data-act="hshift" data-lv="' + (L || 0) + '">' + (st.st === 'idle' || st.st === 'done' ? t('start_shift', secs) : t('restart_shift')) + '</button>' +
+    return (sh && L && sh.L !== L ? '<div class="banner small">' + t('trial_selected_next', L, sh.L) + '</div>' : '') + '<div class="row wrap"><button class="btn primary" data-act="hshift" data-lv="' + (L || 0) + '">' + (st.st === 'idle' || st.st === 'done' ? t('start_shift', secs) : t('restart_shift')) + '</button>' +
       (sh ? '<button class="btn" data-act="hclear">' + t('clear_shift') + '</button>' : '') + '</div>' + FL.cdHTML(snap);
   }
   FL.acts.hshift = function (el) {
@@ -137,7 +137,7 @@
       var seg = [1, 2, 3, 4].map(function (l) { return '<button class="btn ' + (H.trialL === l ? 'on acc' : '') + '" data-act="htrialL" data-lv="' + l + '">' + l + '<small>' + t('done_n', done[l]) + '</small></button>'; }).join('');
       out = tip + '<div class="card stack"><h3>' + t('trial_pick') + '</h3><div class="seg" style="grid-template-columns:repeat(4,1fr)">' + seg + '</div>' + startShiftBtn(snap, H.trialL) + '</div>' + pendingCard(snap);
     } else if (ph === 'market') {
-      out = tip + '<div class="card stack"><h3>' + t('tab_params') + '</h3>' + paramForm(snap) + '<div class="banner">' + t(par.market_published ? 'market_live' : 'market_private') + '</div><button class="btn primary block" data-act="hpublish">' + t(par.market_published ? 'market_republish' : 'market_publish') + '</button></div>' + recommendCard(snap);
+      out = tip + '<div class="card stack"><h3>' + t('tab_params') + '</h3>' + paramForm(snap) + '<div class="banner" data-market-status aria-live="polite">' + t(par.market_published ? 'market_live' : 'market_private') + '</div><button class="btn primary block" data-act="hpublish">' + t(par.market_published ? 'market_republish' : 'market_publish') + '</button></div>' + recommendCard(snap);
     } else if (ph === 'decide1' || ph === 'decide2') {
       out = tip + pendingCard(snap, true);
     } else if (ph === 'run1' || ph === 'run2') {
@@ -148,7 +148,7 @@
         var l = C.ledger(tm, snap), P = l.periods[per], mark = per === 1 ? (P.complete ? sg(P.profit) : '') : (C.isExitExample(l) ? '★ ' : '') + (P.complete ? sg(P.profit) : '');
         return '<option value="' + tm.id + '"' + (chosen === tm.id ? ' selected' : '') + '>' + esc(tm.name) + ' ' + mark + '</option>';
       }).join('');
-      out = tip + '<div class="card stack"><h3>' + t('feat_h') + '</h3><select data-change="hfeat">' + opts + '</select><div class="tiny muted">' + t('feat_note') + '</div></div>' + disputeCard(snap);
+      out = tip + '<div class="card stack"><h3>' + t('feat_h') + '</h3><select data-change="hfeat">' + opts + '</select>' + (per === 2 ? '<div class="tiny muted">' + t('feat_note') + '</div>' : '') + '</div>' + disputeCard(snap);
     } else {
       out = tip + '<div class="card stack"><button class="btn" data-act="hlesson">' + t(par.show_lesson ? 'lesson_hide' : 'lesson_show') + '</button><button class="btn primary" data-act="hexport">' + t('export_csv') + '</button></div>';
     }
@@ -215,6 +215,16 @@
   }
   FL.acts.hparam = function (el) { var v = Math.max(1, Math.round(+el.value || 1)); var o = { market_published: false }; o[el.dataset.k] = v; return patch({ params: o }); };
   FL.changes.hparam = FL.acts.hparam;
+
+  // Keep the announcement state current without replacing a teacher's focused
+  // input, which may contain a draft for the next parameter edit.
+  FL.views.host.update = function (route) {
+    var snap = FL.snap();
+    if (!FL.host || !snap || (route.code && route.code !== FL.host.code) || snap.session.code !== FL.host.code || snap.session.phase !== 'market') return;
+    var status = FL.$('[data-market-status]'), button = FL.$('[data-act="hpublish"]'), live = snap.session.params.market_published === true;
+    if (status) status.textContent = t(live ? 'market_live' : 'market_private');
+    if (button) button.textContent = t(live ? 'market_republish' : 'market_publish');
+  };
 
   function allPoints(snap) { return FL.active(snap).map(function (tm) { return C.trialPoints(snap.runs, tm.id); }); }
   function recommendCard(snap) {

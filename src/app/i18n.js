@@ -19,6 +19,9 @@ window.FL.dict = (function () {
   a('none', '（無）', '(none)');
   a('none_yet', '還沒有隊伍', 'No teams yet');
   a('people', '人', 'people');
+  a('person', '人', 'person');
+  a('verify_others_only', '這班你們不用生產，只需驗收下方工廠。', 'Your factory is not producing this shift. Only verify the factories below.');
+  a('trial_selected_next', '已選下一班 {0} 人，尚未開始。以下倒數與驗收狀態仍是目前的 {1} 人班次。', 'Next shift selected: {0} workers, not started yet. The countdown and verification status below still refer to the current {1}-worker shift.');
   a('period', '第', 'Period ');
   a('period1', '第一期（今天）', 'Period 1 (today)');
   a('period2', '第二期（下期）', 'Period 2 (next)');

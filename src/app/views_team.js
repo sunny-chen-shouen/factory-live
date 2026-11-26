@@ -35,7 +35,11 @@
     var k = el.dataset.k, lo = +el.dataset.lo, hi = +el.dataset.hi, d = +el.dataset.d;
     var cur;
     if (k.indexOf('cnt:') === 0) { var id = k.slice(4); cur = U.cnt[id] == null ? 0 : U.cnt[id]; U.cnt[id] = Math.max(lo, Math.min(hi, cur + d)); cur = U.cnt[id]; }
-    else { cur = Math.max(lo, Math.min(hi, (U[k] == null ? 0 : U[k]) + d)); U[k] = cur; }
+    else {
+      var displayed = document.getElementById('sv_' + k);
+      var base = U[k] == null ? (displayed ? Number(displayed.textContent) || 0 : 0) : U[k];
+      cur = Math.max(lo, Math.min(hi, base + d)); U[k] = cur;
+    }
     var n = document.getElementById('sv_' + k); if (n) n.textContent = cur;
     if (k === 'present' && FL.me) FL.run(FL.api.updateTeam(FL.me.team_id, FL.me.token, cur));
   };
@@ -128,8 +132,10 @@
   function verifyBlock(snap, me, kind, L) {
     var teams = snap.teams, out = '';
     var assigned = C.verifierOf(me, teams), shift = FL.shiftOf(snap), context = shift ? shift.id : kind + ':' + L;
+    var ownDecision = kind === 'trial' ? null : C.decisionOf(snap.decisions, me.id, kind === 'p1' ? 1 : 2);
+    var needsOwn = kind === 'trial' ? me.present >= L : !!(ownDecision && ownDecision.renew && ownDecision.L > 0);
     if (U.countContext !== context) { U.cnt = {}; U.countContext = context; }
-    out += '<div class="card small">' + (assigned ? t('your_verifier', esc(assigned.name), assigned.table_no) : t('need_teacher_verifier')) + '</div>';
+    out += '<div class="card small">' + (needsOwn ? (assigned ? t('your_verifier', esc(assigned.name), assigned.table_no) : t('need_teacher_verifier')) : t('verify_others_only')) + '</div>';
     var targets = C.verifies(me, teams).filter(function (tg) {
       if (kind === 'trial') return tg.present >= L;
       var per = kind === 'p1' ? 1 : 2, d = C.decisionOf(snap.decisions, tg.id, per);
@@ -139,18 +145,18 @@
     var counting = st.st === 'done' || st.st === 'idle';
 
     // mine to confirm
-    var mine = snap.runs.filter(function (r) { return r.team_id === me.id && r.kind === kind && (kind !== 'trial' || r.L === L) && r.status !== 'host'; });
+    var mine = needsOwn ? snap.runs.filter(function (r) { return r.team_id === me.id && r.kind === kind && (kind !== 'trial' || r.L === L); }) : [];
     mine.forEach(function (r) {
       if (r.status === 'reported' || r.status === 'disputed') {
         out += '<div class="card accent stack"><h3>' + t('confirm_h') + '</h3><div class="big">' + t('confirm_p', '<b class="num">' + r.q + '</b>') + '</div>' +
           (r.status === 'disputed' ? '<div class="chip bad">' + t('st_disputed') + '</div>' : '') +
           '<div class="seg c2"><button class="btn primary" data-act="confirm" data-kind="' + kind + '" data-lv="' + r.L + '" data-ok="1">' + t('confirm_ok') + '</button>' +
           '<button class="btn" data-act="confirm" data-kind="' + kind + '" data-lv="' + r.L + '" data-ok="0">' + t('confirm_no') + '</button></div></div>';
-      } else if (r.status === 'confirmed') {
+      } else if (r.status === 'confirmed' || r.status === 'host') {
         out += '<div class="card"><span class="chip ok">' + t('st_confirmed') + '</span> ' + t('confirmed_p', '<b class="num">' + r.q + '</b>') + '</div>';
       }
     });
-    if (!mine.length && counting && st.st === 'done') out += '<div class="card muted">' + t('wait_neighbour') + '</div>';
+    if (needsOwn && !mine.length && counting && st.st === 'done') out += '<div class="card muted">' + t('wait_neighbour') + '</div>';
 
     // theirs to count
     if (!targets.length) {
@@ -197,7 +203,7 @@
     var par = snap.session.params, pts = C.trialPoints(snap.runs, me.id), rows = C.planRows(pts, par.p, par.w);
     if (rows.length < 2) {
       var ref = C.trialSummary(snap.runs, FL.active(snap));
-      var items = [1, 2, 3, 4].filter(function (L) { return L <= me.present && ref.cohortMean[L] != null; }).map(function (L) { return '<span>' + L + ' ' + t('people') + '：' + FL.n2(ref.cohortMean[L]) + ' ' + t('rings') + '</span>'; }).join(' · ');
+      var items = [1, 2, 3, 4].filter(function (L) { return L <= me.present && ref.cohortMean[L] != null; }).map(function (L) { return '<span>' + L + ' ' + t(L === 1 ? 'person' : 'people') + '：' + FL.n2(ref.cohortMean[L]) + ' ' + t('rings') + '</span>'; }).join(' · ');
       return '<div class="banner warn">' + t('late_hint') + (items ? '<div class="small" style="margin-top:8px">' + t('late_reference', ref.cohortN) + '<br>' + items + '</div>' : '') + '</div>';
     }
     return '<table class="t plan"><tr><th>' + t('c_workers') + '</th><th>' + t('c_rings') + '</th><th>' + t('c_rev') + '</th><th>' + t('c_wage') + '</th><th>' + t('c_net') + '</th><th>' + t('c_dv1') + '<br><small>' + t('c_dv2') + '</small></th></tr>' +
@@ -229,20 +235,20 @@
       var sel = U.sel1 != null ? U.sel1 : (mine ? mine.L : null);
       out += '<div class="card accent stack"><h2>' + t('d1_h') + '</h2>' + paramCards(par) + '<div>' + t('d1_p', par.F) + '</div></div>';
       out += '<div class="card stack"><h3>' + t('plan_h') + '</h3>' + planTable(snap, me, sel) + '</div>';
-      var btns = ''; for (var L = 0; L <= K; L++) btns += '<button class="btn ' + (sel === L ? 'on acc' : '') + '" data-act="sel1" data-lv="' + L + '">' + (L === 0 ? t('stop') : L) + '<small>' + (L === 0 ? '0 ' + t('people') : t('people')) + '</small></button>';
+      var btns = ''; for (var L = 0; L <= K; L++) btns += '<button class="btn ' + (sel === L ? 'on acc' : '') + '" data-act="sel1" data-lv="' + L + '">' + (L === 0 ? t('stop') : L) + '<small>' + (L === 0 ? '0 ' + t('people') : t(L === 1 ? 'person' : 'people')) + '</small></button>';
       out += '<div class="card stack"><h3>' + t('d1_q') + '</h3><div class="seg c5" style="grid-template-columns:repeat(' + Math.min(5, K + 1) + ',1fr)">' + btns + '</div>' + previewBlock(par, pts, sel, 1) + lockBtn(mine, sel != null, 'lock1') + '</div>';
     } else {
       var renew = U.renew2 != null ? U.renew2 : (mine ? mine.renew : null);
       var L2 = U.sel2 != null ? U.sel2 : (mine ? mine.L : null);
       var N = openCount(snap), pred = U.pred != null ? U.pred : (mine && mine.predict != null ? mine.predict : 0);
-      U.pred = Math.min(pred, Math.max(N, 0)); pred = U.pred;
+      pred = Math.max(0, Math.min(pred, Math.max(N, 0)));
       out += '<div class="card accent stack"><h2>' + t('d2_h') + '</h2>' + paramCards(par) + '<div>' + t('d2_p', par.F) + '</div></div>';
       out += '<div class="card stack"><h3>' + t('plan_h') + '</h3>' + planTable(snap, me, renew ? L2 : null) + '</div>';
       out += '<div class="card stack"><h3>' + t('d2_q') + '</h3><div class="seg c2">' +
         '<button class="btn ' + (renew === true ? 'on acc' : '') + '" data-act="renew" data-v="1">' + t('renew') + '<small>' + t('pay_f', par.F) + '</small></button>' +
         '<button class="btn ' + (renew === false ? 'on' : '') + '" data-act="renew" data-v="0">' + t('exit') + '<small>' + t('profit_0') + '</small></button></div>';
       if (renew === true) {
-        var b = ''; for (var l = 0; l <= K; l++) b += '<button class="btn ' + (L2 === l ? 'on acc' : '') + '" data-act="sel2" data-lv="' + l + '">' + l + '<small>' + t('people') + '</small></button>';
+        var b = ''; for (var l = 0; l <= K; l++) b += '<button class="btn ' + (L2 === l ? 'on acc' : '') + '" data-act="sel2" data-lv="' + l + '">' + l + '<small>' + t(l === 1 ? 'person' : 'people') + '</small></button>';
         out += '<div style="font-weight:700">' + t('d2_hire') + '</div><div class="seg c5" style="grid-template-columns:repeat(' + Math.min(5, K + 1) + ',1fr)">' + b + '</div>';
       }
       out += previewBlock(par, pts, renew === true ? L2 : (renew === false ? 'exit' : null), 2) + '</div>';
@@ -279,6 +285,7 @@
     var renew = U.renew2 != null ? U.renew2 : (mine ? mine.renew : null), L = U.sel2 != null ? U.sel2 : (mine ? mine.L : 0);
     if (renew == null) return;
     var pred = U.pred != null ? U.pred : (mine && mine.predict != null ? mine.predict : 0);
+    pred = Math.max(0, Math.min(pred, openCount(snap)));
     return afterLock(FL.api.submit(FL.me.team_id, FL.me.token, 2, renew, renew ? L : 0, pred));
   };
 
@@ -360,7 +367,9 @@
     var snap = FL.snap();
     if (!FL.me || !snap || FL.route().role !== 'team') return;
     if (!/^(decide|run|ledger)/.test(snap.session.phase)) return;
-    FL.api.myDecisions(FL.me.team_id, FL.me.token).then(function (d) {
+    var meId = FL.me.team_id, code = FL.me.code;
+    FL.api.myDecisions(meId, FL.me.token).then(function (d) {
+      if (!FL.me || FL.me.team_id !== meId || FL.me.code !== code || !FL.snap() || FL.snap().session.code !== code) return;
       if (JSON.stringify(d) !== JSON.stringify(FL.myDec)) { FL.myDec = d; FL.render(false); }
     }).catch(function () { /* ignore */ });
   };

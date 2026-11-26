@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="application-version" content="2026-11-26-clarity2">
+<meta name="application-version" content="2026-11-26-acceptance3">
 <title>工廠 LIVE · Factory LIVE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -203,7 +203,7 @@ body{background:var(--paper) radial-gradient(circle at 1px 1px,rgba(120,53,15,.0
 .cd.done .l{white-space:nowrap}
 .chartbox.mkt svg{max-height:calc(100vh - 600px);min-height:300px}
 .tile .tag.neg{background:#fff!important;color:var(--accent)!important;border-color:var(--accent)!important}
-.t.plan{font-size:15px}.t.plan th{white-space:nowrap;font-size:12px;vertical-align:bottom}.t.plan th small{font-size:11px;font-weight:600}
+.t.plan{font-size:15px}.t.plan th{white-space:normal;font-size:12px;vertical-align:bottom}.t.plan th small{font-size:11px;font-weight:600}
 .t.plan td,.t.plan th{padding-left:4px;padding-right:4px}
 .seg.c5 .btn{white-space:nowrap;padding-left:2px;padding-right:2px}
 .card.center .muted.small{white-space:nowrap}
@@ -912,6 +912,9 @@ window.FL.dict = (function () {
   a('none', '（無）', '(none)');
   a('none_yet', '還沒有隊伍', 'No teams yet');
   a('people', '人', 'people');
+  a('person', '人', 'person');
+  a('verify_others_only', '這班你們不用生產，只需驗收下方工廠。', 'Your factory is not producing this shift. Only verify the factories below.');
+  a('trial_selected_next', '已選下一班 {0} 人，尚未開始。以下倒數與驗收狀態仍是目前的 {1} 人班次。', 'Next shift selected: {0} workers, not started yet. The countdown and verification status below still refer to the current {1}-worker shift.');
   a('period', '第', 'Period ');
   a('period1', '第一期（今天）', 'Period 1 (today)');
   a('period2', '第二期（下期）', 'Period 2 (next)');
@@ -1524,9 +1527,12 @@ window.FL.dict = (function () {
   FL.render = function (force) {
     var ae = document.activeElement;
     var typing = ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName) && FL.$('#app') && FL.$('#app').contains(ae);
-    if (typing && !force) { clearTimeout(pending); pending = setTimeout(function () { FL.render(false); }, 900); return; }
     var r = FL.route();
     var view = FL.views && FL.views[r.role] || FL.views.home;
+    if (typing && !force) {
+      if (view.update) view.update(r);
+      clearTimeout(pending); pending = setTimeout(function () { FL.render(false); }, 900); return;
+    }
     document.body.className = r.role === 'screen' ? 'screen' : '';
     var app = FL.$('#app');
     var y = window.scrollY;
@@ -1576,7 +1582,11 @@ window.FL.dict = (function () {
     var k = el.dataset.k, lo = +el.dataset.lo, hi = +el.dataset.hi, d = +el.dataset.d;
     var cur;
     if (k.indexOf('cnt:') === 0) { var id = k.slice(4); cur = U.cnt[id] == null ? 0 : U.cnt[id]; U.cnt[id] = Math.max(lo, Math.min(hi, cur + d)); cur = U.cnt[id]; }
-    else { cur = Math.max(lo, Math.min(hi, (U[k] == null ? 0 : U[k]) + d)); U[k] = cur; }
+    else {
+      var displayed = document.getElementById('sv_' + k);
+      var base = U[k] == null ? (displayed ? Number(displayed.textContent) || 0 : 0) : U[k];
+      cur = Math.max(lo, Math.min(hi, base + d)); U[k] = cur;
+    }
     var n = document.getElementById('sv_' + k); if (n) n.textContent = cur;
     if (k === 'present' && FL.me) FL.run(FL.api.updateTeam(FL.me.team_id, FL.me.token, cur));
   };
@@ -1669,8 +1679,10 @@ window.FL.dict = (function () {
   function verifyBlock(snap, me, kind, L) {
     var teams = snap.teams, out = '';
     var assigned = C.verifierOf(me, teams), shift = FL.shiftOf(snap), context = shift ? shift.id : kind + ':' + L;
+    var ownDecision = kind === 'trial' ? null : C.decisionOf(snap.decisions, me.id, kind === 'p1' ? 1 : 2);
+    var needsOwn = kind === 'trial' ? me.present >= L : !!(ownDecision && ownDecision.renew && ownDecision.L > 0);
     if (U.countContext !== context) { U.cnt = {}; U.countContext = context; }
-    out += '<div class="card small">' + (assigned ? t('your_verifier', esc(assigned.name), assigned.table_no) : t('need_teacher_verifier')) + '</div>';
+    out += '<div class="card small">' + (needsOwn ? (assigned ? t('your_verifier', esc(assigned.name), assigned.table_no) : t('need_teacher_verifier')) : t('verify_others_only')) + '</div>';
     var targets = C.verifies(me, teams).filter(function (tg) {
       if (kind === 'trial') return tg.present >= L;
       var per = kind === 'p1' ? 1 : 2, d = C.decisionOf(snap.decisions, tg.id, per);
@@ -1680,18 +1692,18 @@ window.FL.dict = (function () {
     var counting = st.st === 'done' || st.st === 'idle';
 
     // mine to confirm
-    var mine = snap.runs.filter(function (r) { return r.team_id === me.id && r.kind === kind && (kind !== 'trial' || r.L === L) && r.status !== 'host'; });
+    var mine = needsOwn ? snap.runs.filter(function (r) { return r.team_id === me.id && r.kind === kind && (kind !== 'trial' || r.L === L); }) : [];
     mine.forEach(function (r) {
       if (r.status === 'reported' || r.status === 'disputed') {
         out += '<div class="card accent stack"><h3>' + t('confirm_h') + '</h3><div class="big">' + t('confirm_p', '<b class="num">' + r.q + '</b>') + '</div>' +
           (r.status === 'disputed' ? '<div class="chip bad">' + t('st_disputed') + '</div>' : '') +
           '<div class="seg c2"><button class="btn primary" data-act="confirm" data-kind="' + kind + '" data-lv="' + r.L + '" data-ok="1">' + t('confirm_ok') + '</button>' +
           '<button class="btn" data-act="confirm" data-kind="' + kind + '" data-lv="' + r.L + '" data-ok="0">' + t('confirm_no') + '</button></div></div>';
-      } else if (r.status === 'confirmed') {
+      } else if (r.status === 'confirmed' || r.status === 'host') {
         out += '<div class="card"><span class="chip ok">' + t('st_confirmed') + '</span> ' + t('confirmed_p', '<b class="num">' + r.q + '</b>') + '</div>';
       }
     });
-    if (!mine.length && counting && st.st === 'done') out += '<div class="card muted">' + t('wait_neighbour') + '</div>';
+    if (needsOwn && !mine.length && counting && st.st === 'done') out += '<div class="card muted">' + t('wait_neighbour') + '</div>';
 
     // theirs to count
     if (!targets.length) {
@@ -1738,7 +1750,7 @@ window.FL.dict = (function () {
     var par = snap.session.params, pts = C.trialPoints(snap.runs, me.id), rows = C.planRows(pts, par.p, par.w);
     if (rows.length < 2) {
       var ref = C.trialSummary(snap.runs, FL.active(snap));
-      var items = [1, 2, 3, 4].filter(function (L) { return L <= me.present && ref.cohortMean[L] != null; }).map(function (L) { return '<span>' + L + ' ' + t('people') + '：' + FL.n2(ref.cohortMean[L]) + ' ' + t('rings') + '</span>'; }).join(' · ');
+      var items = [1, 2, 3, 4].filter(function (L) { return L <= me.present && ref.cohortMean[L] != null; }).map(function (L) { return '<span>' + L + ' ' + t(L === 1 ? 'person' : 'people') + '：' + FL.n2(ref.cohortMean[L]) + ' ' + t('rings') + '</span>'; }).join(' · ');
       return '<div class="banner warn">' + t('late_hint') + (items ? '<div class="small" style="margin-top:8px">' + t('late_reference', ref.cohortN) + '<br>' + items + '</div>' : '') + '</div>';
     }
     return '<table class="t plan"><tr><th>' + t('c_workers') + '</th><th>' + t('c_rings') + '</th><th>' + t('c_rev') + '</th><th>' + t('c_wage') + '</th><th>' + t('c_net') + '</th><th>' + t('c_dv1') + '<br><small>' + t('c_dv2') + '</small></th></tr>' +
@@ -1770,20 +1782,20 @@ window.FL.dict = (function () {
       var sel = U.sel1 != null ? U.sel1 : (mine ? mine.L : null);
       out += '<div class="card accent stack"><h2>' + t('d1_h') + '</h2>' + paramCards(par) + '<div>' + t('d1_p', par.F) + '</div></div>';
       out += '<div class="card stack"><h3>' + t('plan_h') + '</h3>' + planTable(snap, me, sel) + '</div>';
-      var btns = ''; for (var L = 0; L <= K; L++) btns += '<button class="btn ' + (sel === L ? 'on acc' : '') + '" data-act="sel1" data-lv="' + L + '">' + (L === 0 ? t('stop') : L) + '<small>' + (L === 0 ? '0 ' + t('people') : t('people')) + '</small></button>';
+      var btns = ''; for (var L = 0; L <= K; L++) btns += '<button class="btn ' + (sel === L ? 'on acc' : '') + '" data-act="sel1" data-lv="' + L + '">' + (L === 0 ? t('stop') : L) + '<small>' + (L === 0 ? '0 ' + t('people') : t(L === 1 ? 'person' : 'people')) + '</small></button>';
       out += '<div class="card stack"><h3>' + t('d1_q') + '</h3><div class="seg c5" style="grid-template-columns:repeat(' + Math.min(5, K + 1) + ',1fr)">' + btns + '</div>' + previewBlock(par, pts, sel, 1) + lockBtn(mine, sel != null, 'lock1') + '</div>';
     } else {
       var renew = U.renew2 != null ? U.renew2 : (mine ? mine.renew : null);
       var L2 = U.sel2 != null ? U.sel2 : (mine ? mine.L : null);
       var N = openCount(snap), pred = U.pred != null ? U.pred : (mine && mine.predict != null ? mine.predict : 0);
-      U.pred = Math.min(pred, Math.max(N, 0)); pred = U.pred;
+      pred = Math.max(0, Math.min(pred, Math.max(N, 0)));
       out += '<div class="card accent stack"><h2>' + t('d2_h') + '</h2>' + paramCards(par) + '<div>' + t('d2_p', par.F) + '</div></div>';
       out += '<div class="card stack"><h3>' + t('plan_h') + '</h3>' + planTable(snap, me, renew ? L2 : null) + '</div>';
       out += '<div class="card stack"><h3>' + t('d2_q') + '</h3><div class="seg c2">' +
         '<button class="btn ' + (renew === true ? 'on acc' : '') + '" data-act="renew" data-v="1">' + t('renew') + '<small>' + t('pay_f', par.F) + '</small></button>' +
         '<button class="btn ' + (renew === false ? 'on' : '') + '" data-act="renew" data-v="0">' + t('exit') + '<small>' + t('profit_0') + '</small></button></div>';
       if (renew === true) {
-        var b = ''; for (var l = 0; l <= K; l++) b += '<button class="btn ' + (L2 === l ? 'on acc' : '') + '" data-act="sel2" data-lv="' + l + '">' + l + '<small>' + t('people') + '</small></button>';
+        var b = ''; for (var l = 0; l <= K; l++) b += '<button class="btn ' + (L2 === l ? 'on acc' : '') + '" data-act="sel2" data-lv="' + l + '">' + l + '<small>' + t(l === 1 ? 'person' : 'people') + '</small></button>';
         out += '<div style="font-weight:700">' + t('d2_hire') + '</div><div class="seg c5" style="grid-template-columns:repeat(' + Math.min(5, K + 1) + ',1fr)">' + b + '</div>';
       }
       out += previewBlock(par, pts, renew === true ? L2 : (renew === false ? 'exit' : null), 2) + '</div>';
@@ -1820,6 +1832,7 @@ window.FL.dict = (function () {
     var renew = U.renew2 != null ? U.renew2 : (mine ? mine.renew : null), L = U.sel2 != null ? U.sel2 : (mine ? mine.L : 0);
     if (renew == null) return;
     var pred = U.pred != null ? U.pred : (mine && mine.predict != null ? mine.predict : 0);
+    pred = Math.max(0, Math.min(pred, openCount(snap)));
     return afterLock(FL.api.submit(FL.me.team_id, FL.me.token, 2, renew, renew ? L : 0, pred));
   };
 
@@ -1901,7 +1914,9 @@ window.FL.dict = (function () {
     var snap = FL.snap();
     if (!FL.me || !snap || FL.route().role !== 'team') return;
     if (!/^(decide|run|ledger)/.test(snap.session.phase)) return;
-    FL.api.myDecisions(FL.me.team_id, FL.me.token).then(function (d) {
+    var meId = FL.me.team_id, code = FL.me.code;
+    FL.api.myDecisions(meId, FL.me.token).then(function (d) {
+      if (!FL.me || FL.me.team_id !== meId || FL.me.code !== code || !FL.snap() || FL.snap().session.code !== code) return;
       if (JSON.stringify(d) !== JSON.stringify(FL.myDec)) { FL.myDec = d; FL.render(false); }
     }).catch(function () { /* ignore */ });
   };
@@ -2266,7 +2281,7 @@ window.FL.dict = (function () {
   /* ------------------------------------------------ control tab */
   function startShiftBtn(snap, L) {
     var sh = FL.shiftOf(snap), st = FL.shiftState(sh), secs = snap.session.params.secs;
-    return '<div class="row wrap"><button class="btn primary" data-act="hshift" data-lv="' + (L || 0) + '">' + (st.st === 'idle' || st.st === 'done' ? t('start_shift', secs) : t('restart_shift')) + '</button>' +
+    return (sh && L && sh.L !== L ? '<div class="banner small">' + t('trial_selected_next', L, sh.L) + '</div>' : '') + '<div class="row wrap"><button class="btn primary" data-act="hshift" data-lv="' + (L || 0) + '">' + (st.st === 'idle' || st.st === 'done' ? t('start_shift', secs) : t('restart_shift')) + '</button>' +
       (sh ? '<button class="btn" data-act="hclear">' + t('clear_shift') + '</button>' : '') + '</div>' + FL.cdHTML(snap);
   }
   FL.acts.hshift = function (el) {
@@ -2288,7 +2303,7 @@ window.FL.dict = (function () {
       var seg = [1, 2, 3, 4].map(function (l) { return '<button class="btn ' + (H.trialL === l ? 'on acc' : '') + '" data-act="htrialL" data-lv="' + l + '">' + l + '<small>' + t('done_n', done[l]) + '</small></button>'; }).join('');
       out = tip + '<div class="card stack"><h3>' + t('trial_pick') + '</h3><div class="seg" style="grid-template-columns:repeat(4,1fr)">' + seg + '</div>' + startShiftBtn(snap, H.trialL) + '</div>' + pendingCard(snap);
     } else if (ph === 'market') {
-      out = tip + '<div class="card stack"><h3>' + t('tab_params') + '</h3>' + paramForm(snap) + '<div class="banner">' + t(par.market_published ? 'market_live' : 'market_private') + '</div><button class="btn primary block" data-act="hpublish">' + t(par.market_published ? 'market_republish' : 'market_publish') + '</button></div>' + recommendCard(snap);
+      out = tip + '<div class="card stack"><h3>' + t('tab_params') + '</h3>' + paramForm(snap) + '<div class="banner" data-market-status aria-live="polite">' + t(par.market_published ? 'market_live' : 'market_private') + '</div><button class="btn primary block" data-act="hpublish">' + t(par.market_published ? 'market_republish' : 'market_publish') + '</button></div>' + recommendCard(snap);
     } else if (ph === 'decide1' || ph === 'decide2') {
       out = tip + pendingCard(snap, true);
     } else if (ph === 'run1' || ph === 'run2') {
@@ -2299,7 +2314,7 @@ window.FL.dict = (function () {
         var l = C.ledger(tm, snap), P = l.periods[per], mark = per === 1 ? (P.complete ? sg(P.profit) : '') : (C.isExitExample(l) ? '★ ' : '') + (P.complete ? sg(P.profit) : '');
         return '<option value="' + tm.id + '"' + (chosen === tm.id ? ' selected' : '') + '>' + esc(tm.name) + ' ' + mark + '</option>';
       }).join('');
-      out = tip + '<div class="card stack"><h3>' + t('feat_h') + '</h3><select data-change="hfeat">' + opts + '</select><div class="tiny muted">' + t('feat_note') + '</div></div>' + disputeCard(snap);
+      out = tip + '<div class="card stack"><h3>' + t('feat_h') + '</h3><select data-change="hfeat">' + opts + '</select>' + (per === 2 ? '<div class="tiny muted">' + t('feat_note') + '</div>' : '') + '</div>' + disputeCard(snap);
     } else {
       out = tip + '<div class="card stack"><button class="btn" data-act="hlesson">' + t(par.show_lesson ? 'lesson_hide' : 'lesson_show') + '</button><button class="btn primary" data-act="hexport">' + t('export_csv') + '</button></div>';
     }
@@ -2366,6 +2381,16 @@ window.FL.dict = (function () {
   }
   FL.acts.hparam = function (el) { var v = Math.max(1, Math.round(+el.value || 1)); var o = { market_published: false }; o[el.dataset.k] = v; return patch({ params: o }); };
   FL.changes.hparam = FL.acts.hparam;
+
+  // Keep the announcement state current without replacing a teacher's focused
+  // input, which may contain a draft for the next parameter edit.
+  FL.views.host.update = function (route) {
+    var snap = FL.snap();
+    if (!FL.host || !snap || (route.code && route.code !== FL.host.code) || snap.session.code !== FL.host.code || snap.session.phase !== 'market') return;
+    var status = FL.$('[data-market-status]'), button = FL.$('[data-act="hpublish"]'), live = snap.session.params.market_published === true;
+    if (status) status.textContent = t(live ? 'market_live' : 'market_private');
+    if (button) button.textContent = t(live ? 'market_republish' : 'market_publish');
+  };
 
   function allPoints(snap) { return FL.active(snap).map(function (tm) { return C.trialPoints(snap.runs, tm.id); }); }
   function recommendCard(snap) {
