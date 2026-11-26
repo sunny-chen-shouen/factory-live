@@ -59,7 +59,7 @@
     if (first || reduced) return;
     // Financial amounts stay exact; do not animate through misleading intermediate values.
     if (ph === 'ledger1' || ph === 'ledger2' || ph === 'debrief') {
-      if (r.role === 'screen' && snap.decisions.length) { if (FL.soundOn && FL.beep) { FL.beep(660, 0.12); setTimeout(function () { FL.beep(880, 0.25); }, 140); } }
+      if (r.role === 'screen') { /* projector sound: juice.js */ }
       else if (FL.me && FL.C) {
         try {
           var me = FL.team(snap, FL.me.team_id), P = window.FLCalc.ledger(me, snap).periods[ph === 'ledger2' ? 2 : 1];

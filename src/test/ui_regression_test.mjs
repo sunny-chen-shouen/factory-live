@@ -58,7 +58,7 @@ assert.deepEqual([...w.document.querySelectorAll('[data-group=renew] .profit-plo
 assert.deepEqual([...w.document.querySelectorAll('[data-group=exit] .profit-plot-row')].map(e=>e.dataset.delta),['6','-22','']);
 assert.ok([...w.document.querySelectorAll('[data-group=exit] .plot-decision')].every(e=>e.textContent==='退'));
 snap.teams=kept.teams;snap.runs=kept.runs;snap.decisions=kept.decisions;
-snap.session.phase='ledger1'; text=render('screen'); assert.match(text,/利潤0/); assert.match(text,/停工 −12/); assert.ok(w.document.querySelector('.income-zero-guide'));
+snap.session.phase='ledger1'; text=render('screen'); assert.match(text,/利潤 0/); assert.match(text,/停工 −12/); assert.ok(w.document.querySelector('.income-zero-guide'));
 text=render('host'); assert.doesNotMatch(text,/★ 表示/);
 snap.session.phase='ledger2'; text=render('host'); assert.match(text,/★ 表示/);
 snap.session.phase = 'debrief'; snap.session.params.show_lesson = true; text = render('screen'); assert.match(text, /短期與長期/); assert.match(text, /0 < G < F/);

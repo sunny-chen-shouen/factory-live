@@ -92,24 +92,34 @@
   };
 
   /* ------------------------------------------------ factory icon (shape + text carry meaning, not colour) */
-  // state: open | stop | exit | unk ; L = lit windows (0–4)
+  // state: idle | open | stop | exit | unk ; L = lit windows (0–4). Pure SVG, animated by CSS.
   FL.factory = function (state, L, opts) {
     opts = opts || {};
-    var lit = state === 'open' ? L : 0, wins = '';
-    for (var i = 0; i < 4; i++) {
-      var x = 18 + i * 22, on = i < lit;
-      wins += '<rect x="' + x + '" y="62" width="16" height="18" rx="3" fill="' + (on ? 'var(--accent)' : '#fff') + '" stroke="var(--ink)" stroke-width="3"/>';
+    var lit = state === 'open' ? (L || 0) : 0, wins = '', i;
+    var paper = state === 'exit' ? '#ece6da' : '#fffdf8';
+    for (i = 0; i < 4; i++) {
+      var x = 17 + i * 22, on = i < lit;
+      wins += '<rect class="win' + (on ? ' on' : '') + '" x="' + x + '" y="60" width="16" height="17" rx="2.5" stroke="var(--ink)" stroke-width="3" fill="' +
+        (on ? 'var(--accent)' : state === 'stop' ? '#d9d2c4' : '#fff') + '" style="--wi:' + i + '"/>' +
+        (on ? '<rect class="glint" x="' + (x + 3) + '" y="63" width="4" height="6" rx="1" fill="#fff" opacity=".55"/>' : '');
     }
-    var cross = state === 'exit' ? '<path d="M14 54 L106 98 M106 54 L14 98" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' : '';
-    var q = state === 'unk' ? '<text x="60" y="93" text-anchor="middle" font-size="38" font-weight="900" fill="var(--muted)">?</text>' : '';
-    var door = state === 'stop' ? '<rect x="48" y="84" width="24" height="16" fill="var(--ink)"/>' : '';
-    var fill = state === 'exit' ? 'var(--soft)' : '#fff';
-    var dash = state === 'exit' ? ' stroke-dasharray="7 5"' : '';
-    return '<svg class="fac ' + state + '" viewBox="0 0 120 108" role="img" aria-label="' + FL.esc(opts.label || '') + '">' +
-      '<g class="smoke"><circle cx="30" cy="22" r="6"/><circle cx="30" cy="22" r="6"/><circle cx="30" cy="22" r="6"/></g>' +
-      '<rect x="24" y="24" width="12" height="30" fill="' + fill + '" stroke="var(--ink)" stroke-width="3"' + dash + '/>' +
-      '<path d="M10 54 L10 100 L110 100 L110 54 L82 40 L82 54 L60 40 L60 54 L38 40 L38 54 Z" fill="' + fill + '" stroke="var(--ink)" stroke-width="3.5" stroke-linejoin="round"' + dash + '/>' +
-      (state === 'exit' || state === 'unk' ? '' : wins) + door + cross + q + '</svg>';
+    var body = '<path d="M10 52 L10 98 L110 98 L110 52 L82 38 L82 52 L60 38 L60 52 L38 38 L38 52 Z" fill="' + paper + '" stroke="var(--ink)" stroke-width="3.5" stroke-linejoin="round"/>';
+    var chimney = '<rect x="23" y="20" width="12" height="32" fill="' + paper + '" stroke="var(--ink)" stroke-width="3"/><rect x="23" y="20" width="12" height="5" fill="var(--ink)"/>';
+    var smoke = '<g class="smoke"><circle cx="29" cy="14" r="6"/><circle cx="29" cy="14" r="5"/><circle cx="29" cy="14" r="7"/></g>';
+    var ground = '<line x1="4" y1="100" x2="116" y2="100" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>';
+    var belt = state === 'open' ? '<line class="belt" x1="14" y1="104" x2="106" y2="104" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 5"/>' : '';
+    var door = state === 'stop' ? '<rect x="50" y="82" width="20" height="16" fill="var(--ink)"/><line x1="50" y1="87" x2="70" y2="87" stroke="#fffdf8" stroke-width="1.5"/><line x1="50" y1="92" x2="70" y2="92" stroke="#fffdf8" stroke-width="1.5"/>' :
+      state === 'exit' ? '' : '<rect x="50" y="82" width="20" height="16" fill="none" stroke="var(--ink)" stroke-width="3"/>';
+    var shutter = '';
+    if (state === 'exit') {
+      shutter = '<g class="shutter"><rect x="14" y="56" width="92" height="42" fill="#cfc7b8" stroke="var(--ink)" stroke-width="3"/>';
+      for (i = 0; i < 6; i++) shutter += '<line x1="14" y1="' + (62 + i * 6) + '" x2="106" y2="' + (62 + i * 6) + '" stroke="var(--ink)" stroke-width="1.6" opacity=".55"/>';
+      shutter += '</g><g class="lease-sign"><line x1="48" y1="42" x2="52" y2="54" stroke="var(--ink)" stroke-width="2"/><line x1="72" y1="42" x2="68" y2="54" stroke="var(--ink)" stroke-width="2"/>' +
+        '<rect x="40" y="52" width="40" height="16" rx="2" fill="var(--accent)" stroke="var(--ink)" stroke-width="2.5"/><text x="60" y="64" text-anchor="middle" font-size="10.5" font-weight="900" fill="#fff">' + FL.esc(FL.t('exit_sign')) + '</text></g>';
+    }
+    var q = state === 'unk' ? '<g class="qmark"><circle cx="92" cy="26" r="13" fill="var(--ink)"/><text x="92" y="32" text-anchor="middle" font-size="18" font-weight="900" fill="#fff">?</text></g>' : '';
+    return '<svg class="fac ' + state + '" viewBox="0 0 120 110" role="img" aria-label="' + FL.esc(opts.label || '') + '">' +
+      (state === 'open' ? smoke : '') + chimney + body + (state === 'exit' ? '' : wins) + door + shutter + q + ground + belt + '</svg>';
   };
 
   /* ------------------------------------------------ shift / countdown */
@@ -146,14 +156,11 @@
       if (l.textContent !== lab) l.textContent = lab;
     });
     // audio cues on the projector only
-    if (FL.soundOn && s) {
+    if (FL.soundOn && s && FL.route().role === 'screen') {
       var key = s.id + ':' + st.st + ':' + st.n;
       if (key !== lastBeep) {
         lastBeep = key;
-        if (st.st === 'pre') FL.beep(660, 0.12);
-        else if (st.st === 'run' && st.n === s.secs) FL.beep(990, 0.45);
-        else if (st.st === 'run' && st.n <= 3) FL.beep(660, 0.1);
-        else if (st.st === 'done') FL.beep(440, 0.7);
+        if (FL.sfx) FL.sfx.shift(st, s);
       }
     }
     // let the view react when a shift changes state (e.g. open verification panel)

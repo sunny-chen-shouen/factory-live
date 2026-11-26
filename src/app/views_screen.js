@@ -22,10 +22,10 @@
     var lockedFor = function (per) { return snap.locked.some(function (x) { return x.team_id === tm.id && x.period === per; }); };
     var led = (/^(ledger|debrief)/.test(ph)) ? C.ledger(tm, snap) : null;
     var o = { state: 'unk', L: 0, tag: '', badge: '', sub: t('table_n', tm.table_no) + ' · ' + t('k_people', tm.present) };
-    if (ph === 'lobby') { o.state = 'stop'; o.tag = t('k_people', tm.present); }
+    if (ph === 'lobby') { o.state = 'idle'; o.tag = t('k_people', tm.present); }
     else if (ph === 'trial' || ph === 'market') {
       var pts = C.trialPoints(snap.runs, tm.id), n = Object.keys(pts).length;
-      o.state = 'stop'; o.tag = t('tested_n', n);
+      o.state = 'idle'; o.tag = t('tested_n', n);
     }
     else if (ph === 'decide1') { o.state = 'unk'; o.tag = lockedFor(1) ? t('locked') : t('thinking'); o.locked = lockedFor(1); o.tag = o.locked ? '' : t('thinking'); o.badge = lockedFor(1) ? '✓' : '…'; o.off = !lockedFor(1); }
     else if (ph === 'decide2') {
@@ -51,7 +51,8 @@
       var sh = FL.shiftOf(snap);
       if (sh) {
         var rr = snap.runs.filter(function (x) { return x.team_id === tm.id && x.kind === 'trial' && x.L === sh.L; })[0];
-        if (tm.present < sh.L) { o.badge = '–'; o.off = true; o.tag = t('k_short'); }
+        if (tm.present < sh.L) { o.badge = '–'; o.off = true; o.tag = t('k_short'); o.state = 'stop'; }
+        else if (FL.shiftState(sh).st !== 'idle') { o.state = 'open'; o.L = sh.L; }
         else { o.badge = rr ? (rr.status === 'confirmed' || rr.status === 'host' ? '✓' : '·') : '…'; o.off = !(rr && (rr.status === 'confirmed' || rr.status === 'host')); if (rr) o.tag = rr.q + ' ' + t('rings'); }
       }
     }
@@ -202,7 +203,7 @@
     if(!comparable.length)headline=t('waiting_comparison');
     var profitable = comparable.filter(function(r){return r.choice==='work'&&r.actual>0;}).length, lessLoss = comparable.filter(function(r){return r.choice==='work'&&r.actual<0&&r.delta>0;}).length;
     var context = per===1?t('profit_loss_counts',profitable,lessLoss):t('delta_estimate_context');
-    return '<div class="card class-comparison chart-comparison"><div class="comparison-heading"><h2 class="class-aha">'+headline+'</h2><span>'+context+'</span></div><div class="profit-axes">'+axis+axis+'</div><div class="delta-groups">'+body+'</div><div class="plot-footer">'+t('delta_plot_note')+(comparable.length<rows.length?' '+t('comparison_missing',rows.length-comparable.length):'')+'</div></div>';
+    return '<div class="card class-comparison chart-comparison"><div class="comparison-heading"><h2 class="class-aha" data-sk="aha'+per+'">'+headline+'</h2><span>'+context+'</span></div><div class="profit-axes">'+axis+axis+'</div><div class="delta-groups">'+body+'</div><div class="plot-footer">'+t('delta_plot_note')+(comparable.length<rows.length?' '+t('comparison_missing',rows.length-comparable.length):'')+'</div></div>';
   }
 
   function debriefScreen(snap) {

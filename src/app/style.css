@@ -331,3 +331,106 @@ a.btn{text-decoration:none}
  .lesson-reveal-hint{font-size:19px;margin-top:20px;padding:15px}.lesson-reveal-hint p{font-size:18px}.market-preview{gap:10px}.market-preview-note h2{font-size:26px}.market-preview-note p{font-size:19px}.market-preview .card>p{font-size:21px}.market-preview .chartbox>h3{font-size:19px}.market-preview table.t td{font-size:19px}
  .delta-axis{height:48px}.delta-axis b{font-size:16px}.phase-ledger2 .delta-axis{height:26px}.phase-ledger2 .delta-plot .plot-values{font-size:18px;line-height:1.2}.delta-plot .profit-plot-row{line-height:1.2}
 }
+
+/* ================================================================ juice pass: paper, ink, stamps, motion */
+:root{--num:"Space Grotesk","Noto Sans TC",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,"Noto Sans TC",monospace;--ease-out:cubic-bezier(.2,.9,.25,1.15)}
+body{background-color:var(--paper);background-image:radial-gradient(circle at 1px 1px,rgba(120,53,15,.07) 1.1px,transparent 0),linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 340px);background-size:24px 24px,100% 100%}
+/* quieter cards: lean on shadow, not outlines */
+.card{border-color:rgba(120,90,50,.10)}
+.card.accent{border-color:transparent;background:linear-gradient(180deg,#fdebdc,#fbe3d0)}
+.num,.q-cards .v,.huge.num,.profit-value,.cd .n,.codeboxes b,.feature-duel b,.plot-values,.stat .n{font-family:var(--num);font-feature-settings:"tnum" 1;letter-spacing:-.01em}
+
+/* ---------- living factories */
+.fac .win{transition:fill .35s}
+.fac.open .win.on{animation:winglow 2.8s ease-in-out infinite;animation-delay:calc(var(--wi) * -.7s)}
+@keyframes winglow{0%,100%{fill:var(--accent)}50%{fill:#e0601f}}
+.fac .smoke circle{fill:#8a8378;opacity:0;transform-box:fill-box;transform-origin:center}
+.fac.open .smoke circle{animation:smokeup 3s infinite ease-out}
+.fac.open .smoke circle:nth-child(2){animation-delay:1s}.fac.open .smoke circle:nth-child(3){animation-delay:2s}
+@keyframes smokeup{0%{opacity:0;transform:translate(0,6px) scale(.5)}15%{opacity:.55}100%{opacity:0;transform:translate(14px,-22px) scale(1.7)}}
+body[data-shift="run"] .fac.open .smoke circle{animation-duration:1.4s}
+.fac .belt{animation:belt 1.2s linear infinite;animation-play-state:paused}
+body[data-shift="run"] .fac .belt{animation-play-state:running}
+@keyframes belt{to{stroke-dashoffset:-22}}
+body[data-shift="run"] .tile.open .fac{animation:hum .22s steps(2) infinite}
+@keyframes hum{50%{transform:translateY(-1px)}}
+.fac .shutter{animation:shutterdown .7s var(--ease-out) both;transform-box:fill-box;transform-origin:top}
+@keyframes shutterdown{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.fac .lease-sign{animation:sign 1.6s .6s ease-in-out both;transform-box:fill-box;transform-origin:50% 0}
+@keyframes sign{0%{opacity:0;transform:rotate(-30deg)}30%{opacity:1;transform:rotate(14deg)}55%{transform:rotate(-7deg)}75%{transform:rotate(3deg)}100%{transform:rotate(0)}}
+.fac .qmark{animation:qbob 1.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes qbob{50%{transform:translateY(-3px) rotate(6deg)}}
+.tile.exit{background:#f1ece2}
+.tile.idle .fac{opacity:.92}
+
+/* ---------- shift stage: progress bar + running stripes */
+.shift-stage{position:relative;overflow:hidden}
+.shift-stage::after{content:"";position:absolute;left:0;bottom:0;height:8px;width:calc(var(--shift-prog,0) * 100%);background:#fff;opacity:.85;transition:width .2s linear}
+body[data-shift="run"] .shift-stage{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.07) 0 18px,transparent 18px 36px);background-size:51px 51px;animation:stripes 1s linear infinite}
+@keyframes stripes{to{background-position:51px 0}}
+body[data-shift="done"] .shift-stage::after{background:var(--accent)}
+
+/* ---------- rubber stamps */
+.stamp{display:inline-flex;align-items:center;justify-content:center;gap:.3em;font-weight:900;letter-spacing:.12em;color:var(--accent);border:3px solid currentColor;border-radius:8px;padding:.18em .6em;transform:rotate(-6deg);line-height:1.2;white-space:nowrap;box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 4px currentColor;background:rgba(255,255,255,.35);
+  -webkit-mask-image:radial-gradient(circle at 30% 40%,#000 55%,rgba(0,0,0,.82) 70%,#000 85%);mask-image:radial-gradient(circle at 30% 40%,#000 55%,rgba(0,0,0,.82) 70%,#000 85%)}
+.stamp.sm{font-size:15px;padding:.12em .5em;border-width:2.5px;box-shadow:inset 0 0 0 1.5px #fff,inset 0 0 0 3px currentColor}
+.stamp.big{font-size:22px}
+.stamp.ink{color:var(--ink)}
+.stamp.slam-wait{opacity:0}
+.stamp.slam{animation:slam .42s var(--ease-out) both}
+@keyframes slam{0%{opacity:0;transform:rotate(-14deg) scale(2.6)}55%{opacity:1;transform:rotate(-5deg) scale(.92)}75%{transform:rotate(-6deg) scale(1.04)}100%{transform:rotate(-6deg) scale(1)}}
+.confirmed-card{gap:12px;align-items:center}
+.class-aha.slam-wait{opacity:0}
+.class-aha.slam{animation:ahain .55s var(--ease-out) both}
+@keyframes ahain{0%{opacity:0;transform:translateY(10px) scale(.96)}100%{opacity:1;transform:none}}
+
+/* ---------- receipt (phone ledger) */
+.receipt{position:relative;background:#fffdf7;margin:18px 2px 14px;padding:22px 20px 18px;box-shadow:0 14px 26px -14px rgba(80,45,10,.35),0 1px 0 rgba(0,0,0,.04);font-family:var(--mono)}
+.receipt::before,.receipt::after{content:"";position:absolute;left:0;right:0;height:10px;background:linear-gradient(-45deg,transparent 7px,#fffdf7 0) 0 0/14px 10px,linear-gradient(45deg,transparent 7px,#fffdf7 0) 0 0/14px 10px}
+.receipt::before{top:-10px;transform:scaleY(-1)}
+.receipt::after{bottom:-10px}
+.receipt-head{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding-bottom:12px;border-bottom:2px dashed #cfc5b4;margin-bottom:8px}
+.receipt-head b{font-family:var(--font);font-size:15px;letter-spacing:.08em}.receipt-head span{font-weight:700;font-size:15px;text-align:right}.receipt-head small{grid-column:1/-1;color:var(--muted);font-size:12px}
+.receipt-lines{font-size:15px}.receipt-lines td{border-bottom:1px dotted #d8cfbf;padding:7px 2px}.receipt-lines td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.receipt-total{display:flex;align-items:baseline;justify-content:space-between;border-top:3px double var(--ink);margin-top:10px;padding-top:8px}
+.receipt-total span{font-family:var(--font);font-weight:800}.receipt-total .profit-value{font-size:52px;line-height:1}
+.receipt.good .receipt-total .profit-value{color:var(--accent)}
+.receipt-stamp{display:flex;justify-content:flex-end;margin:10px -4px 2px}
+.receipt-note{font-family:var(--font);font-size:14px;color:var(--muted);margin-top:10px}
+.g-vs-f{margin-top:6px;padding:10px 12px;border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:0 10px 10px 0;font-weight:600}
+
+/* ---------- split-flap numbers */
+.flapping,.landed{display:inline-block;min-width:1.2ch}
+.flapping{color:var(--ink);background:linear-gradient(180deg,#2a2723 0 49%,#141210 51%);color:#fff;border-radius:10px;padding:0 .12em}
+.flip-tick{animation:fliptick .07s linear}
+@keyframes fliptick{0%{transform:perspective(300px) rotateX(-70deg)}100%{transform:none}}
+.landed{animation:land .45s var(--ease-out)}
+@keyframes land{0%{transform:scale(1.18);color:var(--accent)}100%{transform:none}}
+
+/* ---------- sequential reveal on the projector */
+.chart-comparison.revealing .profit-segment{animation:grow .55s var(--ease-out) both;animation-delay:calc(.35s + var(--ri,0) * .11s);transform-origin:left}
+.chart-comparison.revealing .profit-segment.worse{transform-origin:right}
+.chart-comparison.revealing .actual-dot,.chart-comparison.revealing .plot-values{animation:fadein .3s both;animation-delay:calc(.75s + var(--ri,0) * .11s)}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.histogram.revealing .hist-bar{animation:rise .6s var(--ease-out) both;transform-origin:bottom}
+.histogram.revealing .hist-bin:nth-child(2n) .hist-bar{animation-delay:.08s}.histogram.revealing .hist-bin:nth-child(3n) .hist-bar{animation-delay:.16s}
+.histogram.revealing .actual-exit-line{animation:drop .5s 1.2s cubic-bezier(.5,0,.75,0) both;transform-origin:top}
+.histogram.revealing .actual-exit-label{animation:fadein .3s 1.6s both}
+@keyframes rise{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes drop{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.hist-bar{background:#cfc6b6!important}.actual-bin .hist-bar{background:var(--accent)!important}
+.actual-exit-label{background:var(--accent);color:#fff;border-radius:6px;padding:2px 8px;transform:translateX(-50%) rotate(-4deg)}
+
+/* ---------- small touches */
+.sfx-toggle{padding:6px 9px;display:inline-flex;align-items:center}
+.sfx-toggle[aria-pressed="false"]{opacity:.55}
+.toast{bottom:auto;top:14px;animation:toastdown .3s var(--ease-out) both}
+@keyframes toastdown{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translateX(-50%)}}
+.btn.primary:not([disabled]){background-image:linear-gradient(180deg,rgba(255,255,255,.12),rgba(0,0,0,.06))}
+.q-cards .v{display:block}
+
+@media (prefers-reduced-motion:reduce){
+  .fac *,.tile .fac,.shift-stage,.stamp,.receipt *,.chart-comparison *,.histogram *{animation:none!important;transition:none!important}
+  .stamp.slam-wait,.class-aha.slam-wait{opacity:1}
+}

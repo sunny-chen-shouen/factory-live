@@ -57,7 +57,7 @@
   function topbar(team, snap) {
     var langBtn = '<button class="btn sm ghost" data-act="lang">' + (FL.lang === 'zh' ? 'EN' : '中') + '</button>';
     var ph = snap ? '<span class="pill solid">' + t('ph_' + snap.session.phase) + '</span>' : '';
-    return '<div class="topbar"><a class="btn sm ghost" href="#/" aria-label="' + t('back_home') + '">←</a><div class="brand"><i></i>' + t('app_title') + '</div><div class="grow"></div>' + ph + langBtn + '</div>' +
+    return '<div class="topbar"><a class="btn sm ghost" href="#/" aria-label="' + t('back_home') + '">←</a><div class="brand"><i></i>' + t('app_title') + '</div><div class="grow"></div>' + ph + (FL.sfx ? FL.sfx.toggleHTML() : '') + langBtn + '</div>' +
       (FL.store.online ? '' : '<div class="banner warn small" role="alert">' + t('offline') + '</div>') +
       (team ? '<div class="card row" style="margin:10px 0"><div class="grow"><div class="big" style="font-weight:800">' + esc(team.name) + '</div><div class="muted small">' + t('table_n', team.table_no) + ' · ' + t('k_people', team.present) + '</div></div></div>' : '');
   }
@@ -153,7 +153,7 @@
           '<div class="seg c2"><button class="btn primary" data-act="confirm" data-kind="' + kind + '" data-lv="' + r.L + '" data-ok="1">' + t('confirm_ok') + '</button>' +
           '<button class="btn" data-act="confirm" data-kind="' + kind + '" data-lv="' + r.L + '" data-ok="0">' + t('confirm_no') + '</button></div></div>';
       } else if (r.status === 'confirmed' || r.status === 'host') {
-        out += '<div class="card"><span class="chip ok">' + t('st_confirmed') + '</span> ' + t('confirmed_p', '<b class="num">' + r.q + '</b>') + '</div>';
+        out += '<div class="card row confirmed-card"><span class="stamp sm" data-sk="conf' + kind + ':' + r.L + ':' + r.q + '">' + t('stamp_confirmed') + '</span><span>' + t('confirmed_p', '<b class="num">' + r.q + '</b>') + '</span></div>';
       }
     });
     if (needsOwn && !mine.length && counting && st.st === 'done') out += '<div class="card muted">' + t('wait_neighbour') + '</div>';
@@ -243,7 +243,8 @@
       var N = openCount(snap), pred = U.pred != null ? U.pred : (mine && mine.predict != null ? mine.predict : 0);
       pred = Math.max(0, Math.min(pred, Math.max(N, 0)));
       out += '<div class="card accent stack"><h2>' + t('d2_h') + '</h2>' + paramCards(par) + '<div>' + t('d2_p', par.F) + '</div></div>';
-      out += '<div class="card stack"><h3>' + t('plan_h') + '</h3>' + planTable(snap, me, renew ? L2 : null) + '</div>';
+      var gRows = C.planRows(pts, par.p, par.w), gBest = gRows.length > 1 ? Math.max.apply(null, gRows.map(function (r) { return r.net; })) : null;
+      out += '<div class="card stack"><h3>' + t('plan_h') + '</h3>' + planTable(snap, me, renew ? L2 : null) + (gBest != null ? '<div class="g-vs-f">' + t('g_vs_f', '<b>' + sg(gBest) + '</b>', '<b>' + par.F + '</b>') + '</div>' : '') + '</div>';
       out += '<div class="card stack"><h3>' + t('d2_q') + '</h3><div class="seg c2">' +
         '<button class="btn ' + (renew === true ? 'on acc' : '') + '" data-act="renew" data-v="1">' + t('renew') + '<small>' + t('pay_f', par.F) + '</small></button>' +
         '<button class="btn ' + (renew === false ? 'on' : '') + '" data-act="renew" data-v="0">' + t('exit') + '<small>' + t('profit_0') + '</small></button></div>';
@@ -268,7 +269,7 @@
     return '<div class="banner">' + t('prev_work', sel, q, par.p * q, par.w * sel, par.F, sg(pr)) + '</div>' + (per === 1 ? '<div class="tiny muted">' + t('prev_stop_cmp', sg(-par.F)) + '</div>' : '');
   }
   function lockBtn(mine, ready, act) {
-    return (mine ? '<div class="row"><span class="chip ok">' + t('locked') + '</span><span class="small muted">' + t('locked_note') + '</span></div>' : '') +
+    return (mine ? '<div class="row"><span class="stamp sm" data-sk="lock' + mine.period + ':' + mine.L + ':' + mine.renew + '">' + t('stamp_locked') + '</span><span class="small muted">' + t('locked_note') + '</span></div>' : '') +
       '<button class="btn primary block" data-act="' + act + '"' + (ready ? '' : ' disabled') + '>' + (mine ? t('relock') : t('lock')) + '</button>';
   }
   FL.acts.sel1 = function (el) { U.sel1 = +el.dataset.lv; FL.render(true); };
@@ -308,7 +309,7 @@
       '<tr><td>' + t('l_rev', par.p) + '</td><td>' + FL.n2(P.rev) + '</td></tr>' +
       '<tr><td>' + t('l_wage', par.w, P.L) + '</td><td>' + (P.wage ? '−' + FL.n2(P.wage) : '0') + '</td></tr>' +
       '<tr><td>' + t('l_rent') + '</td><td>' + (par.F ? '−' + par.F : '0') + '</td></tr>' +
-      '<tr class="hl"><td>' + t('l_profit') + '</td><td class="sign">' + sg(P.profit) + '</td></tr>';
+      '';
   }
   function ledgerView(snap, me, per) {
     var L = C.ledger(me, snap), P = L.periods[per], par = snap.session.params, out = '';
@@ -325,7 +326,13 @@
     }
     var delta = P.counterfactual == null ? null : P.profit - P.counterfactual;
     var compare = delta == null ? '' : t('profit_delta', sg(delta), per === 1 ? t('stop') : P.renew ? t('exit') : t('renew')) + (P.counterfactualKind === 'estimate' ? '*' : '');
-    out += '<div class="card stack"><h2>' + t('ledger_h', per) + '</h2><div class="profit-hero"><div class="muted small">' + t('l_profit') + '</div><div class="profit-value num">' + sg(P.profit) + '</div><div class="profit-compare">' + compare + '</div></div>' + table + '<div class="banner">' + cmp + '</div>' + (P.counterfactualKind === 'estimate' ? '<div class="tiny muted">' + t('est_note') + '</div>' : '') + '</div>';
+    var otherName = per === 1 ? t('stop') : P.renew ? t('exit') : t('renew'), est = P.counterfactualKind === 'estimate' ? '*' : '';
+    var stampTxt = delta == null ? '' : delta > 0 ? t('stamp_better', otherName, sg(delta) + est) : delta < 0 ? t('stamp_worse', otherName, sg(delta) + est) : t('stamp_same', otherName);
+    out += '<div class="receipt' + (delta > 0 ? ' good' : delta < 0 ? ' bad' : '') + '"><div class="receipt-head"><b>' + t('app_title') + '</b><span>' + t('receipt_title', per) + '</span><small>' + t('receipt_meta', me.table_no, esc(snap.session.code)) + '</small></div>' +
+      '<table class="t receipt-lines">' + ledgerRows(P, par) + '</table>' +
+      '<div class="receipt-total"><span>' + t('l_profit') + '</span><b class="profit-value num">' + sg(P.profit) + '</b></div>' +
+      (stampTxt ? '<div class="receipt-stamp"><span class="stamp big' + (delta < 0 ? ' ink' : '') + '" data-sk="led' + per + ':' + P.profit + '">' + stampTxt + '</span></div>' : '') +
+      (per === 2 || P.counterfactual == null ? '<div class="receipt-note">' + cmp + '</div>' : '') + (est ? '<div class="tiny muted receipt-note">' + t('est_note') + '</div>' : '') + '</div>';
     if (per === 2) {
       out += '<div class="card"><div class="row"><div class="grow muted">' + t('total_h') + '</div><div class="huge num">' + sg(L.total) + '</div></div></div>';
       var agg = C.classAggregates(snap), p2 = P;

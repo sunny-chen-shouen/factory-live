@@ -1,7 +1,7 @@
 import sys, pathlib
 root = pathlib.Path(__file__).parent
 app = root / 'app'
-order = ['qrlib.js', 'calc.js', 'api.js', 'i18n.js', 'core.js', 'views_team.js', 'views_screen.js', 'views_host.js', 'fx.js', 'main.js']
+order = ['qrlib.js', 'calc.js', 'api.js', 'i18n.js', 'core.js', 'views_team.js', 'views_screen.js', 'views_host.js', 'fx.js', 'juice.js', 'main.js']
 script = '\n'.join((app / f).read_text() for f in order)
 script = script.replace('</script', '<\\/script')
 html = (app / 'index.src.html').read_text()
