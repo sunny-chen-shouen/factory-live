@@ -19,7 +19,8 @@
   };
 
   /* ------------------------------------------------ language */
-  FL.lang = FL.ls.get('fl_lang') || ((navigator.language || '').toLowerCase().indexOf('zh') === 0 ? 'zh' : 'en');
+  // English by default for everyone; only an explicit switch (stored in fl_lang) changes it.
+  FL.lang = FL.ls.get('fl_lang') === 'zh' ? 'zh' : 'en';
   FL.t = function (key) {
     var d = FL.dict[key];
     if (!d) { return '⟦' + key + '⟧'; }
@@ -27,7 +28,7 @@
     for (var i = 1; i < arguments.length; i++) s = s.split('{' + (i - 1) + '}').join(arguments[i]);
     return s;
   };
-  FL.setLang = function (l) { FL.lang = l; FL.ls.set('fl_lang', l); document.documentElement.lang = l === 'zh' ? 'zh-Hant' : 'en'; FL.render(true); };
+  FL.setLang = function (l) { FL.lang = l; FL.ls.set('fl_lang', l); document.documentElement.lang = l === 'zh' ? 'zh-Hant' : 'en'; document.title = FL.t('doc_title'); FL.render(true); };
 
   /* ------------------------------------------------ helpers */
   FL.esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };

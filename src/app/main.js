@@ -6,7 +6,7 @@
   FL.changes = FL.changes || {};
 
   FL.views.home = function () {
-    return '<div class="app home-app"><div class="topbar"><div class="brand"><i></i>' + t('home_kicker') + '</div><div class="grow"></div><button class="btn sm ghost" data-act="lang">' + (FL.lang === 'zh' ? 'EN' : '中') + '</button></div>' +
+    return '<div class="app home-app"><div class="topbar"><div class="brand"><i></i>' + t('home_kicker') + '</div><div class="grow"></div><button class="btn sm ghost" data-act="lang" aria-label="' + t('lang_switch') + '" lang="' + (FL.lang === 'zh' ? 'en' : 'zh') + '">' + (FL.lang === 'zh' ? 'EN' : 'ZH') + '</button></div>' +
       '<div class="stack"><div class="card home-hero stack"><div class="home-factory">' + FL.factory('open', 3, { label: t('app_title') }) + '</div><h1>' + t('app_title') + '</h1><h2>' + t('home_question') + '</h2><div class="muted">' + t('home_intro') + '</div><div class="home-steps">' + t('home_steps') + '</div>' +
       (FL.useLocal ? '<div class="banner warn small">' + t('local_banner') + '</div>' : '') + '</div>' +
       '<a class="btn primary block role-link" href="#/team"><span>' + t('home_team') + '<small>' + t('home_team_hint') + '</small></span><b aria-hidden="true">→</b></a>' +
@@ -51,6 +51,6 @@
     if (name && FL.changes[name]) FL.changes[name](el, e);
   });
 
-  document.documentElement.lang = FL.lang === 'zh' ? 'zh-Hant' : 'en';
+  document.documentElement.lang = FL.lang === 'zh' ? 'zh-Hant' : 'en'; document.title = FL.t('doc_title');
   FL.boot();
 })();

@@ -249,6 +249,7 @@
         var was = self.online; self.online = true;
         if (s && typeof s.now === 'number') self.offset = s.now - (t0 + t1) / 2;
         if (!s) { self.snap = null; emit(); return; }
+        if (s.teams && root.FLCalc) s.teams.forEach(function (tm) { if (tm.raw_name == null) tm.raw_name = tm.name; tm.name = root.FLCalc.displayName({ name: tm.raw_name, table_no: tm.table_no }); });
         // re-render only when something actually changed
         var sig = s.session.rev + ':' + s.runs.length + ':' + s.teams.length;
         if (self.snap == null || sig !== self.sig || JSON.stringify(s.session) !== JSON.stringify(self.snap.session) || !was) {

@@ -19,7 +19,7 @@
 
   /* ------------------------------------------------ login / create */
   function login(r) {
-    return '<div class="app"><div class="topbar"><a class="btn sm ghost" href="#/" aria-label="' + t('back_home') + '">←</a><div class="brand"><i></i>' + t('app_title') + '</div><div class="grow"></div><button class="btn sm ghost" data-act="lang">' + (FL.lang === 'zh' ? 'EN' : '中') + '</button></div>' +
+    return '<div class="app"><div class="topbar"><a class="btn sm ghost" href="#/" aria-label="' + t('back_home') + '">←</a><div class="brand"><i></i>' + t('app_title') + '</div><div class="grow"></div><button class="btn sm ghost" data-act="lang" aria-label="' + t('lang_switch') + '" lang="' + (FL.lang === 'zh' ? 'en' : 'zh') + '">' + (FL.lang === 'zh' ? 'EN' : 'ZH') + '</button></div>' +
       (FL.useLocal ? '<div class="banner warn small" style="margin-bottom:12px">' + t('local_banner') + '</div>' : '') +
       '<div class="stack">' + (H.roomMismatch ? '<div class="banner warn" role="alert">' + t('host_room_mismatch', esc(H.roomMismatch.requested), esc(H.roomMismatch.saved)) + '</div>' : '') + '<div class="card stack"><h2>' + t('h_create') + '</h2><div class="muted small">' + t('h_create_p') + '</div>' +
       '<label class="field"><span>' + t('h_key') + '</span><input id="h_key" type="password" autocomplete="new-password" placeholder="' + t('h_key_ph') + '"></label>' +
@@ -31,7 +31,11 @@
   }
   FL.acts.hcreate = function () {
     var key = FL.$('#h_key').value;
-    return FL.api.create(key).then(function (code) { setHost(code, key); }).catch(function (e) { FL.showError(e); });
+    return FL.api.create(key).then(function (code) {
+      setHost(code, key);
+      // New rooms start with an assigned class list (15 groups, simple English names); teachers can change it in the lobby.
+      return FL.api.hostSet(code, key, { params: { roster: { names: window.FLCalc.defaultRoster(15) } } }).then(function () { return FL.store.refresh && FL.store.refresh(); });
+    }).catch(function (e) { FL.showError(e); });
   };
   FL.acts.hresume = function () {
     var code = FL.$('#h_code').value.toUpperCase().trim(), key = FL.$('#h_key2').value;
@@ -85,7 +89,7 @@
     var joinURL = FL.baseURL() + '#/team/' + hc(), screenURL = FL.baseURL() + '#/screen/' + hc();
     return '<div class="app wide"><div class="topbar"><a class="btn sm ghost" href="#/" aria-label="' + t('back_home') + '">←</a><div class="brand"><i></i>' + t('app_title') + ' · ' + t('h_console') + '</div><div class="grow"></div>' +
       (FL.useLocal ? '<span class="pill">' + t('demo_mode') + '</span>' : '') + '<span class="pill solid">' + t('room_code') + ' ' + esc(hc()) + '</span>' +
-      '<button class="btn sm ghost" data-act="lang">' + (FL.lang === 'zh' ? 'EN' : '中') + '</button><button class="btn sm ghost" data-act="hlogout">' + t('leave') + '</button></div>' +
+      '<button class="btn sm ghost" data-act="lang" aria-label="' + t('lang_switch') + '" lang="' + (FL.lang === 'zh' ? 'en' : 'zh') + '">' + (FL.lang === 'zh' ? 'EN' : 'ZH') + '</button><button class="btn sm ghost" data-act="hlogout">' + t('leave') + '</button></div>' +
       (FL.store.online ? '' : '<div class="banner warn" role="alert" style="margin-bottom:10px">' + t('offline') + '</div>') +
       '<div class="stack">' + phasebar + nav + '<div class="hostgrid"><div class="stack" style="min-width:0"><div class="tabs">' + tabs + '</div>' + body + '</div>' +
       '<div class="stack"><div class="card stack"><h3>' + t('links_h') + '</h3>' +
@@ -96,7 +100,7 @@
   };
   function classStats(snap) {
     var act = FL.active(snap), people = act.reduce(function (s, x) { return s + x.present; }, 0), p = pending(snap);
-    return '<div class="small">' + t('stats_teams', act.length, people) + '</div>' + (p.length ? '<div class="small" style="margin-top:6px"><b>' + t('waiting_for') + '</b> ' + p.map(function (x) { return esc(x.name); }).join('、') + '</div>' : '');
+    return '<div class="small">' + t('stats_teams', act.length, people) + '</div>' + (p.length ? '<div class="small" style="margin-top:6px"><b>' + t('waiting_for') + '</b> ' + p.map(function (x) { return esc(x.name); }).join(t('list_sep')) + '</div>' : '');
   }
   FL.acts.htab = function (el) { H.tab = el.dataset.tab; FL.render(true); };
   FL.acts.copy = function (el) { try { navigator.clipboard.writeText(el.dataset.text).then(function () { FL.toast(t('copied')); }, function () { FL.toast(el.dataset.text); }); } catch (e) { FL.toast(el.dataset.text); } };
@@ -127,11 +131,50 @@
   FL.acts.hclear = function () { patch({ shift: {} }); };
   FL.acts.htrialL = function (el) { H.trialL = +el.dataset.lv; FL.render(true); };
 
+  /* ------------------------------------------------ assigned class list */
+  function rosterCard(snap) {
+    var names = window.FLCalc.rosterOf(snap.session.params);
+    if (!names) return '<div class="card row wrap"><div class="grow small muted">' + t('roster_note') + '</div><button class="btn" data-act="hroster_on">' + t('roster_enable') + '</button></div>';
+    var taken = {}; snap.teams.forEach(function (tm) { taken[tm.table_no] = tm; });
+    var rows = names.map(function (n, i) {
+      var tm = taken[i + 1];
+      return '<label class="roster-row' + (tm ? ' joined' : '') + '"><span class="rt">' + t('table_n', i + 1) + '</span>' +
+        '<input class="inl" type="text" maxlength="16" lang="en" spellcheck="false" data-change="hroster_name" data-i="' + i + '" value="' + esc(tm ? tm.name : n) + '"' + (tm ? ' disabled' : '') + '>' +
+        '<span class="rs">' + (tm ? '✓ ' + t('roster_joined') : t('roster_waiting')) + '</span></label>';
+    }).join('');
+    return '<div class="card stack roster-card"><div class="row wrap"><h3 class="grow">' + t('roster_h') + '</h3>' +
+      '<label class="row" style="gap:8px"><span class="small">' + t('roster_n') + '</span><input class="inl" type="number" min="1" max="40" data-change="hroster_n" value="' + names.length + '"></label></div>' +
+      '<div class="small muted">' + t('roster_note') + '</div><div class="roster-grid">' + rows + '</div>' +
+      '<div><button class="btn sm" data-act="hroster_reset">' + t('roster_reset') + '</button></div></div>';
+  }
+  function saveRoster(names) {
+    var seen = {}, bad = names.filter(function (n) { var k = window.FLCalc.cleanName(n).toLowerCase(); var b = !window.FLCalc.validName(n) || seen[k]; seen[k] = 1; return b; });
+    if (bad.length) { FL.toast(t('roster_dup', bad.join(', '))); FL.render(true); return Promise.resolve(); }
+    return patch({ params: { roster: { names: names.map(window.FLCalc.cleanName) } } });
+  }
+  function lockedNames(snap, names) { // checked-in tables keep the name they joined with
+    snap.teams.forEach(function (tm) { if (tm.table_no >= 1 && tm.table_no <= names.length) names[tm.table_no - 1] = tm.name; });
+    return names;
+  }
+  FL.acts.hroster_on = function () { var s = FL.snap(); var n = Math.max(15, s.teams.reduce(function (m, x) { return Math.max(m, x.table_no); }, 0)); return saveRoster(lockedNames(s, window.FLCalc.defaultRoster(n))); };
+  FL.acts.hroster_reset = function () { var s = FL.snap(), cur = window.FLCalc.rosterOf(s.session.params) || []; return saveRoster(lockedNames(s, window.FLCalc.defaultRoster(cur.length || 15))); };
+  FL.changes.hroster_n = function (el) {
+    var s = FL.snap(), cur = window.FLCalc.rosterOf(s.session.params) || [];
+    var maxJoined = s.teams.reduce(function (m, x) { return Math.max(m, x.table_no); }, 0);
+    var n = Math.max(1, Math.min(40, Math.max(maxJoined, Math.round(+el.value || 1))));
+    return saveRoster(lockedNames(s, window.FLCalc.defaultRoster(n, cur)));
+  };
+  FL.changes.hroster_name = function (el) {
+    var s = FL.snap(), cur = window.FLCalc.rosterOf(s.session.params) || [];
+    cur[+el.dataset.i] = window.FLCalc.cleanName(el.value);
+    return saveRoster(lockedNames(s, cur));
+  };
+
   function controlTab(snap) {
     var ph = snap.session.phase, par = snap.session.params, out = '';
     var tip = '<div class="card accent"><div style="font-weight:800">' + t('tip_' + ph) + '</div></div>';
     if (ph === 'lobby') {
-      out = tip + '<div class="card stack"><h3>' + t('teams_in') + '</h3>' + teamList(snap) + '</div>';
+      out = tip + rosterCard(snap) + '<div class="card stack"><h3>' + t('teams_in') + '</h3>' + teamList(snap) + '</div>';
     } else if (ph === 'trial') {
       var done = {}; for (var L = 1; L <= 4; L++) done[L] = snap.runs.filter(function (r) { return r.kind === 'trial' && r.L === L && (r.status === 'confirmed' || r.status === 'host'); }).length;
       var seg = [1, 2, 3, 4].map(function (l) { return '<button class="btn ' + (H.trialL === l ? 'on acc' : '') + '" data-act="htrialL" data-lv="' + l + '">' + l + '<small>' + t('done_n', done[l]) + '</small></button>'; }).join('');
@@ -312,7 +355,7 @@
   };
 
   /* ================================================ rehearsal bots */
-  var NAMES = ['白頭翁', '赤燕', '白鷺', '藍鵲', '黃鸝', '紫鳩', '灰鶯', '橘雀', '翠鳥', '鐵匠', '鉛筆', '墨水', '星火', '浪花', '山茶', '木棉'];
+  var NAMES = window.FLCalc.NAME_POOL;
   var bots = [], doneKeys = {};
   function loadBots() { try { bots = JSON.parse(FL.ls.get('fl_bots_' + (FL.host ? FL.host.code : '')) || '[]'); } catch (e) { bots = []; } }
   function saveBots() { FL.ls.set('fl_bots_' + FL.host.code, JSON.stringify(bots)); }
@@ -328,9 +371,13 @@
     var made = 0, tbl = 1, ni = 0, chain = Promise.resolve();
     for (var i = 0; i < n; i++) {
       (function () {
+        var roster = window.FLCalc.rosterOf(snap.session.params);
         while (used[tbl]) tbl++;
         var table = tbl; used[table] = 1;
-        var name; do { name = NAMES[ni % NAMES.length] + (ni >= NAMES.length ? Math.floor(ni / NAMES.length) + 1 : ''); ni++; } while (nameUsed[name]); nameUsed[name] = 1;
+        var name;
+        if (roster && table <= roster.length) name = roster[table - 1];
+        else { do { name = NAMES[ni % NAMES.length] + (ni >= NAMES.length ? ' ' + (Math.floor(ni / NAMES.length) + 1) : ''); ni++; } while (nameUsed[name]); }
+        nameUsed[name] = 1;
         var present = 2 + (hash(name) % 3);
         chain = chain.then(function () { return FL.api.join(hc(), name, table, present).then(function (r) { bots.push({ team_id: r.team_id, token: r.token }); made++; }); });
       })();

@@ -235,11 +235,53 @@
     return out;
   }
 
+  /* Factory names: simple, common English words, shown identically in both languages. */
+  var NAME_POOL = ['Apple', 'Panda', 'Tiger', 'Sunny', 'River', 'Star', 'Maple', 'Ocean', 'Rocket', 'Lemon', 'Cloud', 'Berry',
+    'Mango', 'Comet', 'Falcon', 'Ginger', 'Harbor', 'Jade', 'Kiwi', 'Lotus', 'Moon', 'Olive', 'Pepper', 'Robin', 'Tulip',
+    'Willow', 'Zebra', 'Amber', 'Bamboo', 'Cedar', 'Dolphin', 'Forest', 'Honey', 'Island', 'Koala', 'Lion', 'Meadow', 'Peach',
+    'Rain', 'Snow', 'Wave', 'Coral', 'Daisy', 'Eagle', 'Fox', 'Grape', 'Hill', 'Ivy', 'Jelly', 'Lake', 'Mint', 'Nut', 'Owl',
+    'Pine', 'Rose', 'Sky', 'Tea', 'Violet', 'Wolf', 'Bear', 'Cherry', 'Dune', 'Fern', 'Gold'];
+  var NAME_MAX = 16, NAME_RE = /^[A-Za-z][A-Za-z0-9 .'&-]{0,15}$/; // short names stay readable on a 20-tile projector
+  function cleanName(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); }
+  function validName(s) { return NAME_RE.test(cleanName(s)); }
+  // Older rooms may hold non-English names. Show a stable English stand-in keyed by table number;
+  // the stored name, team id, table and records are never changed.
+  function displayName(team) {
+    var n = cleanName(team && team.name);
+    if (validName(n)) return n;
+    var tbl = team && team.table_no ? team.table_no : 1;
+    return NAME_POOL[(tbl - 1) % NAME_POOL.length] + (tbl > NAME_POOL.length ? ' ' + Math.ceil(tbl / NAME_POOL.length) : '');
+  }
+
+  /* Assigned class list (session.params.roster = { names: [...] }): table i+1 gets names[i]. */
+  function rosterOf(params) {
+    var r = params && params.roster;
+    return r && Object.prototype.toString.call(r.names) === '[object Array]' && r.names.length ? r.names.slice() : null;
+  }
+  function defaultRoster(n, keep) {
+    var out = (keep || []).slice(0, n), used = {};
+    out.forEach(function (x) { used[String(x).toLowerCase()] = 1; });
+    for (var i = 0; out.length < n && i < NAME_POOL.length * 3; i++) {
+      var cand = NAME_POOL[i % NAME_POOL.length] + (i >= NAME_POOL.length ? ' ' + (Math.floor(i / NAME_POOL.length) + 1) : '');
+      if (!used[cand.toLowerCase()]) { used[cand.toLowerCase()] = 1; out.push(cand); }
+    }
+    return out;
+  }
+  // Check a check-in against the list. Case and surrounding/double spaces are ignored; the canonical name is returned.
+  function rosterCheck(names, table, typed) {
+    var want = cleanName(typed).toLowerCase();
+    if (!(table >= 1 && table <= names.length)) return { ok: false, err: 'roster_table', n: names.length };
+    if (cleanName(names[table - 1]).toLowerCase() === want) return { ok: true, name: names[table - 1] };
+    for (var i = 0; i < names.length; i++) if (cleanName(names[i]).toLowerCase() === want) return { ok: false, err: 'roster_other', other: i + 1, name: names[i] };
+    return { ok: false, err: 'roster_name' };
+  }
+
   var api = {
     PHASES: PHASES, revealFor: revealFor, trialPoints: trialPoints, net: net, profit: profit,
     planRows: planRows, bestPlan: bestPlan, trialSummary: trialSummary, decisionOf: decisionOf, runOf: runOf, ledger: ledger,
     isExitExample: isExitExample, featuredTeam: featuredTeam, comparisonRows: comparisonRows,
-    classAggregates: classAggregates, verifierOf: verifierOf, verifies: verifies, recommend: recommend
+    classAggregates: classAggregates, verifierOf: verifierOf, verifies: verifies, recommend: recommend,
+    NAME_POOL: NAME_POOL, rosterOf: rosterOf, defaultRoster: defaultRoster, rosterCheck: rosterCheck, validName: validName, cleanName: cleanName, displayName: displayName
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.FLCalc = api;

@@ -15,11 +15,12 @@
     var code = r.code || FL.ls.get('fl_lastcode') || '';
     var opts = '';
     for (var i = 1; i <= 40; i++) opts += '<option value="' + i + '">' + t('table_n', i) + '</option>';
+    setTimeout(function () { joinInfo(code); }, 0);
     return topbar(null) +
       '<div class="stack"><div class="card stack"><h1>' + t('join_title') + '</h1><div class="muted">' + t('tagline') + '</div>' +
       (FL.useLocal ? '<div class="banner warn small">' + t('local_banner') + '</div>' : '') +
-      '<label class="field"><span>' + t('room_code') + '</span><input id="j_code" type="text" maxlength="4" autocapitalize="characters" autocomplete="off" value="' + esc(code) + '" style="text-transform:uppercase;font-size:30px;font-weight:800;letter-spacing:.2em"></label>' +
-      '<label class="field"><span>' + t('team_name') + '</span><input id="j_name" type="text" maxlength="24" autocomplete="off" placeholder="' + t('team_name_ph') + '"></label>' +
+      '<label class="field"><span>' + t('room_code') + '</span><input id="j_code" type="text" maxlength="4" autocapitalize="characters" autocomplete="off" data-change="jcode" value="' + esc(code) + '" style="text-transform:uppercase;font-size:30px;font-weight:800;letter-spacing:.2em"></label>' +
+      '<label class="field"><span>' + t('team_name') + '</span><input id="j_name" type="text" maxlength="16" autocomplete="off" autocapitalize="words" spellcheck="false" lang="en" inputmode="latin" pattern="[A-Za-z][A-Za-z0-9 .\x27&amp;-]{0,15}" aria-describedby="j_name_hint" placeholder="' + t('team_name_ph') + '"><small id="j_name_hint" class="muted small">' + t('team_name_hint') + '</small></label>' +
       '<label class="field"><span>' + t('table_no') + '</span><select id="j_table">' + opts + '</select></label>' +
       '<div><div style="font-weight:700;margin-bottom:6px">' + t('present_q') + '</div>' + stepper('present', U.present, 0, 4) + '<div class="tiny muted">' + t('present_hint') + '</div></div>' +
       '<button class="btn primary block" data-act="join">' + t('join_btn') + '</button></div></div>';
@@ -43,19 +44,55 @@
     var n = document.getElementById('sv_' + k); if (n) n.textContent = cur;
     if (k === 'present' && FL.me) FL.run(FL.api.updateTeam(FL.me.team_id, FL.me.token, cur));
   };
+  // Assigned class list for the room being joined: fetched once per code, applied to the form in place
+  var joinRosters = {};
+  function applyJoinInfo(code) {
+    var names = joinRosters[code], sel = FL.$('#j_table'), hint = FL.$('#j_name_hint');
+    if (!sel || !names) return;
+    var cur = +sel.value, html = '';
+    for (var i = 1; i <= names.length; i++) html += '<option value="' + i + '"' + (i === cur ? ' selected' : '') + '>' + t('table_n', i) + '</option>';
+    sel.innerHTML = html; if (hint) hint.textContent = t('roster_hint');
+    sel.closest('form,.card') && sel.closest('.card').classList.add('roster-join');
+  }
+  function joinInfo(code, force) {
+    code = String(code || '').toUpperCase().trim();
+    if (code.length !== 4) return Promise.resolve(null);
+    if (!force && joinRosters[code] !== undefined) { applyJoinInfo(code); return Promise.resolve(joinRosters[code]); }
+    return FL.api.snapshot(code).then(function (s) {
+      joinRosters[code] = s ? (window.FLCalc.rosterOf(s.session.params) || false) : undefined;
+      applyJoinInfo(code); return joinRosters[code];
+    }).catch(function () { return null; });
+  }
+  FL.changes = FL.changes || {};
+  FL.changes.jcode = function (el) { joinInfo(el.value); };
+
   FL.acts.join = function () {
-    var code = FL.$('#j_code').value.toUpperCase().trim(), name = FL.$('#j_name').value.trim(), table = +FL.$('#j_table').value;
+    var code = FL.$('#j_code').value.toUpperCase().trim(), name = window.FLCalc.cleanName(FL.$('#j_name').value), table = +FL.$('#j_table').value;
     if (code.length !== 4) return FL.toast(t('err_no_session'));
     if (!name) return FL.toast(t('err_bad_name'));
-    FL.api.join(code, name, table, U.present).then(function (res) {
+    if (!window.FLCalc.validName(name)) { var nf = FL.$('#j_name'); if (nf) { nf.setAttribute('aria-invalid', 'true'); nf.focus(); } return FL.toast(t('err_name_english')); }
+    var btn = FL.$('[data-act=join]'); if (btn) btn.disabled = true;
+    return joinInfo(code, true).then(function (names) {
+      if (names === undefined) throw new Error('no_session');
+      if (names) { // assigned list: table and name must match the projector
+        var chk = window.FLCalc.rosterCheck(names, table, name);
+        if (!chk.ok) {
+          var nf2 = FL.$('#j_name'); if (nf2) nf2.setAttribute('aria-invalid', 'true');
+          var msg = chk.err === 'roster_other' ? t('err_roster_other', chk.name, chk.other) : chk.err === 'roster_table' ? t('err_roster_table', chk.n) : t('err_roster_name', table);
+          var e2 = new Error(msg); e2.shown = true; throw e2;
+        }
+        name = chk.name;
+      }
+      return FL.api.join(code, name, table, U.present);
+    }).then(function (res) {
       FL.me = res; FL.ls.set('fl_me', JSON.stringify(res)); FL.ls.set('fl_lastcode', code);
       FL.go('#/team/' + code); FL.boot();
-    }).catch(function (e) { FL.toast(FL.errText(e)); });
+    }).catch(function (e) { if (btn) btn.disabled = false; FL.toast(e && e.shown ? e.message : FL.errText(e)); });
   };
   FL.acts.leave = function () { FL.ls.del('fl_me'); FL.me = null; FL.myDec = []; U.sel1 = U.renew2 = U.sel2 = U.pred = null; FL.store.stop(); FL.go('#/'); FL.render(true); };
 
   function topbar(team, snap) {
-    var langBtn = '<button class="btn sm ghost" data-act="lang">' + (FL.lang === 'zh' ? 'EN' : '中') + '</button>';
+    var langBtn = '<button class="btn sm ghost" data-act="lang" aria-label="' + t('lang_switch') + '" lang="' + (FL.lang === 'zh' ? 'en' : 'zh') + '">' + (FL.lang === 'zh' ? 'EN' : 'ZH') + '</button>';
     var ph = snap ? '<span class="pill solid">' + t('ph_' + snap.session.phase) + '</span>' : '';
     return '<div class="topbar"><a class="btn sm ghost" href="#/" aria-label="' + t('back_home') + '">←</a><div class="brand"><i></i>' + t('app_title') + '</div><div class="grow"></div>' + ph + (FL.sfx ? FL.sfx.toggleHTML() : '') + langBtn + '</div>' +
       (FL.store.online ? '' : '<div class="banner warn small" role="alert">' + t('offline') + '</div>') +
@@ -177,7 +214,7 @@
   }
   function stepperCnt(id, v) {
     var key = 'cnt:' + id;
-    return '<div class="row" style="justify-content:center;gap:8px"><button class="btn" data-act="step" data-k="' + key + '" data-d="-5" data-lo="0" data-hi="300">−5</button>' +
+    return '<div class="row count-row" style="justify-content:center;gap:8px"><button class="btn" data-act="step" data-k="' + key + '" data-d="-5" data-lo="0" data-hi="300">−5</button>' +
       '<button class="btn" data-act="step" data-k="' + key + '" data-d="-1" data-lo="0" data-hi="300">−</button>' +
       '<div class="v num" id="sv_' + key + '" style="min-width:90px;text-align:center;font-size:48px;font-weight:900">' + v + '</div>' +
       '<button class="btn" data-act="step" data-k="' + key + '" data-d="1" data-lo="0" data-hi="300">+</button>' +
@@ -203,7 +240,7 @@
     var par = snap.session.params, pts = C.trialPoints(snap.runs, me.id), rows = C.planRows(pts, par.p, par.w);
     if (rows.length < 2) {
       var ref = C.trialSummary(snap.runs, FL.active(snap));
-      var items = [1, 2, 3, 4].filter(function (L) { return L <= me.present && ref.cohortMean[L] != null; }).map(function (L) { return '<span>' + L + ' ' + t(L === 1 ? 'person' : 'people') + '：' + FL.n2(ref.cohortMean[L]) + ' ' + t('rings') + '</span>'; }).join(' · ');
+      var items = [1, 2, 3, 4].filter(function (L) { return L <= me.present && ref.cohortMean[L] != null; }).map(function (L) { return '<span>' + L + ' ' + t(L === 1 ? 'person' : 'people') + t('colon') + FL.n2(ref.cohortMean[L]) + ' ' + t('rings') + '</span>'; }).join(' · ');
       return '<div class="banner warn">' + t('late_hint') + (items ? '<div class="small" style="margin-top:8px">' + t('late_reference', ref.cohortN) + '<br>' + items + '</div>' : '') + '</div>';
     }
     return '<table class="t plan"><tr><th>' + t('c_workers') + '</th><th>' + t('c_rings') + '</th><th>' + t('c_rev') + '</th><th>' + t('c_wage') + '</th><th>' + t('c_net') + '</th><th>' + t('c_dv1') + '<br><small>' + t('c_dv2') + '</small></th></tr>' +

@@ -45,7 +45,13 @@ window.FL.dict = (function () {
   a('join_title', '加入工廠', 'Join a factory');
   a('room_code', '房號', 'Room');
   a('team_name', '工廠名稱', 'Factory name');
-  a('team_name_ph', '例如：白頭翁工廠', 'e.g. Bulbul Works');
+  a('team_name_ph', '例如：Panda', 'e.g. Panda');
+  a('team_name_hint', '請用英文字母（可含數字、空格），例如 Apple、Tiger。', 'English letters (digits and spaces OK), e.g. Apple, Tiger.');
+  a('err_name_english', '工廠名稱請用英文，以字母開頭，16 字元內，例如 Panda。', 'Use an English name that starts with a letter, up to 16 characters, e.g. Panda.');
+  a('lang_switch', '切換成英文', 'Switch to Chinese');
+  a('list_sep', '、', ', ');
+  a('colon', '：', ': ');
+  a('doc_title', '工廠 LIVE · Factory LIVE', 'Factory LIVE');
   a('table_no', '桌號', 'Table');
   a('table_n', '桌 {0}', 'Table {0}');
   a('present_q', '今天你們這桌實到幾人？', 'How many of you are at this table?');
@@ -68,7 +74,7 @@ window.FL.dict = (function () {
   a('trial_wait', '等老師宣布下一班。每一班會指定上工人數 1、2、3、4。', 'Wait for the next shift. Shifts are run with 1, 2, 3, then 4 workers.');
   a('trial_wait_s', '等待下一班試產', 'Waiting for the next trial shift');
   a('trial_shift', '試產：{0} 人上工', 'Trial: {0} on the line');
-  a('you_work', '請 {0} 位同學上工', 'Workers to put on the line: {0}');
+  a('you_work', '請 {0} 位同學上工', 'Put {0} to work');
   a('you_verify_only', '這班要 {1} 人，你們只有 {0} 人，這班只負責驗收。', 'This shift needs {1}; you only have {0}. You verify this time.');
   a('my_trial', '我們的試產紀錄', 'Our trial results');
   a('no_trial_yet', '還沒有試產紀錄。', 'No trial results yet.');
@@ -164,15 +170,15 @@ window.FL.dict = (function () {
   a('l_profit', '利潤', 'Profit');
   a('l_exit', '退出：不付租金', 'Exited: no rent');
   a('l_decision', '決策', 'Decision');
-  a('l_alt', '另一個選項', 'The alternative');
+  a('l_alt', '另一個選項', 'Alternative');
   a('hire_n', '雇 {0} 人', 'Hire {0}');
   a('cmp1_exact', '今天開工利潤 {0}；若停工是 {1}。開工比停工好 {2}。', 'Open today: {0}. Closing would have been {1}. Opening was better by {2}.');
   a('cmp1_est', '你們今天停工，利潤 {0}。若雇最佳人數，估計 {1}。', 'You closed: {0}. With the best headcount, roughly {1}.');
   a('cmp2_exact', '續租利潤 {0}；若退出是 {1}。', 'Renewed: {0}. Exiting would have been {1}.');
-  a('cmp2_est', '你們退出，利潤 {0}。若續租並雇最佳人數，估計 {1}。', 'You exited: {0}. Renewing with the best headcount, roughly {1}.');
+  a('cmp2_est', '你們退出，利潤 {0}。若續租並雇最佳人數，估計 {1}。', 'You exited: {0}. Renewing at your best headcount: about {1}.');
   a('est_note', '標星號或「估計」的數字是用試產資料推算，不是實際生產的結果。', 'Starred or "estimated" figures come from trial data, not an actual run.');
   a('total_h', '兩期合計', 'Two-period total');
-  a('pred_result', '你們預測 {0} 家會退出，實際是 {1} 家。', 'You predicted {0} exits; the actual number was {1}.');
+  a('pred_result', '你們預測 {0} 家會退出，實際是 {1} 家。', 'You predicted {0} exits; actual: {1}.');
 
   // debrief
   a('debrief_h', '離場單', 'Exit slip');
@@ -316,8 +322,8 @@ window.FL.dict = (function () {
   a('p_s', '收購價 p', 'Price p');
   a('w_s', '工資 w', 'Wage w');
   a('f_s', '租金 F', 'Rent F');
-  a('c_dv1', '多請一人', '+1 worker');
-  a('c_dv2', '增收 / 工資', 'added rev / wage');
+  a('c_dv1', '多請一人', '+1 hire');
+  a('c_dv2', '增收 / 工資', 'gain / wage');
   a('exit_sign', '退租', 'CLOSED');
   a('sound_mute', '關閉音效', 'Mute');
   a('sound_unmute', '開啟音效', 'Sound on');
@@ -332,6 +338,21 @@ window.FL.dict = (function () {
   a('open_word', '開工', 'Open');
   a('best_open', '最佳開工估計', 'best open plan');
   a('vs_pair', '{0} {1}；{2} {3}；差額 {4}', '{0} {1}; {2} {3}; difference {4}');
+  a('roster_h', '指定組名（報到前先投影）', 'Assigned names (shown before check-in)');
+  a('roster_n', '預計組數', 'Expected groups');
+  a('roster_note', '學生照投影輸入「桌號＋英文名」。已報到的組不能改名。', 'Students type the table number and name shown on screen. Checked-in names are locked.');
+  a('roster_reset', '換回預設名字', 'Use default names');
+  a('roster_enable', '改用指定組名', 'Use assigned names');
+  a('roster_dup', '名稱重複或不是英文：{0}', 'Duplicate or non-English name: {0}');
+  a('roster_joined', '已報到', 'Checked in');
+  a('roster_waiting', '尚未報到', 'Not yet');
+  a('roster_count', '已報到 {0} / {1} 組 · {2} 人', '{0} of {1} groups checked in · {2} people');
+  a('roster_screen_tip', '找到你們的桌號，在手機輸入同一個英文名。', 'Find your table and type the same name on your phone.');
+  a('roster_hint', '輸入投影幕上你們桌號旁的英文名（大小寫不拘）。', 'Type the name shown next to your table on the screen (any capitalization).');
+  a('err_roster_name', '桌 {0} 的名字不是這個。請看投影，輸入你們桌號旁的名字。', 'That is not the name for Table {0}. Check the screen and type the name next to your table.');
+  a('err_roster_other', '「{0}」是桌 {1} 的名字。請選桌 {1}，或再確認你們的名字。', '"{0}" belongs to Table {1}. Pick Table {1}, or check your name.');
+  a('err_roster_table', '這班只有桌 1–{0}。', 'This class only has Tables 1–{0}.');
+  a('err_roster_load', '讀不到房間名單，請確認房號後再試。', 'Could not load the room list. Check the room code and try again.');
   a('or_type_code', '或輸入房號', 'or enter the room code');
   a('lobby_wait', '等第一組工廠報到…', 'Waiting for the first factory…');
   a('peek_prev', '看上一階段：{0}', 'Look back: {0}');

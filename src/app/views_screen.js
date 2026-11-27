@@ -12,7 +12,7 @@
     return '<div class="screenhead"><div class="brand big"><i></i>' + t('app_title') + '</div><div class="grow"></div>' +
       '<span class="pill solid" style="font-size:24px">' + t('room_code') + ' ' + esc(snap.session.code) + '</span>' +
       (FL.soundOn ? '' : '<button class="btn sm" data-act="sound">' + t('sound_on') + '</button>') +
-      '<button class="btn sm ghost" data-act="lang">' + (FL.lang === 'zh' ? 'EN' : '中') + '</button></div>' +
+      '<button class="btn sm ghost" data-act="lang" aria-label="' + t('lang_switch') + '" lang="' + (FL.lang === 'zh' ? 'en' : 'zh') + '">' + (FL.lang === 'zh' ? 'EN' : 'ZH') + '</button></div>' +
       '<div class="stepper-phase">' + steps + '</div>' + (FL.store.online ? '' : '<div class="banner warn" role="alert">' + t('offline') + '</div>');
   }
 
@@ -22,7 +22,7 @@
     var lockedFor = function (per) { return snap.locked.some(function (x) { return x.team_id === tm.id && x.period === per; }); };
     var led = (/^(ledger|debrief)/.test(ph)) ? C.ledger(tm, snap) : null;
     var o = { state: 'unk', L: 0, tag: '', badge: '', sub: t('table_n', tm.table_no) + ' · ' + t('k_people', tm.present) };
-    if (ph === 'lobby') { o.state = 'idle'; o.tag = t('k_people', tm.present); }
+    if (ph === 'lobby') { o.state = 'idle'; o.sub = t('table_n', tm.table_no); o.tag = t('k_people', tm.present); }
     else if (ph === 'trial' || ph === 'market') {
       var pts = C.trialPoints(snap.runs, tm.id), n = Object.keys(pts).length;
       o.state = 'idle'; o.tag = t('tested_n', n);
@@ -117,11 +117,23 @@
     var url = FL.baseURL() + '#/team/' + snap.session.code, list = FL.active(snap), people = list.reduce(function (s, x) { return s + x.present; }, 0);
     var shown = url.replace(/^https?:\/\//, '').replace(/#.*$/, ''), boxes = esc(snap.session.code).split('').map(function (ch) { return '<b>' + ch + '</b>'; }).join('');
     var right = list.length ? tiles(snap) : '<div class="lobby-empty"><div class="le-fac">' + FL.factory('open', 2) + '</div><div class="muted big">' + t('lobby_wait') + '</div></div>';
+    var roster = window.FLCalc.rosterOf(snap.session.params), heading = t('joined_h', list.length, people);
+    if (roster) {
+      var byTable = {}; snap.teams.forEach(function (tm) { byTable[tm.table_no] = tm; });
+      var extra = snap.teams.filter(function (tm) { return tm.table_no > roster.length; });
+      var cells = roster.map(function (n, i) {
+        var tm = byTable[i + 1], nm = tm ? tm.name : n;
+        return '<div class="roster-cell' + (tm ? ' in' : '') + '" data-table="' + (i + 1) + '"><div class="rc-t">' + t('table_n', i + 1) + '</div><div class="rc-n">' + esc(nm) + '</div>' +
+          '<div class="rc-s">' + (tm ? '✓ ' + t('k_people', tm.present) : t('roster_waiting')) + '</div></div>';
+      }).concat(extra.map(function (tm) { return '<div class="roster-cell in extra"><div class="rc-t">' + t('table_n', tm.table_no) + '</div><div class="rc-n">' + esc(tm.name) + '</div><div class="rc-s">✓ ' + t('k_people', tm.present) + '</div></div>'; })).join('');
+      heading = t('roster_count', list.length, roster.length, people);
+      right = '<div class="muted roster-tip">' + t('roster_screen_tip') + '</div><div class="roster-board' + (roster.length > 12 ? ' many' : '') + '">' + cells + '</div>';
+    }
     return '<div class="lobby"><div class="lobby-card">' +
       '<div class="lc-kick">' + t('scan_join') + '</div><div class="qrframe">' + FL.qrSVG(url) + '</div>' +
       '<div class="lc-or"><span>' + t('or_type_code') + '</span></div><div class="codeboxes num">' + boxes + '</div>' +
       '<div class="lc-url">' + esc(shown) + '</div></div>' +
-      '<div class="grow stack"><div class="row"><h2 class="grow lobby-h">' + t('joined_h', list.length, people) + '</h2></div>' + right + '</div></div>';
+      '<div class="grow stack"><div class="row"><h2 class="grow lobby-h">' + heading + '</h2></div>' + right + '</div></div>';
   }
 
   function trialScreen(snap) {
