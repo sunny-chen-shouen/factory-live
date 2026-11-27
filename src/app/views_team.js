@@ -108,22 +108,24 @@
     var me = FL.team(snap, FL.me.team_id);
     if (!me) return topbar(null) + '<div class="card stack"><div>' + t('team_gone') + '</div><button class="btn block" data-act="leave">' + t('rejoin') + '</button></div>';
     var live = snap.session.phase;
+    var draftKey = snap.session.code + ':' + me.id + ':' + live;
+    if (U.decisionDraftKey !== draftKey) { U.sel1 = U.sel2 = U.renew2 = U.pred = null; U.decisionDraftKey = draftKey; }
     if (U.peekFor !== live) { U.peek = false; U.peekFor = live; }
-    var peeking = !!(U.peek && PREV[live]), ph = peeking ? PREV[live] : live;
-    var body = ({ lobby: lobby, trial: trial, trialpeek: function (s, m) { return '<div class="card"><h3>' + t('my_trial') + '</h3>' + trialTable(s, m) + '</div>'; },
+    var peeking = !!(U.peek && PREV[live]), ph = peeking ? (live === 'decide1' && snap.session.params.extended_rounds ? 'ledger0' : PREV[live]) : live;
+    var body = ({ lobby: lobby, practice: function (s) { return FL.practiceHTML(s); }, decide0: function (s,m) { return decide(s,m,0); }, run0: function (s,m) { return run(s,m,0); }, ledger0: function (s,m) { return ledgerView(s,m,0); }, trial: trial, trialpeek: function (s, m) { return '<div class="card"><h3>' + t('my_trial') + '</h3>' + trialTable(s, m) + '</div>'; },
       market: market, decide1: function (s, m) { return decide(s, m, 1); }, run1: function (s, m) { return run(s, m, 1); },
       ledger1: function (s, m) { return ledgerView(s, m, 1); }, decide2: function (s, m) { return decide(s, m, 2); }, run2: function (s, m) { return run(s, m, 2); },
       ledger2: function (s, m) { return ledgerView(s, m, 2); }, debrief: debrief })[ph](snap, me);
     var nav = '';
     if (PREV[live]) {
       nav = '<div class="peekbar">' + (peeking
-        ? '<div class="banner warn grow">' + t('peek_note', t('ph_' + (PREV[live] === 'trialpeek' ? 'trial' : PREV[live]))) + '</div><button class="btn primary block" data-act="peek">' + t('peek_back') + '</button>'
-        : '<button class="btn block secondary-nav" data-act="peek">← ' + t('peek_prev', t('ph_' + (PREV[live] === 'trialpeek' ? 'trial' : PREV[live]))) + '</button>') + '</div>';
+        ? '<div class="banner warn grow">' + t('peek_note', t('ph_' + (live === 'decide1' && snap.session.params.extended_rounds ? 'ledger0' : PREV[live] === 'trialpeek' ? 'trial' : PREV[live]))) + '</div><button class="btn primary block" data-act="peek">' + t('peek_back') + '</button>'
+        : '<button class="btn block secondary-nav" data-act="peek">← ' + t('peek_prev', t('ph_' + (live === 'decide1' && snap.session.params.extended_rounds ? 'ledger0' : PREV[live] === 'trialpeek' ? 'trial' : PREV[live]))) + '</button>') + '</div>';
     }
     return '<div class="app-inner">' + topbar(me, snap) + '<div class="stack">' + (peeking ? nav : '') + body + (peeking ? '' : nav) + '</div>' +
       '<div class="center" style="margin-top:24px"><button class="btn sm ghost" data-act="leave">' + t('leave') + '</button></div></div>';
   };
-  var PREV = { market: 'trialpeek', decide1: 'market', run1: 'market', ledger1: 'market', decide2: 'ledger1', run2: 'ledger1', ledger2: 'ledger1', debrief: 'ledger2' };
+  var PREV = { decide0: 'market', run0: 'market', ledger0: 'market', market: 'trialpeek', decide1: 'market', run1: 'market', ledger1: 'market', decide2: 'ledger1', run2: 'ledger1', ledger2: 'ledger1', debrief: 'ledger2' };
   FL.acts.peek = function () { U.peek = !U.peek; FL.render(true); window.scrollTo(0, 0); };
   FL.acts.home = function () { FL.go('#/'); };
 
@@ -169,13 +171,13 @@
   function verifyBlock(snap, me, kind, L) {
     var teams = snap.teams, out = '';
     var assigned = C.verifierOf(me, teams), shift = FL.shiftOf(snap), context = shift ? shift.id : kind + ':' + L;
-    var ownDecision = kind === 'trial' ? null : C.decisionOf(snap.decisions, me.id, kind === 'p1' ? 1 : 2);
+    var ownDecision = kind === 'trial' ? null : C.decisionOf(snap.decisions, me.id, Number(kind.slice(1)));
     var needsOwn = kind === 'trial' ? me.present >= L : !!(ownDecision && ownDecision.renew && ownDecision.L > 0);
     if (U.countContext !== context) { U.cnt = {}; U.countContext = context; }
     out += '<div class="card small">' + (needsOwn ? (assigned ? t('your_verifier', esc(assigned.name), assigned.table_no) : t('need_teacher_verifier')) : t('verify_others_only')) + '</div>';
     var targets = C.verifies(me, teams).filter(function (tg) {
       if (kind === 'trial') return tg.present >= L;
-      var per = kind === 'p1' ? 1 : 2, d = C.decisionOf(snap.decisions, tg.id, per);
+      var per = Number(kind.slice(1)), d = C.decisionOf(snap.decisions, tg.id, per);
       return d && d.renew && d.L > 0;
     });
     var st = FL.shiftState(FL.shiftOf(snap));
@@ -203,7 +205,7 @@
     targets.forEach(function (tg) {
       var run = snap.runs.filter(function (r) { return r.team_id === tg.id && r.kind === kind && (kind === 'trial' ? r.L === L : true); })[0];
       var cur = U.cnt[tg.id] != null ? U.cnt[tg.id] : (run ? run.q : 0);
-      var useL = kind === 'trial' ? L : C.decisionOf(snap.decisions, tg.id, kind === 'p1' ? 1 : 2).L;
+      var useL = kind === 'trial' ? L : C.decisionOf(snap.decisions, tg.id, Number(kind.slice(1))).L;
       out += '<div class="card stack"><h3>' + t('verify_h', esc(tg.name), tg.table_no) + '</h3><div class="muted small">' + t('verify_p', useL) + '</div>' +
         (counting ? '' : '<div class="banner small">' + t('verify_after') + '</div>') +
         stepperCnt(tg.id, cur) +
@@ -237,13 +239,13 @@
       '<div class="card center"><div class="muted small">' + t('f_s') + '</div><div class="huge num">' + par.F + '</div></div></div>';
   }
   function planTable(snap, me, highlightL) {
-    var par = snap.session.params, pts = C.trialPoints(snap.runs, me.id), rows = C.planRows(pts, par.p, par.w);
+    var par = snap.session.params, pts = C.productionPoints(snap.runs, me.id, par), rows = C.planRows(pts, par.p, par.w);
     if (rows.length < 2) {
       var ref = C.trialSummary(snap.runs, FL.active(snap));
-      var items = [1, 2, 3, 4].filter(function (L) { return L <= me.present && ref.cohortMean[L] != null; }).map(function (L) { return '<span>' + L + ' ' + t(L === 1 ? 'person' : 'people') + t('colon') + FL.n2(ref.cohortMean[L]) + ' ' + t('rings') + '</span>'; }).join(' · ');
+      var items = [1, 2, 3, 4].filter(function (L) { return L <= me.present && ref.cohortMean[L] != null; }).map(function (L) { return '<span>' + L + ' ' + t(L === 1 ? 'person' : 'people') + t('colon') + FL.n2(ref.cohortMean[L] * C.shiftSeconds(par, 'run1') / C.shiftSeconds(par, 'trial')) + ' ' + t('rings') + '</span>'; }).join(' · ');
       return '<div class="banner warn">' + t('late_hint') + (items ? '<div class="small" style="margin-top:8px">' + t('late_reference', ref.cohortN) + '<br>' + items + '</div>' : '') + '</div>';
     }
-    return '<table class="t plan"><tr><th>' + t('c_workers') + '</th><th>' + t('c_rings') + '</th><th>' + t('c_rev') + '</th><th>' + t('c_wage') + '</th><th>' + t('c_net') + '</th><th>' + t('c_dv1') + '<br><small>' + t('c_dv2') + '</small></th></tr>' +
+    return (par.extended_rounds ? '<div class="banner small">' + t('time_estimate', C.shiftSeconds(par,'trial'), C.shiftSeconds(par,'run1')) + '</div>' : '') + '<table class="t plan"><tr><th>' + t('c_workers') + '</th><th>' + t('c_rings') + '</th><th>' + t('c_rev') + '</th><th>' + t('c_wage') + '</th><th>' + t('c_net') + '</th><th>' + t('c_dv1') + '<br><small>' + t('c_dv2') + '</small></th></tr>' +
       rows.map(function (r) {
         return '<tr class="' + (r.L === highlightL ? 'hl' : '') + '"><td>' + r.L + '</td><td>' + r.q + '</td><td>' + r.rev + '</td><td>' + r.wage + '</td><td class="sign">' + sg(r.net) + '</td>' +
           '<td class="small">' + (r.dV == null ? '—' : sg(r.dV) + ' / ' + r.dW) + '</td></tr>';
@@ -266,14 +268,14 @@
     return FL.active(snap).length;
   }
   function decide(snap, me, per) {
-    var par = snap.session.params, K = me.present, mine = myDecision(snap, per), pts = C.trialPoints(snap.runs, me.id);
+    var par = snap.session.params, K = me.present, mine = myDecision(snap, per), pts = C.productionPoints(snap.runs, me.id, par);
     var out = '';
-    if (per === 1) {
+    if (per < 2) {
       var sel = U.sel1 != null ? U.sel1 : (mine ? mine.L : null);
       out += '<div class="card accent stack"><h2>' + t('d1_h') + '</h2>' + paramCards(par) + '<div>' + t('d1_p', par.F) + '</div></div>';
       out += '<div class="card stack"><h3>' + t('plan_h') + '</h3>' + planTable(snap, me, sel) + '</div>';
       var btns = ''; for (var L = 0; L <= K; L++) btns += '<button class="btn ' + (sel === L ? 'on acc' : '') + '" data-act="sel1" data-lv="' + L + '">' + (L === 0 ? t('stop') : L) + '<small>' + (L === 0 ? '0 ' + t('people') : t(L === 1 ? 'person' : 'people')) + '</small></button>';
-      out += '<div class="card stack"><h3>' + t('d1_q') + '</h3><div class="seg c5" style="grid-template-columns:repeat(' + Math.min(5, K + 1) + ',1fr)">' + btns + '</div>' + previewBlock(par, pts, sel, 1) + lockBtn(mine, sel != null, 'lock1') + '</div>';
+      out += '<div class="card stack"><h3>' + t('d1_q') + '</h3><div class="seg c5" style="grid-template-columns:repeat(' + Math.min(5, K + 1) + ',1fr)">' + btns + '</div>' + previewBlock(par, pts, sel, per) + lockBtn(mine, sel != null, 'lock1') + '</div>';
     } else {
       var renew = U.renew2 != null ? U.renew2 : (mine ? mine.renew : null);
       var L2 = U.sel2 != null ? U.sel2 : (mine ? mine.L : null);
@@ -294,16 +296,16 @@
       var ready = renew === false || (renew === true && L2 != null);
       out += '<div class="card">' + lockBtn(mine, ready, 'lock2') + '</div>';
     }
-    return out;
+    return (par.extended_rounds ? FL.leaseHTML(snap,per) + (per > 0 ? FL.roundHistoryHTML(snap,me) : '') : '') + out;
   }
   function previewBlock(par, pts, sel, per) {
     if (sel == null) return '';
     if (sel === 'exit') return '<div class="banner">' + t('prev_exit') + '</div>';
-    if (sel === 0) return '<div class="banner">' + (per === 1 ? t('prev_stop', sg(-par.F)) : t('prev_renew0', sg(-par.F))) + '</div>';
+    if (sel === 0) return '<div class="banner">' + (per < 2 ? t('prev_stop', sg(-par.F)) : t('prev_renew0', sg(-par.F))) + '</div>';
     var q = pts[sel];
     if (q == null) return '<div class="banner warn">' + t('prev_untested') + ' ' + t('late_hint') + '</div>';
     var pr = par.p * q - par.w * sel - par.F;
-    return '<div class="banner">' + t('prev_work', sel, q, par.p * q, par.w * sel, par.F, sg(pr)) + '</div>' + (per === 1 ? '<div class="tiny muted">' + t('prev_stop_cmp', sg(-par.F)) + '</div>' : '');
+    return '<div class="banner">' + t('prev_work', sel, q, par.p * q, par.w * sel, par.F, sg(pr)) + '</div>' + (per < 2 ? '<div class="tiny muted">' + t('prev_stop_cmp', sg(-par.F)) + '</div>' : '');
   }
   function lockBtn(mine, ready, act) {
     return (mine ? '<div class="row"><span class="stamp sm" data-sk="lock' + mine.period + ':' + mine.L + ':' + mine.renew + '">' + t('stamp_locked') + '</span><span class="small muted">' + t('locked_note') + '</span></div>' : '') +
@@ -314,9 +316,9 @@
   FL.acts.sel2 = function (el) { U.sel2 = +el.dataset.lv; FL.render(true); };
   function afterLock(p) { return FL.run(p, t('toast_locked')).then(function (res) { if (!res.ok) return res; return FL.api.myDecisions(FL.me.team_id, FL.me.token).then(function (d) { FL.myDec = d; FL.render(true); return res; }); }); }
   FL.acts.lock1 = function () {
-    var snap = FL.snap(), mine = myDecision(snap, 1), L = U.sel1 != null ? U.sel1 : (mine ? mine.L : null);
+    var snap = FL.snap(), mine = myDecision(snap, C.phasePeriod(snap.session.phase)), L = U.sel1 != null ? U.sel1 : (mine ? mine.L : null);
     if (L == null) return;
-    return afterLock(FL.api.submit(FL.me.team_id, FL.me.token, 1, true, L, null));
+    return afterLock(FL.api.submit(FL.me.team_id, FL.me.token, C.phasePeriod(snap.session.phase), true, L, null));
   };
   FL.acts.lock2 = function () {
     var snap = FL.snap(), mine = myDecision(snap, 2);
@@ -329,10 +331,10 @@
 
   /* ------------------------------------------------ production */
   function run(snap, me, per) {
-    var d = C.decisionOf(snap.decisions, me.id, per), kind = per === 1 ? 'p1' : 'p2', out = '';
-    if (!d) return '<div class="card accent stack"><h2>' + t('run_h', per) + '</h2><div>' + t('no_decision') + '</div></div>';
+    var d = C.decisionOf(snap.decisions, me.id, per), kind = 'p' + per, out = '';
+    if (!d) return '<div class="card accent stack"><h2>' + t('run_h', C.roundNumber(per, snap.session.params)) + '</h2><div>' + t('no_decision') + '</div></div>';
     var producing = d.renew && d.L > 0;
-    out += '<div class="card ' + (producing ? 'accent' : '') + ' stack"><h2>' + t('run_h', per) + '</h2>' +
+    out += '<div class="card ' + (producing ? 'accent' : '') + ' stack"><h2>' + t('run_h', C.roundNumber(per, snap.session.params)) + '</h2>' +
       '<div class="big" style="font-weight:800">' + (per === 2 && !d.renew ? t('you_exited') : d.L === 0 ? t('you_stopped') : t('you_work', d.L)) + '</div>' +
       (producing ? FL.cdHTML(snap) : '') + '</div>';
     out += verifyBlock(snap, me, kind, d.L);
@@ -351,32 +353,33 @@
   function ledgerView(snap, me, per) {
     var L = C.ledger(me, snap), P = L.periods[per], par = snap.session.params, out = '';
     if (!P.decided) return '<div class="card">' + t('no_decision') + '</div>';
-    if (!P.complete) return '<div class="card accent stack"><h2>' + t('ledger_h', per) + '</h2><div>' + t('ledger_pending') + '</div></div>';
+    if (!P.complete) return '<div class="card accent stack"><h2>' + t('ledger_h', C.roundNumber(per, snap.session.params)) + '</h2><div>' + t('ledger_pending') + '</div></div>';
     var table = '<table class="t">' + ledgerRows(P, par) + '</table>';
     var cmp;
     if (P.counterfactual == null) cmp = t('comparison_unknown');
     else if (P.counterfactualKind === 'exact') {
       var diff = P.profit - P.counterfactual;
-      cmp = per === 1 ? t('cmp1_exact', sg(P.profit), sg(P.counterfactual), '<b>' + sg(diff) + '</b>') : t('cmp2_exact', sg(P.profit), sg(P.counterfactual));
+      cmp = per < 2 ? t('cmp1_exact', sg(P.profit), sg(P.counterfactual), '<b>' + sg(diff) + '</b>') : t('cmp2_exact', sg(P.profit), sg(P.counterfactual));
     } else {
-      cmp = per === 1 ? t('cmp1_est', sg(P.profit), sg(P.counterfactual)) : t('cmp2_est', sg(P.profit), sg(P.counterfactual));
+      cmp = per < 2 ? t('cmp1_est', sg(P.profit), sg(P.counterfactual)) : t('cmp2_est', sg(P.profit), sg(P.counterfactual));
     }
     var delta = P.counterfactual == null ? null : P.profit - P.counterfactual;
-    var compare = delta == null ? '' : t('profit_delta', sg(delta), per === 1 ? t('stop') : P.renew ? t('exit') : t('renew')) + (P.counterfactualKind === 'estimate' ? '*' : '');
+    var compare = delta == null ? '' : t('profit_delta', sg(delta), per < 2 ? t('stop') : P.renew ? t('exit') : t('renew')) + (P.counterfactualKind === 'estimate' ? '*' : '');
     // Name what each side of the comparison actually is: an open factory is compared with stopping,
     // a stopped factory with its best open plan (estimated from confirmed trials); period 2 mirrors renew/exit.
-    var opened = per === 1 ? P.L > 0 : P.renew;
-    var selfName = per === 1 ? (opened ? t('open_word') : t('stop')) : (opened ? t('renew') : t('exit'));
-    var otherName = per === 1 ? (opened ? t('stop') : t('best_open')) : (opened ? t('exit') : t('renew'));
+    var opened = per < 2 ? P.L > 0 : P.renew;
+    var selfName = per < 2 ? (opened ? t('open_word') : t('stop')) : (opened ? t('renew') : t('exit'));
+    var otherName = per < 2 ? (opened ? t('stop') : t('best_open')) : (opened ? t('exit') : t('renew'));
     var est = P.counterfactualKind === 'estimate' ? '*' : '';
     var pairLine = delta == null ? '' : '<div class="receipt-vs">' + t('vs_pair', selfName, sg(P.profit), otherName, sg(P.counterfactual) + est, sg(delta) + est) + '</div>';
-    var stampOther = per === 1 && !opened ? t('open_word') : otherName;
+    var stampOther = per < 2 && !opened ? t('open_word') : otherName;
     var stampTxt = delta == null ? '' : delta > 0 ? t('stamp_better', stampOther, sg(delta) + est) : delta < 0 ? t('stamp_worse', stampOther, sg(delta) + est) : t('stamp_same', stampOther);
-    out += '<div class="receipt' + (delta > 0 ? ' good' : delta < 0 ? ' bad' : '') + '"><div class="receipt-head"><b>' + t('app_title') + '</b><span>' + t('receipt_title', per) + '</span><small>' + t('receipt_meta', me.table_no, esc(snap.session.code)) + '</small></div>' +
+    out += '<div class="receipt' + (delta > 0 ? ' good' : delta < 0 ? ' bad' : '') + '"><div class="receipt-head"><b>' + t('app_title') + '</b><span>' + t('receipt_title', C.roundNumber(per, snap.session.params)) + '</span><small>' + t('receipt_meta', me.table_no, esc(snap.session.code)) + '</small></div>' +
       '<table class="t receipt-lines">' + ledgerRows(P, par) + '</table>' +
       '<div class="receipt-total"><span>' + t('l_profit') + '</span><b class="profit-value num">' + sg(P.profit) + '</b></div>' +
       pairLine + (stampTxt ? '<div class="receipt-stamp"><span class="stamp big' + (delta < 0 ? ' ink' : '') + '" data-sk="led' + per + ':' + P.profit + '">' + stampTxt + '</span></div>' : '') +
       (per === 2 || P.counterfactual == null ? '<div class="receipt-note">' + cmp + '</div>' : '') + (est ? '<div class="tiny muted receipt-note">' + t('est_note') + '</div>' : '') + '</div>';
+    if (par.extended_rounds && per === 0) out += '<div class="card">' + t('adjust_next') + '</div>';
     if (per === 2) {
       out += '<div class="card"><div class="row"><div class="grow muted">' + t('total_h') + '</div><div class="huge num">' + sg(L.total) + '</div></div></div>';
       var agg = C.classAggregates(snap), p2 = P;
@@ -396,7 +399,7 @@
     return '<div class="card accent stack"><h2>' + t('debrief_h') + '</h2><div>' + t('slip_q', par.F) + '</div></div>' +
       '<div class="card stack"><h3>' + t('slip_h') + '</h3><div class="tiny muted">' + t('draft_note') + '</div><label class="field"><span>' + t('slip_1') + '</span><textarea id="slip1">' + esc(U.slip1) + '</textarea></label>' +
       '<label class="field"><span>' + t('slip_2') + '</span><textarea id="slip2">' + esc(U.slip2) + '</textarea></label><div id="draft_status" class="tiny muted" role="status">' + t('draft_ready') + '</div></div>' +
-      '<div class="card"><table class="t"><tr><th></th><th>' + t('period1') + '</th><th>' + t('period2') + '</th></tr>' +
+      (par.extended_rounds ? FL.roundHistoryHTML(snap,me) : '') + '<div class="card"><table class="t"><tr><th></th><th>' + t('period1') + '</th><th>' + t('period2') + '</th></tr>' +
       '<tr><td>' + t('l_decision') + '</td><td>' + (p1.decided ? (p1.L === 0 ? t('stop') : t('hire_n', p1.L)) : '—') + '</td><td>' + (p2.decided ? (p2.renew ? t('renew') + ' · ' + t('hire_n', p2.L) : t('exit')) : '—') + '</td></tr>' +
       '<tr><td>' + t('l_profit') + '</td><td class="sign">' + (p1.complete ? sg(p1.profit) : '—') + '</td><td class="sign">' + (p2.complete ? sg(p2.profit) : '—') + '</td></tr>' +
       '<tr><td>' + t('l_alt') + '</td><td>' + alternative(p1) + '</td><td>' + alternative(p2) + '</td></tr></table>' +
