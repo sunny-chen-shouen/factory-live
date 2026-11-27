@@ -66,3 +66,22 @@ Historical SQL declares unquoted p_L, which PostgreSQL folds to p_l. JSON must
 send p_l for report, submit, confirm, host count and host decision endpoints.
 api_contract_test.js validates JSON arguments against the SQL declarations;
 the permissive LocalApi mock would not detect this mismatch.
+
+## Extended rounds (2026-11-27)
+
+New teacher-created rooms use extended_rounds=true. Existing rooms keep the
+original two-period flow. Apply sql/003_extended_rounds.sql after 001 and 002.
+
+- Unscored practice: 30s. Four trial headcounts: 30s each. Three scored rounds: 60s each.
+- The initial lease prepays 2F for the first two scored rounds. Each round allocates F
+  exactly once and pays w per hired worker anew. The second round changes workers
+  without another lease payment. Final renewal costs F for one final round; exit is 0.
+- Internal decision/run slots 0,1,2 display as rounds 1,2,3. Legacy slots 1,2 retain
+  their original meanings in legacy rooms. First-round decisions stay hidden until run0.
+- Raw trial counts remain raw. Planning scales trial output by scored/trial duration,
+  marks it as an estimate and prefers verified scored-round output at the same L.
+  Only verified actual scored output enters profit. Timings lock once trials start.
+- CSV preserves raw trial counts, identifies each extended round explicitly, and adds
+  durations, the first-round results and the prepaid lease payment.
+- npm test includes extended_rounds_test.mjs: actual-only scoring, all 84 bilingual
+  role/phase views, independent choices, secret decisions and real PostgreSQL rules.

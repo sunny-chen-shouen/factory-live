@@ -58,16 +58,16 @@
     app.classList.remove('phase-in'); void app.offsetWidth; app.classList.add('phase-in'); clearTimeout(fx._pi); fx._pi = setTimeout(function () { app.classList.remove('phase-in'); }, 700);
     if (first || reduced) return;
     // Financial amounts stay exact; do not animate through misleading intermediate values.
-    if (ph === 'ledger1' || ph === 'ledger2' || ph === 'debrief') {
+    if (ph === 'ledger0' || ph === 'ledger1' || ph === 'ledger2' || ph === 'debrief') {
       if (r.role === 'screen') { /* projector sound: juice.js */ }
       else if (FL.me && FL.C) {
         try {
-          var me = FL.team(snap, FL.me.team_id), P = window.FLCalc.ledger(me, snap).periods[ph === 'ledger2' ? 2 : 1];
+          var me = FL.team(snap, FL.me.team_id), P = window.FLCalc.ledger(me, snap).periods[ph === 'debrief' ? 2 : window.FLCalc.phasePeriod(ph)];
           if (P && P.complete && P.profit > 0) { fx.confetti(window.innerWidth / 2, 160, 34); fx.buzz([40, 40, 80]); }
           else fx.buzz(40);
         } catch (e) { /* ignore */ }
       }
-    } else if (r.role === 'team' && (ph === 'trial' || ph === 'decide1' || ph === 'decide2' || ph === 'run1' || ph === 'run2')) {
+    } else if (r.role === 'team' && (ph === 'practice' || ph === 'decide0' || ph === 'run0' || ph === 'trial' || ph === 'decide1' || ph === 'decide2' || ph === 'run1' || ph === 'run2')) {
       fx.buzz(30);
     }
   }

@@ -34,7 +34,7 @@
     return FL.api.create(key).then(function (code) {
       setHost(code, key);
       // New rooms start with an assigned class list (15 groups, simple English names); teachers can change it in the lobby.
-      return FL.api.hostSet(code, key, { params: { roster: { names: window.FLCalc.defaultRoster(15) } } }).then(function () { return FL.store.refresh && FL.store.refresh(); });
+      return FL.api.hostSet(code, key, { params: { roster: { names: window.FLCalc.defaultRoster(15) }, extended_rounds: true, practice_secs: 30, trial_secs: 30, secs: 60 } }).then(function () { return FL.store.refresh && FL.store.refresh(); });
     }).catch(function (e) { FL.showError(e); });
   };
   FL.acts.hresume = function () {
@@ -59,14 +59,14 @@
   }
   function pending(snap) { // who has not locked / reported
     var ph = snap.session.phase, act = FL.active(snap), out = [];
-    if (ph === 'decide1' || ph === 'decide2') {
-      var per = ph === 'decide1' ? 1 : 2;
+    if (/^decide[012]$/.test(ph)) {
+      var per = C.phasePeriod(ph);
       act.forEach(function (tm) { if (!snap.locked.some(function (x) { return x.team_id === tm.id && x.period === per; })) out.push(tm); });
     } else if (ph === 'trial') {
       var sh = FL.shiftOf(snap);
       if (sh) act.forEach(function (tm) { if (tm.present >= sh.L && !snap.runs.some(function (r) { return r.team_id === tm.id && r.kind === 'trial' && r.L === sh.L && r.status !== 'disputed' && r.status !== 'reported'; })) out.push(tm); });
-    } else if (ph === 'run1' || ph === 'run2') {
-      var per2 = ph === 'run1' ? 1 : 2, kind = ph === 'run1' ? 'p1' : 'p2';
+    } else if (/^run[012]$/.test(ph)) {
+      var per2 = C.phasePeriod(ph), kind = 'p' + C.phasePeriod(ph);
       act.forEach(function (tm) {
         var d = C.decisionOf(snap.decisions, tm.id, per2);
         if (!d || (d.renew && d.L > 0 && !snap.runs.some(function (r) { return r.team_id === tm.id && r.kind === kind && r.L === d.L && (r.status === 'confirmed' || r.status === 'host'); }))) out.push(tm);
@@ -80,7 +80,7 @@
     if (!FL.guardHostRoute(r)) return login(r);
     var snap = FL.snap();
     if (!snap) return '<div class="app"><div class="card center">' + t('loading') + '</div><div class="center" style="margin-top:14px"><button class="btn ghost" data-act="hlogout">' + t('leave') + '</button></div></div>';
-    var ph = snap.session.phase, i = PH.indexOf(ph);
+    var PH = C.phasesFor(snap.session.params), ph = snap.session.phase, i = PH.indexOf(ph);
     var phasebar = '<div class="phasebar">' + PH.map(function (p, k) { return '<span class="ph ' + (k === i ? 'on' : '') + '">' + t('ph_' + p) + '</span>'; }).join('') + '</div>';
     var nav = '<div class="row wrap"><button class="btn" data-act="hprev"' + (i === 0 ? ' disabled' : '') + '>← ' + t('prev') + '</button>' +
       '<button class="btn primary" data-act="hnext"' + (i === PH.length - 1 ? ' disabled' : '') + '>' + (i < PH.length - 1 ? t('next_to', t('ph_' + PH[i + 1])) : t('end')) + ' →</button></div>';
@@ -107,26 +107,27 @@
 
   /* ------------------------------------------------ phase navigation */
   function go(i, el) {
-    var snap = FL.snap(), ph = snap.session.phase, cur = PH.indexOf(ph), nxt = PH[i];
+    var snap = FL.snap(), PH = C.phasesFor(snap.session.params), ph = snap.session.phase, cur = PH.indexOf(ph), nxt = PH[i];
+    if (!nxt) return;
     var p = pending(snap);
     if (i > cur && p.length && /^(decide|run|trial)/.test(ph) && el && !twice(el, t('confirm_skip', p.length))) return;
-    if (ph === 'market' && nxt === 'decide1' && !FL.marketPublished(snap)) return FL.toast(t('publish_first'));
+    if (ph === 'market' && /^decide[01]$/.test(nxt) && !FL.marketPublished(snap)) return FL.toast(t('publish_first'));
     return patch({ phase: nxt, reveal: C.revealFor(nxt), shift: {} });
   }
-  FL.acts.hnext = function (el) { return go(PH.indexOf(FL.snap().session.phase) + 1, el); };
-  FL.acts.hprev = function () { return go(PH.indexOf(FL.snap().session.phase) - 1, null); };
+  FL.acts.hnext = function (el) { return go(C.phasesFor(FL.snap().session.params).indexOf(FL.snap().session.phase) + 1, el); };
+  FL.acts.hprev = function () { return go(C.phasesFor(FL.snap().session.params).indexOf(FL.snap().session.phase) - 1, null); };
 
   /* ------------------------------------------------ control tab */
   function startShiftBtn(snap, L) {
-    var sh = FL.shiftOf(snap), st = FL.shiftState(sh), secs = snap.session.params.secs;
+    var sh = FL.shiftOf(snap), st = FL.shiftState(sh), secs = C.shiftSeconds(snap.session.params, snap.session.phase);
     return (sh && L && sh.L !== L ? '<div class="banner small">' + t('trial_selected_next', L, sh.L) + '</div>' : '') + '<div class="row wrap"><button class="btn primary" data-act="hshift" data-lv="' + (L || 0) + '">' + (st.st === 'idle' || st.st === 'done' ? t('start_shift', secs) : t('restart_shift')) + '</button>' +
       (sh ? '<button class="btn" data-act="hclear">' + t('clear_shift') + '</button>' : '') + '</div>' + FL.cdHTML(snap);
   }
   FL.acts.hshift = function (el) {
-    var snap = FL.snap(), secs = snap.session.params.secs, now = FL.store.serverNow();
+    var snap = FL.snap(), secs = C.shiftSeconds(snap.session.params, snap.session.phase), now = FL.store.serverNow();
     var shift = { phase: snap.session.phase, id: now, starts_at: now + 4000, ends_at: now + 4000 + secs * 1000, secs: secs };
     if (snap.session.phase === 'trial') shift.L = H.trialL;
-    patch({ shift: shift });
+    return patch(snap.session.params.extended_rounds && snap.session.phase === 'trial' ? { shift: shift, params: { timing_locked: true } } : { shift: shift });
   };
   FL.acts.hclear = function () { patch({ shift: {} }); };
   FL.acts.htrialL = function (el) { H.trialL = +el.dataset.lv; FL.render(true); };
@@ -175,20 +176,22 @@
     var tip = '<div class="card accent"><div style="font-weight:800">' + t('tip_' + ph) + '</div></div>';
     if (ph === 'lobby') {
       out = tip + rosterCard(snap) + '<div class="card stack"><h3>' + t('teams_in') + '</h3>' + teamList(snap) + '</div>';
+    } else if (ph === 'practice') {
+      out = tip + '<div class="card stack"><h3>' + t('practice_h') + '</h3><p>' + t('practice_p') + '</p>' + startShiftBtn(snap) + '</div>';
     } else if (ph === 'trial') {
       var done = {}; for (var L = 1; L <= 4; L++) done[L] = snap.runs.filter(function (r) { return r.kind === 'trial' && r.L === L && (r.status === 'confirmed' || r.status === 'host'); }).length;
       var seg = [1, 2, 3, 4].map(function (l) { return '<button class="btn ' + (H.trialL === l ? 'on acc' : '') + '" data-act="htrialL" data-lv="' + l + '">' + l + '<small>' + t('done_n', done[l]) + '</small></button>'; }).join('');
       out = tip + '<div class="card stack"><h3>' + t('trial_pick') + '</h3><div class="seg" style="grid-template-columns:repeat(4,1fr)">' + seg + '</div>' + startShiftBtn(snap, H.trialL) + '</div>' + pendingCard(snap);
     } else if (ph === 'market') {
       out = tip + '<div class="card stack"><h3>' + t('tab_params') + '</h3>' + paramForm(snap) + '<div class="banner" data-market-status aria-live="polite">' + t(par.market_published ? 'market_live' : 'market_private') + '</div><button class="btn primary block" data-act="hpublish">' + t(par.market_published ? 'market_republish' : 'market_publish') + '</button></div>' + recommendCard(snap);
-    } else if (ph === 'decide1' || ph === 'decide2') {
+    } else if (/^decide[012]$/.test(ph)) {
       out = tip + pendingCard(snap, true);
-    } else if (ph === 'run1' || ph === 'run2') {
+    } else if (/^run[012]$/.test(ph)) {
       out = tip + '<div class="card stack"><h3>' + t('run_shift') + '</h3>' + startShiftBtn(snap) + '</div>' + pendingCard(snap) + disputeCard(snap);
-    } else if (ph === 'ledger1' || ph === 'ledger2') {
-      var per = ph === 'ledger1' ? 1 : 2, chosen = par.featured_period === per || (per === 1 && !par.featured_period) ? par.featured : null;
+    } else if (/^ledger[012]$/.test(ph)) {
+      var per = C.phasePeriod(ph), chosen = par.featured_period === per || (per === 1 && par.featured_period == null) ? par.featured : null;
       var opts = '<option value="">' + t('auto_pick') + '</option>' + FL.active(snap).map(function (tm) {
-        var l = C.ledger(tm, snap), P = l.periods[per], mark = per === 1 ? (P.complete ? sg(P.profit) : '') : (C.isExitExample(l) ? '★ ' : '') + (P.complete ? sg(P.profit) : '');
+        var l = C.ledger(tm, snap), P = l.periods[per], mark = per < 2 ? (P.complete ? sg(P.profit) : '') : (C.isExitExample(l) ? '★ ' : '') + (P.complete ? sg(P.profit) : '');
         return '<option value="' + tm.id + '"' + (chosen === tm.id ? ' selected' : '') + '>' + esc(tm.name) + ' ' + mark + '</option>';
       }).join('');
       out = tip + '<div class="card stack"><h3>' + t('feat_h') + '</h3><select data-change="hfeat">' + opts + '</select>' + (per === 2 ? '<div class="tiny muted">' + t('feat_note') + '</div>' : '') + '</div>' + disputeCard(snap);
@@ -205,19 +208,19 @@
     var p = pending(snap), ph = snap.session.phase;
     if (ph === 'trial' && !FL.shiftOf(snap)) return '<div class="card muted">' + t('trial_wait_s') + '</div>';
     if (!p.length) {
-      var count = FL.active(snap).filter(function (tm) { var d = C.decisionOf(snap.decisions, tm.id, ph === 'run1' ? 1 : 2); return d && d.renew && d.L > 0; }).length;
+      var count = FL.active(snap).filter(function (tm) { var d = C.decisionOf(snap.decisions, tm.id, C.phasePeriod(ph)); return d && d.renew && d.L > 0; }).length;
       return '<div class="card"><span class="chip ok">✓</span> ' + t(/^run/.test(ph) ? (count ? 'all_verified' : 'no_producing') : 'all_in') + '</div>';
     }
     var rows = p.map(function (tm) {
       var extra = '';
-      if (canDecide || (/^run/.test(ph) && !C.decisionOf(snap.decisions, tm.id, ph === 'run1' ? 1 : 2))) {
-        var per = ph === 'decide1' || ph === 'run1' ? 1 : 2, Lopts = ''; for (var l = 0; l <= tm.present; l++) Lopts += '<option value="' + l + '">' + l + '</option>';
+      if (canDecide || (/^run/.test(ph) && !C.decisionOf(snap.decisions, tm.id, C.phasePeriod(ph)))) {
+        var per = C.phasePeriod(ph), Lopts = ''; for (var l = 0; l <= tm.present; l++) Lopts += '<option value="' + l + '">' + l + '</option>';
         extra = '<select class="inl" id="hd_L_' + tm.id + '">' + Lopts + '</select>' + (per === 2 ? '<select class="inl" style="width:110px" id="hd_R_' + tm.id + '"><option value="1">' + t('renew') + '</option><option value="0">' + t('exit') + '</option></select>' : '') +
           '<button class="btn sm" data-act="hdecide" data-team="' + tm.id + '" data-per="' + per + '">' + t('enter_for') + '</button>';
         if (!canDecide) extra = '<span class="chip bad">' + t('no_dec_short') + '</span>' + extra;
       } else if (/^run/.test(ph)) {
-        var per2 = ph === 'run1' ? 1 : 2, d = C.decisionOf(snap.decisions, tm.id, per2);
-        extra = '<input class="inl" type="number" min="0" max="300" id="hq_' + tm.id + '" placeholder="q"><button class="btn sm" data-act="hq" data-team="' + tm.id + '" data-kind="' + (per2 === 1 ? 'p1' : 'p2') + '" data-lv="' + d.L + '">' + t('enter_for') + '</button>';
+        var per2 = C.phasePeriod(ph), d = C.decisionOf(snap.decisions, tm.id, per2);
+        extra = '<input class="inl" type="number" min="0" max="300" id="hq_' + tm.id + '" placeholder="q"><button class="btn sm" data-act="hq" data-team="' + tm.id + '" data-kind="' + ('p' + per2) + '" data-lv="' + d.L + '">' + t('enter_for') + '</button>';
       } else if (ph === 'trial') {
         var sh = FL.shiftOf(snap);
         extra = '<input class="inl" type="number" min="0" max="300" id="hq_' + tm.id + '" placeholder="q"><button class="btn sm" data-act="hq" data-team="' + tm.id + '" data-kind="trial" data-lv="' + sh.L + '">' + t('enter_for') + '</button>';
@@ -227,14 +230,14 @@
     return '<div class="card stack"><h3>' + t('waiting_for') + ' (' + p.length + ')</h3>' + rows + '</div>';
   }
   FL.acts.hdecide = function (el) {
-    var id = el.dataset.team, per = +el.dataset.per, L = +FL.$('#hd_L_' + id).value, rn = per === 1 ? true : FL.$('#hd_R_' + id).value === '1';
+    var id = el.dataset.team, per = +el.dataset.per, L = +FL.$('#hd_L_' + id).value, rn = per < 2 ? true : FL.$('#hd_R_' + id).value === '1';
     return FL.run(FL.api.hostDecide(hc(), hk(), id, per, rn, L, null), t('toast_saved'));
   };
   FL.acts.hq = function (el) {
     var v = FL.$('#hq_' + el.dataset.team).value; if (v === '') return;
     return FL.run(FL.api.hostRun(hc(), hk(), el.dataset.team, el.dataset.kind, +el.dataset.lv, +v), t('toast_saved'));
   };
-  FL.acts.hfeat = function (el) { return patch({ params: { featured: el.value || null, featured_period: FL.snap().session.phase === 'ledger1' ? 1 : 2 } }); };
+  FL.acts.hfeat = function (el) { return patch({ params: { featured: el.value || null, featured_period: C.phasePeriod(FL.snap().session.phase) } }); };
   FL.acts.hlesson = function () { return patch({ params: { show_lesson: !FL.snap().session.params.show_lesson } }); };
   FL.changes = FL.changes || {};
   FL.changes.hfeat = FL.acts.hfeat;
@@ -253,8 +256,8 @@
   /* ------------------------------------------------ params + recommender */
   function paramForm(snap) {
     var par = snap.session.params, locked = /^(decide|run|ledger|debrief)/.test(snap.session.phase);
-    var f = function (k, lab, v, hi) { return '<label class="field"><span>' + lab + '</span><input class="" type="number" min="1" max="' + hi + '" value="' + v + '" data-change="hparam" data-k="' + k + '"' + (locked ? ' disabled' : '') + '></label>'; };
-    return '<div class="row wrap" style="align-items:flex-end">' + f('p', t('p_name'), par.p, 50) + f('w', t('w_name'), par.w, 100) + f('F', t('f_name'), par.F, 300) + f('secs', t('secs_name'), par.secs, 90) + '</div>' + (locked ? '<div class="tiny muted">' + t('params_locked') + '</div>' : '');
+    var f = function (k, lab, v, hi) { return '<label class="field"><span>' + lab + '</span><input class="" type="number" min="1" max="' + hi + '" value="' + v + '" data-change="hparam" data-k="' + k + '"' + (locked || (snap.runs.length && /secs$/.test(k)) || (snap.session.shift && snap.session.shift.id && /secs$/.test(k)) ? ' disabled' : '') + '></label>'; };
+    return '<div class="row wrap" style="align-items:flex-end">' + f('p', t('p_name'), par.p, 50) + f('w', t('w_name'), par.w, 100) + f('F', t('f_name'), par.F, 300) + (par.extended_rounds ? f('practice_secs', t('practice_secs_name'), par.practice_secs, 120) + f('trial_secs', t('trial_secs_name'), par.trial_secs, 120) : '') + f('secs', t('secs_name'), par.secs, 120) + '</div>' + (locked ? '<div class="tiny muted">' + t('params_locked') + '</div>' : '');
   }
   FL.acts.hparam = function (el) { var v = Math.max(1, Math.round(+el.value || 1)); var o = { market_published: false }; o[el.dataset.k] = v; return patch({ params: o }); };
   FL.changes.hparam = FL.acts.hparam;
@@ -269,7 +272,7 @@
     if (button) button.textContent = t(live ? 'market_republish' : 'market_publish');
   };
 
-  function allPoints(snap) { return FL.active(snap).map(function (tm) { return C.trialPoints(snap.runs, tm.id); }); }
+  function allPoints(snap) { return FL.active(snap).map(function (tm) { return C.productionPoints(snap.runs, tm.id, snap.session.params); }); }
   function recommendCard(snap) {
     var recs = C.recommend(allPoints(snap)), par = snap.session.params;
     var rows = recs.length ? recs.map(function (r) {
@@ -281,13 +284,13 @@
   FL.acts.hrec = function (el) { return patch({ params: { p: +el.dataset.p, w: +el.dataset.w, F: +el.dataset.f, market_published: false } }); };
   FL.acts.hpublish = function () {
     var par = {}, fields = FL.$$('[data-change="hparam"]');
-    fields.forEach(function (el) { par[el.dataset.k] = Math.max(1, Math.round(+el.value || 1)); });
+    fields.forEach(function (el) { if (!el.disabled) par[el.dataset.k] = Math.max(1, Math.round(+el.value || 1)); });
     par.market_published = true;
     return patch({ params: par });
   };
   function gTable(snap, par) {
     var act = FL.active(snap), aha = 0, ren = 0, zero = 0, rows = act.map(function (tm) {
-      var pts = C.trialPoints(snap.runs, tm.id); if (Object.keys(pts).length < 1) return '';
+      var pts = C.productionPoints(snap.runs, tm.id, par); if (Object.keys(pts).length < 1) return '';
       var bp = C.bestPlan(pts, par.p, par.w), cls;
       if (bp.G <= 0) { cls = t('cls_stop'); zero++; } else if (bp.G < par.F) { cls = t('cls_aha'); aha++; } else { cls = t('cls_renew'); ren++; }
       return '<tr><td>' + esc(tm.name) + '</td><td>' + bp.L + '</td><td class="sign">' + sg(bp.G) + '</td><td>' + sg(bp.G - par.F) + '</td><td>' + cls + '</td></tr>';
@@ -318,15 +321,15 @@
       var prod = function (per) {
         var d = C.decisionOf(snap.decisions, tm.id, per); if (!d) return '<td>—</td>';
         if (!d.renew || d.L === 0) return '<td class="muted">' + (d.renew ? t('stop') : t('exit')) + '</td>';
-        var kind = per === 1 ? 'p1' : 'p2';
+        var kind = 'p' + per;
         return '<td>' + d.L + '→ ' + numInput(snap, tm, kind, d.L, snap.runs.filter(function (r) { return r.team_id === tm.id && r.kind === kind; })[0]) + '</td>';
       };
-      return '<tr><td>' + tm.table_no + '</td><td><b>' + esc(tm.name) + '</b></td><td><input class="inl" type="number" min="0" max="4" value="' + tm.present + '" data-change="hk" data-team="' + tm.id + '" style="width:60px"></td>' + cells + prod(1) + prod(2) +
+      return '<tr><td>' + tm.table_no + '</td><td><b>' + esc(tm.name) + '</b></td><td><input class="inl" type="number" min="0" max="4" value="' + tm.present + '" data-change="hk" data-team="' + tm.id + '" style="width:60px"></td>' + cells + (snap.session.params.extended_rounds ? prod(0) : '') + prod(1) + prod(2) +
         '<td><button class="btn sm ghost" data-act="hdel" data-team="' + tm.id + '">' + t('del') + '</button></td></tr>';
     }).join('');
     var summary = C.trialSummary(snap.runs, FL.active(snap)), stats = '';
     for (var k = 1; k <= 4; k++) if (summary.mean[k] != null) stats += '<tr><td>' + k + '</td><td>' + FL.n2(summary.mean[k]) + '</td><td>' + summary.counts[k] + '</td><td>' + sg(summary.marginal[k]) + '</td><td>' + summary.pairedCounts[k] + '</td></tr>';
-    return '<div class="card" style="overflow-x:auto"><table class="t compact"><tr><th>#</th><th>' + t('team_name') + '</th><th>' + t('capacity') + '</th><th>L=1</th><th>L=2</th><th>L=3</th><th>L=4</th><th>' + t('period1') + '</th><th>' + t('period2') + '</th><th></th></tr>' + (rows || '<tr><td colspan="10" class="muted">' + t('none_yet') + '</td></tr>') + '</table><div class="tiny muted" style="margin-top:8px">' + t('teams_note') + '</div></div>' + (stats ? '<div class="card stack"><h3>' + t('teacher_trial_stats') + '</h3><table class="t compact"><tr><th>' + t('c_workers') + '</th><th>' + t('mean_q') + '</th><th>n</th><th>' + t('c_mp') + '</th><th>' + t('paired_n') + '</th></tr>' + stats + '</table><div class="small muted">' + t('paired_marginal_note') + '</div></div>' : '');
+    return '<div class="card" style="overflow-x:auto"><table class="t compact"><tr><th>#</th><th>' + t('team_name') + '</th><th>' + t('capacity') + '</th><th>L=1</th><th>L=2</th><th>L=3</th><th>L=4</th>' + (snap.session.params.extended_rounds ? '<th>' + t('period0') + '</th>' : '') + '<th>' + t('period1') + '</th><th>' + t('period2') + '</th><th></th></tr>' + (rows || '<tr><td colspan="10" class="muted">' + t('none_yet') + '</td></tr>') + '</table><div class="tiny muted" style="margin-top:8px">' + t('teams_note') + '</div></div>' + (stats ? '<div class="card stack"><h3>' + t('teacher_trial_stats') + '</h3><table class="t compact"><tr><th>' + t('c_workers') + '</th><th>' + t('mean_q') + '</th><th>n</th><th>' + t('c_mp') + '</th><th>' + t('paired_n') + '</th></tr>' + stats + '</table><div class="small muted">' + t('paired_marginal_note') + '</div></div>' : '');
   }
 
   /* ------------------------------------------------ tools */
@@ -341,11 +344,12 @@
   }
   FL.acts.hreset = function (el) { if (!twice(el, t('sure'))) return; FL.run(FL.api.hostReset(hc(), hk(), el.dataset.scope), t('toast_saved')); };
   FL.acts.hexport = function () {
-    var snap = FL.snap(), par = snap.session.params, head = ['table', 'team', 'K', 'trial1', 'trial2', 'trial3', 'trial4', 'p', 'w', 'F', 'L1', 'q1', 'profit1', 'renew2', 'L2', 'q2', 'profit2', 'total', 'predict2'];
+    var snap = FL.snap(), par = snap.session.params, head = ['table', 'team', 'K', 'trial1', 'trial2', 'trial3', 'trial4', 'p', 'w', 'F', 'L1', 'q1', 'profit1', 'renew2', 'L2', 'q2', 'profit2', 'total', 'predict2', 'extended_rounds', 'trial_seconds', 'production_seconds', 'L_round1', 'q_round1', 'profit_round1', 'prepaid_lease_rent'];
+    if (par.extended_rounds) { head.splice(10,7,'L_round2','q_round2','profit_round2','renew_round3','L_round3','q_round3','profit_round3'); head[18]='predict_round3'; }
     var rows = snap.teams.map(function (tm) {
-      var l = C.ledger(tm, snap), pts = l.points, P1 = l.periods[1], P2 = l.periods[2];
+      var l = C.ledger(tm, snap), pts = C.trialPoints(snap.runs, tm.id), P1 = l.periods[1], P2 = l.periods[2];
       return [tm.table_no, '"' + String(tm.name).replace(/"/g, '""') + '"', tm.present, pts[1] != null ? pts[1] : '', pts[2] != null ? pts[2] : '', pts[3] != null ? pts[3] : '', pts[4] != null ? pts[4] : '', par.p, par.w, par.F,
-        P1.decided ? P1.L : '', P1.q != null ? P1.q : '', P1.complete ? P1.profit : '', P2.decided ? (P2.renew ? 1 : 0) : '', P2.decided ? P2.L : '', P2.q != null ? P2.q : '', P2.complete ? P2.profit : '', l.total == null ? '' : l.total, P2.predict != null ? P2.predict : ''].join(',');
+        P1.decided ? P1.L : '', P1.q != null ? P1.q : '', P1.complete ? P1.profit : '', P2.decided ? (P2.renew ? 1 : 0) : '', P2.decided ? P2.L : '', P2.q != null ? P2.q : '', P2.complete ? P2.profit : '', l.total == null ? '' : l.total, P2.predict != null ? P2.predict : '', !!par.extended_rounds, C.shiftSeconds(par, 'trial'), C.shiftSeconds(par, 'run1'), l.periods[0] && l.periods[0].decided ? l.periods[0].L : '', l.periods[0] && l.periods[0].q != null ? l.periods[0].q : '', l.periods[0] && l.periods[0].complete ? l.periods[0].profit : '', par.F * (par.extended_rounds ? 2 : 1)].join(',');
     });
     H.csv = '﻿' + head.join(',') + '\n' + rows.join('\n');
     try {
@@ -395,7 +399,7 @@
     setTimeout(function () { fn().catch(function () { delete doneKeys[key]; }); }, 700 + Math.random() * 3800);
   }
   function botPoints(snap, tm) {
-    var pts = C.trialPoints(snap.runs, tm.id), out = {};
+    var pts = C.productionPoints(snap.runs, tm.id, snap.session.params), out = {};
     for (var L = 1; L <= tm.present; L++) out[L] = pts[L] != null ? pts[L] : qEst(tm.id, L);
     return out;
   }
@@ -407,15 +411,15 @@
     var sh = FL.shiftOf(snap), st = FL.shiftState(sh);
 
     // 1. bots verify their neighbours once the shift is over
-    if (sh && st.st === 'done' && (ph === 'trial' || ph === 'run1' || ph === 'run2')) {
+    if (sh && st.st === 'done' && (ph === 'trial' || /^run[012]$/.test(ph))) {
       act.forEach(function (tg) {
         var v = C.verifierOf(tg, snap.teams); if (!v || !isBot(v.id)) return;
         var kind, L;
         if (ph === 'trial') { kind = 'trial'; L = sh.L; if (tg.present < L) return; }
-        else { var per = ph === 'run1' ? 1 : 2, d = C.decisionOf(snap.decisions, tg.id, per); if (!d || !d.renew || d.L < 1) return; kind = 'p' + per; L = d.L; }
+        else { var per = C.phasePeriod(ph), d = C.decisionOf(snap.decisions, tg.id, per); if (!d || !d.renew || d.L < 1) return; kind = 'p' + per; L = d.L; }
         if (snap.runs.some(function (r) { return r.team_id === tg.id && r.kind === kind && r.L === L; })) return;
         var b = botOf(v.id);
-        later('rep:' + sh.id + ':' + tg.id, function () { return FL.api.report(b.team_id, b.token, tg.id, kind, L, qEst(tg.id, L)).then(function () { return FL.store.refresh(); }); });
+        later('rep:' + sh.id + ':' + tg.id, function () { return FL.api.report(b.team_id, b.token, tg.id, kind, L, Math.round(qEst(tg.id, L) * C.shiftSeconds(par, ph) / C.shiftSeconds(par, 'trial'))).then(function () { return FL.store.refresh(); }); });
       });
     }
     // 2. bots confirm what neighbours reported about them
@@ -425,15 +429,15 @@
       });
     });
     // 3. bots decide
-    if (ph === 'decide1' || ph === 'decide2') {
-      var per2 = ph === 'decide1' ? 1 : 2;
+    if (/^decide[012]$/.test(ph)) {
+      var per2 = C.phasePeriod(ph);
       live.forEach(function (b) {
         var tm = FL.team(snap, b.team_id); if (!tm || tm.present < 1) return;
         if (snap.locked.some(function (x) { return x.team_id === tm.id && x.period === per2; })) return;
         later('dec:' + ph + ':' + tm.id, function () {
           var bp = C.bestPlan(botPoints(snap, tm), par.p, par.w), h = hash(tm.id + ph), L = bp.L;
           if (h % 7 === 0) L = Math.max(0, Math.min(tm.present, L + (h % 2 ? 1 : -1)));
-          if (per2 === 1) return FL.api.submit(tm.id === b.team_id ? b.team_id : tm.id, b.token, 1, true, L, null).then(function () { return FL.store.refresh(); });
+          if (per2 < 2) return FL.api.submit(tm.id === b.team_id ? b.team_id : tm.id, b.token, per2, true, L, null).then(function () { return FL.store.refresh(); });
           var renew = bp.G > par.F ? (h % 10 !== 0) : (h % 10 === 0), nOpen = snap.teams.filter(function (x) { var d = C.decisionOf(snap.decisions, x.id, 1); return d && d.L > 0; }).length;
           var pred = Math.max(0, Math.min(nOpen, Math.round(nOpen * 0.4) + (h % 3) - 1));
           return FL.api.submit(b.team_id, b.token, 2, renew, renew ? Math.max(L, 1) : 0, pred).then(function () { return FL.store.refresh(); });

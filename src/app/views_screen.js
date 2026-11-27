@@ -7,7 +7,7 @@
   var tilePage = 0, PAGE_SIZE = 20;
 
   function head(snap) {
-    var cur = PH.indexOf(snap.session.phase);
+    var PH = C.phasesFor(snap.session.params), cur = PH.indexOf(snap.session.phase);
     var steps = PH.map(function (p, i) { return '<span class="ph ' + (i === cur ? 'on' : i < cur ? 'done' : '') + '">' + t('ph_' + p) + '</span>'; }).join('');
     return '<div class="screenhead"><div class="brand big"><i></i>' + t('app_title') + '</div><div class="grow"></div>' +
       '<span class="pill solid" style="font-size:24px">' + t('room_code') + ' ' + esc(snap.session.code) + '</span>' +
@@ -18,24 +18,24 @@
 
   // tile state for the current phase
   function tileInfo(snap, tm) {
-    var ph = snap.session.phase, d1 = C.decisionOf(snap.decisions, tm.id, 1), d2 = C.decisionOf(snap.decisions, tm.id, 2);
+    var ph = snap.session.phase, sunkPer = C.phasePeriod(ph) === 0 ? 0 : 1, d1 = C.decisionOf(snap.decisions, tm.id, sunkPer), d2 = C.decisionOf(snap.decisions, tm.id, 2);
     var lockedFor = function (per) { return snap.locked.some(function (x) { return x.team_id === tm.id && x.period === per; }); };
     var led = (/^(ledger|debrief)/.test(ph)) ? C.ledger(tm, snap) : null;
     var o = { state: 'unk', L: 0, tag: '', badge: '', sub: t('table_n', tm.table_no) + ' · ' + t('k_people', tm.present) };
-    if (ph === 'lobby') { o.state = 'idle'; o.sub = t('table_n', tm.table_no); o.tag = t('k_people', tm.present); }
+    if ((ph === 'lobby' || ph === 'practice')) { o.state = 'idle'; o.sub = t('table_n', tm.table_no); o.tag = t('k_people', tm.present); }
     else if (ph === 'trial' || ph === 'market') {
       var pts = C.trialPoints(snap.runs, tm.id), n = Object.keys(pts).length;
       o.state = 'idle'; o.tag = t('tested_n', n);
     }
-    else if (ph === 'decide1') { o.state = 'unk'; o.tag = lockedFor(1) ? t('locked') : t('thinking'); o.locked = lockedFor(1); o.tag = o.locked ? '' : t('thinking'); o.badge = lockedFor(1) ? '✓' : '…'; o.off = !lockedFor(1); }
+    else if ((ph === 'decide0' || ph === 'decide1')) { o.state = 'unk'; o.tag = lockedFor(sunkPer) ? t('locked') : t('thinking'); o.locked = lockedFor(sunkPer); o.tag = o.locked ? '' : t('thinking'); o.badge = lockedFor(sunkPer) ? '✓' : '…'; o.off = !lockedFor(sunkPer); }
     else if (ph === 'decide2') {
       if (d1) { o.state = d1.L > 0 ? 'open' : 'stop'; o.L = d1.L; }
       o.locked = lockedFor(2); o.tag = o.locked ? '' : t('thinking'); o.badge = lockedFor(2) ? '✓' : '…'; o.off = !lockedFor(2);
     }
-    else if (ph === 'run1' || ph === 'ledger1') {
+    else if (/^(run|ledger)[01]$/.test(ph)) {
       if (d1) { o.state = d1.L > 0 ? 'open' : 'stop'; o.L = d1.L; o.tag = d1.L > 0 ? t('open_n', d1.L) : t('stop'); }
       else { o.tag = t('no_dec_short'); }
-      if (ph === 'ledger1' && led && led.periods[1].complete) o.tag = sg(led.periods[1].profit);
+      if (/^ledger[01]$/.test(ph) && led && led.periods[sunkPer].complete) o.tag = sg(led.periods[sunkPer].profit);
     }
     else { // run2, ledger2, debrief
       if (d2) { o.state = d2.renew ? (d2.L > 0 ? 'open' : 'stop') : 'exit'; o.L = d2.L; o.tag = d2.renew ? t('renew_n', d2.L) : t('exit'); }
@@ -44,7 +44,7 @@
     }
     // production progress badge
     if (/^run/.test(ph) && o.state === 'open') {
-      var kind = ph === 'run1' ? 'p1' : 'p2', r = snap.runs.filter(function (x) { return x.team_id === tm.id && x.kind === kind; })[0];
+      var kind = 'p' + C.phasePeriod(ph), r = snap.runs.filter(function (x) { return x.team_id === tm.id && x.kind === kind; })[0];
       o.badge = r ? (r.status === 'confirmed' || r.status === 'host' ? '✓' : '·') : '…'; o.off = !(r && (r.status === 'confirmed' || r.status === 'host'));
     }
     if (ph === 'trial') {
@@ -84,7 +84,7 @@
     maxQ = Math.ceil((maxQ + 1) / 2) * 2;
     var x = function (L) { return m.l + (W - m.l - m.r) * (L / 4); }, y = function (q) { return H - m.b - (H - m.t - m.b) * (q / maxQ); };
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="' + t('chart_alt') + '">';
-    s += '<text x="' + m.l + '" y="22" font-size="18" fill="#5b564e">' + t('chart_y', snap.session.params.secs) + '</text>';
+    s += '<text x="' + m.l + '" y="22" font-size="18" fill="#5b564e">' + t('chart_y', C.shiftSeconds(snap.session.params, 'trial')) + '</text>';
     for (var g = 0; g <= maxQ; g += maxQ <= 10 ? 2 : 4) s += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(g) + '" y2="' + y(g) + '" stroke="#e3dccd" stroke-width="2"/><text x="' + (m.l - 10) + '" y="' + (y(g) + 6) + '" text-anchor="end" font-size="18" fill="#5b564e">' + g + '</text>';
     for (var L = 0; L <= 4; L++) s += '<text x="' + x(L) + '" y="' + (H - 18) + '" text-anchor="middle" font-size="20" fill="#1c1b1a" font-weight="700">' + L + '</text>';
     s += '<text x="' + (W / 2) + '" y="' + (H - 0) + '" text-anchor="middle" font-size="16" fill="#5b564e">' + t('c_workers') + '</text>';
@@ -159,22 +159,23 @@
   }
   function decideScreen(snap, per) {
     var act = FL.active(snap), n = snap.locked.filter(function (x) { return x.period === per && act.some(function (a) { return a.id === x.team_id; }); }).length;
-    return '<div class="card dark"><div class="huge">' + (per === 1 ? t('d1_screen') : t('d2_screen')) + '</div><div style="font-size:26px;margin-top:6px;opacity:.9">' + (per === 1 ? t('d1_screen_p', snap.session.params.F) : t('d2_screen_p', snap.session.params.F)) + '</div></div>' +
+    return (snap.session.params.extended_rounds ? FL.leaseHTML(snap,per) : '') + '<div class="card dark"><div class="huge">' + (per < 2 ? t('d1_screen') : t('d2_screen')) + '</div><div style="font-size:26px;margin-top:6px;opacity:.9">' + (per < 2 ? t('d1_screen_p', snap.session.params.F) : t('d2_screen_p', snap.session.params.F)) + '</div></div>' +
       '<div class="card stack"><div class="big" style="font-weight:800">' + t('submitted') + '</div>' + progress(n, act.length) + '</div>' + tiles(snap);
   }
 
   function summaryCards(snap, per) {
     var a = C.classAggregates(snap);
-    var submitted = per === 1 ? a.decided1 : a.decided2;
-    var cells = per === 1 ? [[a.opened1, t('s_open')], [a.stopped1, t('s_stop')]] : [[a.renew2, t('s_renew')], [a.exit2, t('s_exit')]];
+    if (per === 0) { var ds = snap.decisions.filter(function(d){return d.period===0 && FL.active(snap).some(function(tm){return tm.id===d.team_id;});}); a.decided1=ds.length; a.opened1=ds.filter(function(d){return d.L>0;}).length; a.stopped1=ds.length-a.opened1; }
+    var submitted = per < 2 ? a.decided1 : a.decided2;
+    var cells = per < 2 ? [[a.opened1, t('s_open')], [a.stopped1, t('s_stop')]] : [[a.renew2, t('s_renew')], [a.exit2, t('s_exit')]];
     return '<div class="q-cards" style="grid-template-columns:repeat(2,1fr)">' + cells.map(function (c) { return '<div class="card"><div class="v">' + (submitted ? c[0] : '—') + '</div><div class="k">' + c[1] + '</div></div>'; }).join('') + '</div>' + (submitted < a.n ? '<div class="banner warn small">' + t('missing_decisions', a.n - submitted) + '</div>' : '');
   }
 
   function runScreen(snap, per) {
-    var act = FL.active(snap), kind = per === 1 ? 'p1' : 'p2';
+    var act = FL.active(snap), kind = 'p' + per;
     var prod = act.filter(function (x) { var d = C.decisionOf(snap.decisions, x.id, per); return d && d.renew && d.L > 0; });
     var done = prod.filter(function (x) { return snap.runs.some(function (r) { return r.team_id === x.id && r.kind === kind && (r.status === 'confirmed' || r.status === 'host'); }); }).length;
-    return '<div class="card dark row shift-stage"><div class="grow"><div class="huge">' + t('run_screen', per) + '</div></div><div style="width:300px">' + FL.cdHTML(snap) + '</div></div>' +
+    return '<div class="card dark row shift-stage"><div class="grow"><div class="huge">' + t('run_screen', C.roundNumber(per,snap.session.params)) + '</div></div><div style="width:300px">' + FL.cdHTML(snap) + '</div></div>' +
       summaryCards(snap, per) + '<div class="card production-progress"><span>' + t('verified_progress') + '</span>' + progress(done, prod.length) + '</div>' + tiles(snap);
   }
 
@@ -184,12 +185,12 @@
     else {
       var l = C.ledger(tm, snap), p = l.periods[per], before = l.periods[1];
       var choice = !p.decided ? t('no_dec_short') : per === 2 && !p.renew ? t('exit') : p.L === 0 ? t('stop') : t('hire_n', p.L);
-      var other = per === 1 ? (p.L > 0 ? t('stop') : t('open_option')) : p.renew ? t('exit') : t('renew');
+      var other = per < 2 ? (p.L > 0 ? t('stop') : t('open_option')) : p.renew ? t('exit') : t('renew');
       var diff = p.complete && p.counterfactual != null ? p.profit - p.counterfactual : null;
       body = '<div class="card ledger-feature"><div class="feature-identity"><div class="feature-icon">' + FL.factory(p.renew === false ? 'exit' : p.L > 0 ? 'open' : 'stop', p.L || 0, {label:tm.name}) + '</div><div><h2>' + esc(tm.name) + '</h2><div class="muted">' + t('table_n',tm.table_no) + '</div></div></div>' +
         '<div class="feature-duel"><div><span>' + choice + '</span><b>' + (p.complete ? sg(p.profit) : '—') + '</b></div><i>vs</i><div><span>' + other + (p.counterfactualKind === 'estimate' ? '*' : '') + '</span><b>' + (p.complete ? sg(p.counterfactual) : '—') + '</b></div></div>' +
         '<div class="feature-context"><div class="feature-difference">' + (diff == null ? t('comparison_unknown_short') : t('choice_delta',sg(diff)) + (p.counterfactualKind === 'estimate' ? '*' : '')) + '</div><div class="feature-arithmetic">' + (p.complete ? t('profit_arithmetic',FL.n2(p.rev),FL.n2(p.wage),FL.n2(p.rent)) : t('ledger_pending')) + '</div>' +
-        (per === 2 ? '<div class="feature-periods">' + t('period_totals',before.complete?sg(before.profit):'—',p.complete?sg(p.profit):'—',sg(l.total)) + '</div>' : '') +
+        (per === 2 ? '<div class="feature-periods">' + (par.extended_rounds ? t('round_totals', l.periods[0].complete?sg(l.periods[0].profit):'—', before.complete?sg(before.profit):'—',p.complete?sg(p.profit):'—',sg(l.total)) : t('period_totals',before.complete?sg(before.profit):'—',p.complete?sg(p.profit):'—',sg(l.total))) + '</div>' : '') +
         (p.counterfactualKind === 'estimate' ? '<div class="estimate-note">* ' + t('est_note') + '</div>' : '') + '</div></div>';
     }
     return '<div class="ledger-layout">' + body + classComparison(snap,per) + '</div>';
@@ -197,24 +198,24 @@
 
   function classComparison(snap, per) {
     var rows = C.comparisonRows(snap,per), comparable = rows.filter(function(r){return r.comparable;}), better = comparable.filter(function(r){return r.delta>0;}).length;
-    var magnitude = Math.max.apply(null,[1,per===1?snap.session.params.F:0].concat(comparable.map(function(r){return Math.abs(r.delta);}))) * 1.08;
+    var magnitude = Math.max.apply(null,[1,per<2?snap.session.params.F:0].concat(comparable.map(function(r){return Math.abs(r.delta);}))) * 1.08;
     function x(v){return 50 + 46*v/magnitude;}
     function ordered(list){return list.slice().sort(function(a,b){return (a.comparable===b.comparable?0:a.comparable?-1:1) || (b.delta||0)-(a.delta||0) || a.team.table_no-b.team.table_no;});}
     function plot(list){return '<div class="profit-plot delta-plot" style="--plot-rows:'+Math.max(1,Math.ceil(list.length/2))+'">'+ordered(list).map(function(r){
       var tag = per===2 ? '<b class="plot-decision" title="'+t(r.choice==='renew'?'renew':r.choice==='exit'?'exit':'no_dec_short')+'">'+t(r.choice==='renew'?'renew_short':r.choice==='exit'?'exit_short':'no_dec_short')+'</b>' : '';
       var description = t('row_profit_details',sg(r.actual),sg(r.alternative),sg(r.delta))+(r.estimated?'*':'');
-      var track = '<div class="profit-track"><i class="delta-zero-guide"></i>'+(per===1?'<i class="income-zero-guide" style="left:'+x(snap.session.params.F)+'%"></i>':'');
+      var track = '<div class="profit-track"><i class="delta-zero-guide"></i>'+(per<2?'<i class="income-zero-guide" style="left:'+x(snap.session.params.F)+'%"></i>':'');
       if(r.comparable)track += '<i class="profit-segment '+(r.delta<0?'worse':'better')+'" style="left:'+Math.min(50,x(r.delta))+'%;width:'+Math.abs(x(r.delta)-50)+'%"></i><i class="actual-dot" style="left:'+x(r.delta)+'%"></i>';
       return '<div class="profit-plot-row" data-choice="'+r.choice+'" data-team="'+esc(r.team.id)+'" data-actual="'+(r.actual==null?'':r.actual)+'" data-alternative="'+(r.alternative==null?'':r.alternative)+'" data-delta="'+(r.delta==null?'':r.delta)+'" title="'+esc(description)+'" aria-label="'+esc(r.team.name+' '+description)+'"><span class="plot-name">'+tag+'<span class="plot-label" title="'+esc(r.team.name)+'">'+r.team.table_no+' · '+esc(r.team.name)+'</span></span>'+track+'</div><span class="plot-values">'+(r.delta==null?'—':sg(r.delta)+(r.estimated?'*':''))+'</span></div>';
     }).join('')+'</div>';}
-    var axis = '<div class="profit-axis-row"><span>'+t('factory_short')+'</span><div class="delta-axis"><b class="center-axis-label">'+(per===1?t('shutdown_axis',sg(-snap.session.params.F)):t('same_outcome_axis'))+'</b>'+(per===1?'<b class="income-axis-label" style="left:'+x(snap.session.params.F)+'%">'+t('income_zero_axis')+'</b>':'')+'</div><span class="right">'+t('difference')+'</span></div>';
-    var groups = per===1 ? [{choice:'all',list:rows}] : ['renew','exit','missing'].map(function(choice){return{choice:choice,list:rows.filter(function(r){return r.choice===choice;})};}).filter(function(g){return g.list.length;});
+    var axis = '<div class="profit-axis-row"><span>'+t('factory_short')+'</span><div class="delta-axis"><b class="center-axis-label">'+(per<2?t('shutdown_axis',sg(-snap.session.params.F)):t('same_outcome_axis'))+'</b>'+(per<2?'<b class="income-axis-label" style="left:'+x(snap.session.params.F)+'%">'+t('income_zero_axis')+'</b>':'')+'</div><span class="right">'+t('difference')+'</span></div>';
+    var groups = per<2 ? [{choice:'all',list:rows}] : ['renew','exit','missing'].map(function(choice){return{choice:choice,list:rows.filter(function(r){return r.choice===choice;})};}).filter(function(g){return g.list.length;});
     var body = groups.map(function(g){return '<section class="delta-group" data-group="'+g.choice+'" style="flex:'+Math.max(1,Math.ceil(g.list.length/2))+' 1 '+(per===2?'26px':'0px')+'">'+(per===2?'<h3>'+t(g.choice==='renew'?'group_renew':g.choice==='exit'?'group_exit':'group_missing',g.list.length)+'</h3>':'')+plot(g.list)+'</section>';}).join('');
     var working = comparable.filter(function(r){return r.choice==='work';}), workBetter = working.filter(function(r){return r.delta>0;}).length;
-    var headline = per===1 ? t(working.length && workBetter===working.length?'all_open_better':'open_better',workBetter) : t('choices_helped',better);
+    var headline = per<2 ? t(working.length && workBetter===working.length?'all_open_better':'open_better',workBetter) : t('choices_helped',better);
     if(!comparable.length)headline=t('waiting_comparison');
     var profitable = comparable.filter(function(r){return r.choice==='work'&&r.actual>0;}).length, lessLoss = comparable.filter(function(r){return r.choice==='work'&&r.actual<0&&r.delta>0;}).length;
-    var context = per===1?t('profit_loss_counts',profitable,lessLoss):t('delta_estimate_context');
+    var context = per<2?t('profit_loss_counts',profitable,lessLoss):t('delta_estimate_context');
     return '<div class="card class-comparison chart-comparison"><div class="comparison-heading"><h2 class="class-aha" data-sk="aha'+per+'">'+headline+'</h2><span>'+context+'</span></div><div class="profit-axes">'+axis+axis+'</div><div class="delta-groups">'+body+'</div><div class="plot-footer">'+t('delta_plot_note')+(comparable.length<rows.length?' '+t('comparison_missing',rows.length-comparable.length):'')+'</div></div>';
   }
 
@@ -239,8 +240,8 @@
     if (!snap) return '<div class="screenwrap"><div class="card big center">' + t('loading') + ' ' + esc(r.code) + '</div></div>';
     var ph = snap.session.phase;
     // arm the flip animation once when production starts
-    if (flip.from !== ph) { tilePage = 0; flip.armed = (ph === 'run1' && flip.from === 'decide1') || (ph === 'run2' && flip.from === 'decide2'); flip.from = ph; }
-    var body = ({ lobby: lobbyScreen, trial: trialScreen, market: marketScreen, decide1: function (s) { return decideScreen(s, 1); }, run1: function (s) { return runScreen(s, 1); },
+    if (flip.from !== ph) { tilePage = 0; flip.armed = (ph === 'run0' && flip.from === 'decide0') || (ph === 'run1' && flip.from === 'decide1') || (ph === 'run2' && flip.from === 'decide2'); flip.from = ph; }
+    var body = ({ lobby: lobbyScreen, practice: function(s) { return FL.practiceHTML(s) + tiles(s); }, decide0: function(s) { return decideScreen(s,0); }, run0: function(s) { return runScreen(s,0); }, ledger0: function(s) { return ledgerScreen(s,0); }, trial: trialScreen, market: marketScreen, decide1: function (s) { return decideScreen(s, 1); }, run1: function (s) { return runScreen(s, 1); },
       ledger1: function (s) { return ledgerScreen(s, 1); }, decide2: function (s) { return decideScreen(s, 2); }, run2: function (s) { return runScreen(s, 2); },
       ledger2: function (s) { return ledgerScreen(s, 2); }, debrief: debriefScreen })[ph](snap);
     return '<div class="screenwrap">' + head(snap) + '<div class="screenbody phase-' + ph + '">' + body + '</div></div>';

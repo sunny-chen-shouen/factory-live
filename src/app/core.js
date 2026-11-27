@@ -22,6 +22,9 @@
   // English by default for everyone; only an explicit switch (stored in fl_lang) changes it.
   FL.lang = FL.ls.get('fl_lang') === 'zh' ? 'zh' : 'en';
   FL.t = function (key) {
+    var snap = FL.store && FL.store.snap, extended = snap && snap.session.params.extended_rounds;
+    if (extended && FL.dict['extended_' + key]) key = 'extended_' + key;
+    if (extended && /^(extended_)?d1_(h|screen)$/.test(key) && /0$/.test(snap.session.phase)) key = key.replace('extended_', '') + '_first';
     var d = FL.dict[key];
     if (!d) { return '⟦' + key + '⟧'; }
     var s = d[FL.lang] != null ? d[FL.lang] : d.zh;
@@ -41,6 +44,20 @@
   FL.$ = function (sel, root) { return (root || document).querySelector(sel); };
   FL.$$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
   FL.snap = function () { return FL.store.snap; };
+  FL.practiceHTML = function (snap) {
+    return '<div class="card accent stack"><h2>' + FL.t('practice_h') + '</h2><p>' + FL.t('practice_p') + '</p>' + FL.cdHTML(snap) + '</div>';
+  };
+  FL.leaseHTML = function (snap, per) {
+    var F = snap.session.params.F;
+    return '<div class="banner lease-note">' + (per < 2 ? FL.t('prepaid_two', F * 2, F) : FL.t('renew_one', F)) + '</div>';
+  };
+  FL.roundHistoryHTML = function (snap, me) {
+    var led = C.ledger(me,snap);
+    return '<div class="card stack round-history"><h3>' + FL.t('round_history') + '</h3><table class="t"><tr><th>' + FL.t('round') + '</th><th>' + FL.t('c_workers') + '</th><th>' + FL.t('c_rings') + '</th><th>' + FL.t('l_profit') + '</th></tr>' + [0,1,2].map(function(k) {
+      var p = led.periods[k];
+      return '<tr><td>' + FL.t('period' + k) + '</td><td>' + (p.decided ? p.renew ? p.L : FL.t('exit') : '—') + '</td><td>' + (p.complete && p.q != null ? FL.n2(p.q) : '—') + '</td><td class="sign">' + (p.complete ? FL.sg(p.profit) : '—') + '</td></tr>';
+    }).join('') + '</table><div class="row"><b class="grow">' + FL.t('total_h') + '</b><b>' + FL.sg(led.total) + '</b></div></div>';
+  };
   FL.team = function (snap, id) { return snap.teams.filter(function (t) { return t.id === id; })[0]; };
   FL.active = function (snap) { return snap.teams.filter(function (t) { return t.present > 0; }); };
   FL.toast = function (msg) {

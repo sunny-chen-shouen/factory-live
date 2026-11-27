@@ -3,6 +3,22 @@
   'use strict';
 
   var PHASES = ['lobby', 'trial', 'market', 'decide1', 'run1', 'ledger1', 'decide2', 'run2', 'ledger2', 'debrief'];
+  var EXTENDED_PHASES = ['lobby', 'practice', 'trial', 'market', 'decide0', 'run0', 'ledger0', 'decide1', 'run1', 'ledger1', 'decide2', 'run2', 'ledger2', 'debrief'];
+  function phasesFor(params) { return params && params.extended_rounds ? EXTENDED_PHASES : PHASES; }
+  function phasePeriod(phase) { return /^(decide|run|ledger)[012]$/.test(phase) ? Number(phase.slice(-1)) : null; }
+  function roundNumber(period, params) { return params && params.extended_rounds ? period + 1 : period; }
+  function shiftSeconds(params, phase) {
+    return phase === 'practice' ? (params.practice_secs || 30) : phase === 'trial' ? (params.trial_secs || params.secs || 20) : (params.secs || 20);
+  }
+  // Scaling is a planning estimate, never an observed production result.
+  function productionPoints(runs, teamId, params) {
+    var pts = trialPoints(runs, teamId), out = {}, ratio = shiftSeconds(params, 'run1') / shiftSeconds(params, 'trial');
+    Object.keys(pts).forEach(function (L) { out[L] = pts[L] * ratio; });
+    if (params.extended_rounds) ['p0','p1'].forEach(function (kind) {
+      runs.forEach(function (r) { if (r.team_id === teamId && r.kind === kind && (r.status === 'confirmed' || r.status === 'host')) out[r.L] = r.q; });
+    });
+    return out;
+  }
 
   // Decisions are revealed from the moment production starts.
   function revealFor(phase) {
@@ -93,15 +109,15 @@
   // Full two-period ledger for one team. Missing data stays null rather than guessed.
   function ledger(team, snap) {
     var par = snap.session.params, p = par.p, w = par.w, F = par.F;
-    var pts = trialPoints(snap.runs, team.id);
+    var pts = productionPoints(snap.runs, team.id, par);
     var plan = bestPlan(pts, p, w);
     var operating = plan.rows.filter(function (r) { return r.L > 0; }).sort(function (a, b) { return b.net - a.net || a.L - b.L; })[0];
     var out = { team: team, params: { p: p, w: w, F: F }, points: pts, plan: plan, periods: {} };
 
-    [1, 2].forEach(function (k) {
+    (par.extended_rounds ? [0, 1, 2] : [1, 2]).forEach(function (k) {
       var d = decisionOf(snap.decisions, team.id, k);
       var P = { period: k, decided: !!d, renew: d ? d.renew : null, L: d ? d.L : null, predict: d ? d.predict : null,
-        rent: k === 1 ? F : (d ? (d.renew ? F : 0) : null), complete: false };
+        rent: k < 2 ? F : (d ? (d.renew ? F : 0) : null), complete: false };
       if (d) {
         if (k === 2 && !d.renew) {
           P.q = null; P.rev = 0; P.wage = 0; P.rent = 0; P.profit = 0;
@@ -114,10 +130,10 @@
           P.counterfactualKind = k === 2 ? 'exact' : 'estimate';
           P.complete = true;
         } else {
-          var r = runOf(snap.runs, team.id, k === 1 ? 'p1' : 'p2', d.L);
+          var r = runOf(snap.runs, team.id, 'p' + k, d.L);
           if (r && (r.status === 'confirmed' || r.status === 'host')) {
             P.q = r.q; P.rev = p * r.q; P.wage = w * d.L; P.rent = F; P.profit = p * r.q - w * d.L - F;
-            P.counterfactual = k === 1 ? -F : 0;       // stop today / exit next period
+            P.counterfactual = k < 2 ? -F : 0;       // stop within lease / exit at renewal
             P.counterfactualKind = 'exact';
             P.complete = true;
           } else {
@@ -130,6 +146,7 @@
 
     var p1 = out.periods[1], p2 = out.periods[2];
     out.total = p1.complete && p2.complete ? p1.profit + p2.profit : null;
+    if (par.extended_rounds) out.total = out.total != null && out.periods[0].complete ? out.total + out.periods[0].profit : null;
     out.openThenExit = !!(p1.decided && p1.L > 0 && p2.decided && !p2.renew);
     return out;
   }
@@ -140,14 +157,14 @@
   }
   function featuredTeam(snap, period) {
     var par = snap.session.params, teams = snap.teams.filter(function (tm) { return tm.present > 0; });
-    var explicit = par.featured_period === period || (period === 1 && !par.featured_period);
+    var explicit = par.featured_period === period || (period === 1 && par.featured_period == null);
     if (explicit && par.featured) {
       var selected = teams.filter(function (tm) { return tm.id === par.featured; })[0];
       if (selected) return selected;
     }
     var scored = teams.map(function (tm) {
       var l = ledger(tm, snap), p = l.periods[period], rank = 99;
-      if (period === 1 && p.complete) rank = p.L > 0 && p.profit < 0 && p.profit > -par.F ? 0 : 2;
+      if (period < 2 && p.complete) rank = p.L > 0 && p.profit < 0 && p.profit > -par.F ? 0 : 2;
       if (period === 2 && p.complete && p.counterfactual != null && p.profit >= p.counterfactual) rank = isExitExample(l) ? 0 : 1;
       return { team: tm, rank: rank };
     }).filter(function (x) { return x.rank < 99; }).sort(function (a, b) { return a.rank - b.rank || a.team.table_no - b.team.table_no; });
@@ -155,11 +172,11 @@
   }
   function comparisonRows(snap, period) {
     return snap.teams.filter(function (tm) { return tm.present > 0; }).map(function (tm) {
-      var p = ledger(tm, snap).periods[period], base = period === 1 ? -snap.session.params.F : p.counterfactual;
+      var p = ledger(tm, snap).periods[period], base = period < 2 ? -snap.session.params.F : p.counterfactual;
       var actual = p.complete ? p.profit : null, comparable = p.complete && base != null;
       return { team: tm, actual: actual, alternative: base == null ? null : base, delta: comparable ? actual - base : null,
         estimated: period === 2 && p.counterfactualKind === 'estimate', comparable: comparable,
-        choice: !p.decided ? 'missing' : period === 1 ? (p.L > 0 ? 'work' : 'stop') : (p.renew ? 'renew' : 'exit') };
+        choice: !p.decided ? 'missing' : period < 2 ? (p.L > 0 ? 'work' : 'stop') : (p.renew ? 'renew' : 'exit') };
     });
   }
 
@@ -277,7 +294,7 @@
   }
 
   var api = {
-    PHASES: PHASES, revealFor: revealFor, trialPoints: trialPoints, net: net, profit: profit,
+    PHASES: PHASES, phasesFor: phasesFor, phasePeriod: phasePeriod, roundNumber: roundNumber, shiftSeconds: shiftSeconds, productionPoints: productionPoints, revealFor: revealFor, trialPoints: trialPoints, net: net, profit: profit,
     planRows: planRows, bestPlan: bestPlan, trialSummary: trialSummary, decisionOf: decisionOf, runOf: runOf, ledger: ledger,
     isExitExample: isExitExample, featuredTeam: featuredTeam, comparisonRows: comparisonRows,
     classAggregates: classAggregates, verifierOf: verifierOf, verifies: verifies, recommend: recommend,

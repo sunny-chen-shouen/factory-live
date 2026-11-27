@@ -96,7 +96,7 @@
       updateTeam: function (team, token, present) {
         return wrap(function () {
           var db = load(), t = chkTeam(db, team, token), s = db.sessions[t.code];
-          if (['lobby', 'trial', 'market'].indexOf(s.phase) < 0) throw new Error('locked_phase');
+          if (['lobby', 'practice', 'trial', 'market'].indexOf(s.phase) < 0) throw new Error('locked_phase');
           if (present < 0 || present > 4) throw new Error('bad_present');
           t.present = present; bump(db, t.code); save(db);
         });
@@ -113,7 +113,7 @@
             teams: teams.map(function (t) { return { id: t.id, name: t.name, table_no: t.table_no, present: t.present }; }),
             runs: db.runs.filter(function (r) { return ids.indexOf(r.team_id) >= 0; }),
             locked: db.decisions.filter(function (d) { return ids.indexOf(d.team_id) >= 0; }).map(function (d) { return { team_id: d.team_id, period: d.period }; }),
-            decisions: db.decisions.filter(function (d) { return ids.indexOf(d.team_id) >= 0 && d.period <= s.reveal; })
+            decisions: db.decisions.filter(function (d) { return ids.indexOf(d.team_id) >= 0 && (d.period === 0 ? ['run0','ledger0','decide1','run1','ledger1','decide2','run2','ledger2','debrief'].indexOf(s.phase) >= 0 : d.period <= s.reveal); })
           }));
         });
       },
@@ -127,7 +127,8 @@
         return wrap(function () {
           var db = load(), t = chkTeam(db, team, token), s = db.sessions[t.code];
           if (s.phase !== 'decide' + period) throw new Error('not_deciding');
-          if (period === 1) renew = true;
+          if (![0,1,2].includes(period) || (period === 0 && !s.params.extended_rounds)) throw new Error('bad_period');
+          if (period < 2) renew = true;
           if (!renew) L = 0;
           if (L < 0 || L > t.present) throw new Error('bad_L');
           if (predict != null && (predict < 0 || predict > 60)) throw new Error('bad_predict');
@@ -147,7 +148,7 @@
           if (kind === 'trial') {
             if (s.phase !== 'trial') throw new Error('not_in_phase');
             if (L < 1 || L > tg.present) throw new Error('bad_L');
-          } else if (kind === 'p1' || kind === 'p2') {
+          } else if (kind === 'p0' || kind === 'p1' || kind === 'p2') {
             var per = Number(kind[1]);
             if (s.phase !== 'run' + per) throw new Error('not_in_phase');
             var d = db.decisions.filter(function (x) { return x.team_id === target && x.period === per; })[0];
@@ -169,6 +170,12 @@
       hostSet: function (code, key, patch) {
         return wrap(function () {
           var db = load(); chkHost(db, code, key); var s = db.sessions[code];
+          if (s.params.extended_rounds && patch.params) {
+            Object.keys(patch.params).forEach(function (k) {
+              if (s.params.timing_locked && ['secs','trial_secs','practice_secs','extended_rounds'].indexOf(k) >= 0 && patch.params[k] !== s.params[k]) throw new Error('timing_locked');
+              if (/^(secs|trial_secs|practice_secs)$/.test(k) && (!Number.isInteger(patch.params[k]) || patch.params[k] < 1 || patch.params[k] > 120)) throw new Error('bad_duration');
+            });
+          }
           if (patch.phase != null) s.phase = patch.phase;
           if (patch.params) s.params = Object.assign({}, s.params, patch.params);
           if (patch.shift) s.shift = patch.shift;
@@ -199,7 +206,7 @@
           var db = load(); chkHost(db, code, key);
           var t = db.teams.filter(function (x) { return x.id === team; })[0];
           if (!t) throw new Error('wrong_session');
-          if (period === 1) renew = true;
+          if (period < 2) renew = true;
           if (!renew) L = 0;
           if (L < 0 || L > t.present) throw new Error('bad_L');
           upsert(db.decisions, function (d) { return d.team_id === team && d.period === period; },
@@ -215,7 +222,7 @@
           else if (scope === 'runs' || scope === 'all') {
             db.runs = db.runs.filter(function (r) { return ids.indexOf(r.team_id) < 0; });
             db.decisions = db.decisions.filter(function (d) { return ids.indexOf(d.team_id) < 0; });
-            var s = db.sessions[code]; s.phase = 'lobby'; s.reveal = 0; s.shift = {};
+            var s = db.sessions[code]; s.phase = 'lobby'; s.reveal = 0; s.shift = {}; delete s.params.timing_locked;
             if (scope === 'all') db.teams = db.teams.filter(function (t) { return t.code !== code; });
           } else throw new Error('bad_scope');
           bump(db, code); save(db);
